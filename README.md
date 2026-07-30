@@ -88,5 +88,26 @@ keeps running independently, and the two origins keep separate sessions.
   your auth token never leaves the machine (it's sent in headers, not URLs).
 - Your session ("keep me signed in"), layout, and theme live in your browser's
   localStorage for the `chat.localhost:9000` origin.
-- Uninstall: `bc-stop`, delete `~/.better-chat/`, remove the LaunchAgent/systemd
-  unit and the `# >>> better.chat >>>` block from your shell rc file.
+
+## Uninstall
+
+**macOS** — stop the service, remove all files, and drop the `bc-*` commands:
+
+```bash
+launchctl bootout gui/$(id -u)/com.betterchat 2>/dev/null; rm -f ~/Library/LaunchAgents/com.betterchat.plist; rm -rf ~/.better-chat; sed -i '' '/# >>> better.chat >>>/,/# <<< better.chat <<</d' ~/.zshrc
+```
+
+Then open a **new terminal** and verify everything is gone (all three should be empty/0):
+
+```bash
+launchctl list | grep -i better; ls ~/.better-chat 2>/dev/null; grep -c better.chat ~/.zshrc
+```
+
+**Linux** — same idea with systemd:
+
+```bash
+systemctl --user disable --now better-chat 2>/dev/null; rm -f ~/.config/systemd/user/better-chat.service; systemctl --user daemon-reload; rm -rf ~/.better-chat; sed -i '/# >>> better.chat >>>/,/# <<< better.chat <<</d' ~/.bashrc
+```
+
+Uninstalling doesn't touch your browser's localStorage — the saved session/layout
+for `chat.localhost:9000` survives a reinstall.
