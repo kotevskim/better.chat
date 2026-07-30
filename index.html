@@ -864,7 +864,12 @@
   // authenticated file access — token stays in headers (not the URL). Tries the server directly (needs
   // file-route CORS), then falls back to the same-origin path (works when served via proxy.py).
   const authFetch = url => fetch(url, { headers: { "X-Auth-Token": rcToken, "X-User-Id": myUserId } });
+  const isOurUrl = url => (serverHost && url.startsWith("https://" + serverHost + "/")) || url.startsWith(location.origin + "/") || url.startsWith("blob:") || (url.startsWith("/") && !url.startsWith("//"));
   async function fileFetch(url) {
+    if (!isOurUrl(url)) {   // external URL (e.g. a link-preview attachment): NEVER attach the auth token
+      try { const r = await fetch(url); if (r.ok) return r; } catch (e) {}
+      return null;
+    }
     try { const r = await authFetch(url); if (r.ok) return r; } catch (e) {}
     const path = url.replace(/^https?:\/\/[^/]+/, "");
     try { const r2 = await authFetch(location.origin + path); if (r2.ok) return r2; } catch (e) {}
@@ -894,7 +899,7 @@
       const url = el.dataset.src; el.removeAttribute("data-src");
       const drop = () => { const w = el.closest(".att-imgwrap"); if (w) w.remove(); else el.remove(); };   // failed image -> no empty box left behind
       el.addEventListener("error", drop, { once: true });
-      const ours = (serverHost && url.startsWith("https://" + serverHost)) || url.startsWith(location.origin) || url.startsWith("blob:") || url.startsWith("/");
+      const ours = isOurUrl(url);
       if (!ours) { el.src = url; continue; }   // external link previews: plain <img> load (an authed fetch would just CORS-fail)
       const u = await cachedBlobUrl(url);
       if (u) el.src = u; else drop();

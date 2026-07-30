@@ -54,8 +54,9 @@ command -v python3 >/dev/null 2>&1 || fail "python3 still not available."
 # ---------- 2. files ----------
 say "Installing files to $DIR"
 mkdir -p "$DIR"
-curl -fsSL "$REPO_RAW/index.html" -o "$DIR/index.html" || fail "Couldn't download index.html"
-curl -fsSL "$REPO_RAW/proxy.py"   -o "$DIR/proxy.py"   || fail "Couldn't download proxy.py"
+TS=$(date +%s)   # cache-bust the raw CDN (~5 min TTL) so a fresh push installs fresh files
+curl -fsSL "$REPO_RAW/index.html?ts=$TS" -o "$DIR/index.html" || fail "Couldn't download index.html"
+curl -fsSL "$REPO_RAW/proxy.py?ts=$TS"   -o "$DIR/proxy.py"   || fail "Couldn't download proxy.py"
 printf '%s\n' "$RC_SERVER" > "$DIR/server"   # the proxy reads its target from here (kept out of the public repo)
 
 PY="$(command -v python3)"

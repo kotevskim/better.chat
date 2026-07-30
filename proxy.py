@@ -35,6 +35,20 @@ def _server():
 
 SERVER = _server()
 PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 9000
+
+def _ssl_ctx():
+    """Verifying TLS context. python.org builds on macOS often ship without a CA
+    bundle — fall back to certifi, then the macOS system bundle."""
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        pass
+    if ssl.get_default_verify_paths().cafile is None and os.path.exists("/etc/ssl/cert.pem"):
+        return ssl.create_default_context(cafile="/etc/ssl/cert.pem")
+    return ssl.create_default_context()
+
+CTX = _ssl_ctx()
 HTML_FILE = "index.html"
 PROXIED_PREFIXES = ("/api/", "/avatar/", "/emoji-custom/", "/file-upload/", "/file/")
 FORWARD_HEADERS = ("Content-Type", "X-Auth-Token", "X-User-Id", "Authorization", "Accept")
@@ -50,11 +64,8 @@ class Handler(SimpleHTTPRequestHandler):
             v = self.headers.get(h)
             if v:
                 req.add_header(h, v)
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False        # tolerate internal/self-signed certs (local dev proxy to your own server)
-        ctx.verify_mode = ssl.CERT_NONE
         try:
-            with urllib.request.urlopen(req, context=ctx, timeout=25) as r:
+            with urllib.request.urlopen(req, context=CTX, timeout=25) as r:
                 data = r.read()
                 self.send_response(r.status)
                 self.send_header("Content-Type", r.headers.get("Content-Type", "application/json"))
@@ -69,7 +80,8 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
         except Exception as e:
-            msg = ('{"success":false,"error":"proxy: %s"}' % e).encode()
+            hint = " (TLS trust problem: pip3 install certifi, then restart the proxy)" if isinstance(e, (ssl.SSLError, urllib.error.URLError)) and "CERTIFICATE_VERIFY" in str(e) else ""
+            msg = ('{"success":false,"error":"proxy: %s%s"}' % (e, hint)).encode()
             self.send_response(502)
             self.send_header("Content-Type", "application/json")
             self.end_headers()

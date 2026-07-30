@@ -54,6 +54,34 @@ Then open **http://chat.localhost:9001**. Edits to `index.html` apply on
 browser refresh; `Ctrl+C` stops the proxy. The installed service on port 9000
 keeps running independently, and the two origins keep separate sessions.
 
+## Why is this client secure
+
+- **Your password can't be sniffed — even on public Wi-Fi.** It is never sent as
+  plaintext and never stored: the browser SHA-256-digests it and sends the digest
+  over the direct `wss://` WebSocket to your server, a connection the browser
+  itself TLS-verifies. An interceptor can't decrypt it or impersonate the server
+  without a valid certificate for your domain.
+- **The auth token can't be intercepted either.** REST calls go through the local
+  proxy, which verifies the server's TLS certificate against trusted CAs
+  (system bundle or `certifi`) — a man-in-the-middle posing as your server gets
+  rejected, not your token.
+- **The token is only ever sent to *your* server.** It travels in headers (never
+  in URLs, so no log/history leakage), and the client refuses to attach it to
+  any external URL — a crafted message attachment pointing elsewhere is fetched
+  without credentials.
+- **Nothing is exposed to your network.** The proxy binds `127.0.0.1` only and
+  forwards nothing but a whitelist of Rocket.Chat API paths.
+- **No third parties.** A single HTML file with zero external scripts, CDNs,
+  fonts, or analytics — your credentials and messages only ever flow between
+  your browser and your Rocket.Chat server.
+- **localStorage, honestly.** With "keep me signed in" ticked, the login token
+  (never the password) is kept in localStorage, scoped to the `chat.localhost`
+  origin on your machine. In theory JavaScript on that origin could read it —
+  in practice that requires an XSS hole (all server-supplied content is
+  HTML-escaped before rendering) or someone with access to your local machine,
+  at which point they have your browser sessions anyway. Leave the box unticked
+  and the token lives in memory only, gone when the tab closes.
+
 ## Notes
 
 - The proxy binds `127.0.0.1` only — nothing is exposed to your network, and
