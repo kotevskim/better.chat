@@ -126,9 +126,9 @@ if [ -n "$RC_FILE" ]; then
   if [ "$OS" = "Darwin" ]; then
     cat >> "$RC_FILE" <<EOF
 $MARK_BEGIN
-bc-start()   { launchctl bootstrap "gui/\$(id -u)" "$PLIST"; }
-bc-stop()    { launchctl bootout "gui/\$(id -u)/$LABEL"; }
-bc-restart() { bc-stop 2>/dev/null; bc-start; }
+bc-start()   { launchctl list 2>/dev/null | grep -q "$LABEL" && echo "better.chat: already running" || launchctl bootstrap "gui/\$(id -u)" "$PLIST"; }
+bc-stop()    { launchctl bootout "gui/\$(id -u)/$LABEL" 2>/dev/null && echo "better.chat: stopped" || echo "better.chat: not running"; }
+bc-restart() { launchctl bootout "gui/\$(id -u)/$LABEL" 2>/dev/null; launchctl bootstrap "gui/\$(id -u)" "$PLIST"; }
 bc-status()  { launchctl list | grep -q $LABEL && echo "better.chat: running ($URL)" || echo "better.chat: stopped"; }
 bc-logs()    { tail -f "$DIR/proxy.log"; }
 bc-open()    { open "$URL"; }

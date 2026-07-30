@@ -116,6 +116,14 @@ class Handler(SimpleHTTPRequestHandler):
         pass
 
 
+class Server(ThreadingHTTPServer):
+    def handle_error(self, request, client_address):
+        t = sys.exc_info()[0]
+        if t and issubclass(t, (BrokenPipeError, ConnectionResetError)):
+            return   # the browser closed the connection mid-response — not interesting
+        super().handle_error(request, client_address)
+
+
 if __name__ == "__main__":
     print("Better.Chat proxy → https://%s   serving http://chat.localhost:%d" % (SERVER, PORT))
-    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    Server(("127.0.0.1", PORT), Handler).serve_forever()
