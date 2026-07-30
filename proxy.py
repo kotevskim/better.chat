@@ -2,23 +2,24 @@
 """
 Better.Chat local proxy.
 
-Serves grid-client.html AND forwards REST calls (/api/*, /avatar/*, /emoji-custom/*)
-to your Rocket.Chat server. This sidesteps the browser CORS block on cross-origin
-REST (reactions use POST /api/v1/chat.react). The DDP WebSocket still connects
-directly to wss://<server>/websocket — WebSockets aren't subject to CORS.
+Serves the app (index.html at "/") AND forwards REST calls (/api/*, /avatar/*,
+/emoji-custom/*, /file-upload/*, /file/*) to your Rocket.Chat server. This
+sidesteps the browser CORS block on cross-origin REST. The DDP WebSocket still
+connects directly to wss://<server>/websocket — WebSockets aren't subject to CORS.
 
-Run it from the folder that contains grid-client.html:
+Run it from the folder that contains index.html:
 
-    python3 proxy.py                      # server defaults to chat.sorsix.com, port 8000
+    python3 proxy.py                      # server defaults to chat.sorsix.com, port 9000
     python3 proxy.py chat.example.com 8080
 
-Then open  http://localhost:8000/grid-client.html  and sign in as usual.
+Then open  http://chat.localhost:9000  and sign in as usual.
 """
-import sys, ssl, urllib.request, urllib.error
+import os, sys, ssl, urllib.request, urllib.error
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 SERVER = sys.argv[1] if len(sys.argv) > 1 else "chat.sorsix.com"
-PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 8000
+PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 9000
+HTML_FILE = "index.html"
 PROXIED_PREFIXES = ("/api/", "/avatar/", "/emoji-custom/", "/file-upload/", "/file/")
 FORWARD_HEADERS = ("Content-Type", "X-Auth-Token", "X-User-Id", "Authorization", "Accept")
 
@@ -58,10 +59,24 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(msg)
 
+    def _serve_app(self):
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), HTML_FILE), "rb") as f:
+                data = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+        except OSError:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(b"index.html not found next to proxy.py")
+
     def do_GET(self):
         if self.path.startswith(PROXIED_PREFIXES):
             return self._proxy("GET")
-        return super().do_GET()
+        return self._serve_app()          # any non-proxied path serves the app (no filename in the URL)
 
     def do_POST(self):
         if self.path.startswith(PROXIED_PREFIXES):
@@ -74,5 +89,5 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("Better.Chat proxy → https://%s   serving http://localhost:%d/grid-client.html" % (SERVER, PORT))
+    print("Better.Chat proxy → https://%s   serving http://chat.localhost:%d" % (SERVER, PORT))
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

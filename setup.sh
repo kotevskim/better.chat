@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# Better.Chat setup — installs the app + always-on local proxy and bc-* shell commands.
+#
+# One-liner install:
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/kotevskim/better.chat/main/setup.sh)"
+#
+# After install:  open http://chat.localhost:9000  (Chrome/Firefox — no /etc/hosts needed)
+set -euo pipefail
+
+REPO_RAW="https://raw.githubusercontent.com/kotevskim/better.chat/main"
+DIR="$HOME/.better-chat"
+RC_SERVER="chat.sorsix.com"
+PORT=9000
+URL="http://chat.localhost:$PORT"
+LABEL="com.sorsix.betterchat"
+PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+UNIT_DIR="$HOME/.config/systemd/user"
+UNIT="$UNIT_DIR/better-chat.service"
+
+say()  { printf "\033[1;34m▸ %s\033[0m\n" "$*"; }
+fail() { printf "\033[1;31m✖ %s\033[0m\n" "$*"; exit 1; }
+
+OS="$(uname -s)"
+
+# ---------- 1. python3 ----------
+if ! command -v python3 >/dev/null 2>&1; then
+  say "python3 not found — installing…"
+  if [ "$OS" = "Darwin" ]; then
+    if command -v brew >/dev/null 2>&1; then
+      brew install python3
+    else
+      say "Triggering Xcode Command Line Tools install (includes python3). Re-run this script when it finishes."
+      xcode-select --install || true
+      exit 1
+    fi
+  else
+    if command -v apt-get >/dev/null 2>&1; then sudo apt-get update -qq && sudo apt-get install -y python3
+    elif command -v dnf >/dev/null 2>&1; then sudo dnf install -y python3
+    elif command -v pacman >/dev/null 2>&1; then sudo pacman -S --noconfirm python
+    else fail "No known package manager found — install python3 manually, then re-run."
+    fi
+  fi
+fi
+command -v python3 >/dev/null 2>&1 || fail "python3 still not available."
+
+# ---------- 2. files ----------
+say "Installing files to $DIR"
+mkdir -p "$DIR"
+curl -fsSL "$REPO_RAW/index.html" -o "$DIR/index.html" || fail "Couldn't download index.html"
+curl -fsSL "$REPO_RAW/proxy.py"   -o "$DIR/proxy.py"   || fail "Couldn't download proxy.py"
+
+PY="$(command -v python3)"
+
+# ---------- 3. always-on service (starts at login, auto-restarts) ----------
+if [ "$OS" = "Darwin" ]; then
+  say "Installing LaunchAgent $LABEL"
+  launchctl unload "$PLIST" 2>/dev/null || true
+  mkdir -p "$HOME/Library/LaunchAgents"
+  cat > "$PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>$LABEL</string>
+  <key>ProgramArguments</key><array>
+    <string>$PY</string><string>$DIR/proxy.py</string><string>$RC_SERVER</string><string>$PORT</string>
+  </array>
+  <key>WorkingDirectory</key><string>$DIR</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>$DIR/proxy.log</string>
+  <key>StandardErrorPath</key><string>$DIR/proxy.log</string>
+</dict></plist>
+EOF
+  launchctl load "$PLIST"
+else
+  say "Installing systemd user service better-chat"
+  mkdir -p "$UNIT_DIR"
+  cat > "$UNIT" <<EOF
+[Unit]
+Description=Better.Chat local proxy
+
+[Service]
+ExecStart=$PY $DIR/proxy.py $RC_SERVER $PORT
+WorkingDirectory=$DIR
+Restart=always
+RestartSec=2
+StandardOutput=append:$DIR/proxy.log
+StandardError=append:$DIR/proxy.log
+
+[Install]
+WantedBy=default.target
+EOF
+  systemctl --user daemon-reload
+  systemctl --user enable --now better-chat
+fi
+
+# ---------- 4. bc-* shell commands ----------
+case "$(basename "${SHELL:-bash}")" in
+  zsh)  RC_FILE="$HOME/.zshrc" ;;
+  bash) RC_FILE="$HOME/.bashrc" ;;
+  *)    RC_FILE="" ;;
+esac
+
+MARK_BEGIN="# >>> better.chat >>>"
+MARK_END="# <<< better.chat <<<"
+if [ -n "$RC_FILE" ]; then
+  say "Adding bc-* commands to $RC_FILE"
+  touch "$RC_FILE"
+  # remove a previous block so re-running stays idempotent
+  if grep -q "$MARK_BEGIN" "$RC_FILE"; then
+    sed -i.bak "/$MARK_BEGIN/,/$MARK_END/d" "$RC_FILE"
+  fi
+  if [ "$OS" = "Darwin" ]; then
+    cat >> "$RC_FILE" <<EOF
+$MARK_BEGIN
+bc-start()   { launchctl load "$PLIST"; }
+bc-stop()    { launchctl unload "$PLIST"; }
+bc-restart() { bc-stop 2>/dev/null; bc-start; }
+bc-status()  { launchctl list | grep -q $LABEL && echo "better.chat: running ($URL)" || echo "better.chat: stopped"; }
+bc-logs()    { tail -f "$DIR/proxy.log"; }
+bc-open()    { open "$URL"; }
+bc-update()  { curl -fsSL "$REPO_RAW/index.html" -o "$DIR/index.html" && curl -fsSL "$REPO_RAW/proxy.py" -o "$DIR/proxy.py" && bc-restart && echo "better.chat updated"; }
+$MARK_END
+EOF
+  else
+    cat >> "$RC_FILE" <<EOF
+$MARK_BEGIN
+bc-start()   { systemctl --user start better-chat; }
+bc-stop()    { systemctl --user stop better-chat; }
+bc-restart() { systemctl --user restart better-chat; }
+bc-status()  { systemctl --user is-active better-chat >/dev/null && echo "better.chat: running ($URL)" || echo "better.chat: stopped"; }
+bc-logs()    { tail -f "$DIR/proxy.log"; }
+bc-open()    { xdg-open "$URL" >/dev/null 2>&1 & }
+bc-update()  { curl -fsSL "$REPO_RAW/index.html" -o "$DIR/index.html" && curl -fsSL "$REPO_RAW/proxy.py" -o "$DIR/proxy.py" && bc-restart && echo "better.chat updated"; }
+$MARK_END
+EOF
+  fi
+else
+  say "Unknown shell '$SHELL' — add the bc-* helpers manually (see README)."
+fi
+
+# ---------- 5. done ----------
+sleep 1
+if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/"; then
+  say "Better.Chat is running → $URL"
+  if [ "$OS" = "Darwin" ]; then open "$URL"; else xdg-open "$URL" >/dev/null 2>&1 || true; fi
+  say "Open a NEW terminal (or 'source $RC_FILE') to use: bc-start bc-stop bc-restart bc-status bc-logs bc-open bc-update"
+else
+  fail "Proxy didn't answer on port $PORT — check $DIR/proxy.log"
+fi
