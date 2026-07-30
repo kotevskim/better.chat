@@ -9,15 +9,31 @@ connects directly to wss://<server>/websocket — WebSockets aren't subject to C
 
 Run it from the folder that contains index.html:
 
-    python3 proxy.py                      # server defaults to chat.sorsix.com, port 9000
+    python3 proxy.py chat.example.com        # port defaults to 9000
     python3 proxy.py chat.example.com 8080
 
-Then open  http://chat.localhost:9000  and sign in as usual.
+The server can also come from the BC_SERVER env var or a `server` file next
+to this script (setup.sh writes that file). Then open http://chat.localhost:9000.
 """
 import os, sys, ssl, urllib.request, urllib.error
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-SERVER = sys.argv[1] if len(sys.argv) > 1 else "chat.sorsix.com"
+def _server():
+    if len(sys.argv) > 1 and sys.argv[1].strip():
+        return sys.argv[1].strip()
+    if os.environ.get("BC_SERVER", "").strip():
+        return os.environ["BC_SERVER"].strip()
+    cfg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server")
+    try:
+        with open(cfg) as f:
+            v = f.read().strip()
+            if v:
+                return v
+    except OSError:
+        pass
+    sys.exit("No Rocket.Chat server configured. Run: python3 proxy.py <server-hostname>  (or set BC_SERVER, or write the hostname into a 'server' file next to proxy.py)")
+
+SERVER = _server()
 PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 9000
 HTML_FILE = "index.html"
 PROXIED_PREFIXES = ("/api/", "/avatar/", "/emoji-custom/", "/file-upload/", "/file/")

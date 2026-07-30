@@ -34,6 +34,9 @@
   .focus-badge { font-family:ui-monospace,monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); border:1px solid color-mix(in srgb,var(--accent) 45%,transparent); border-radius:20px; padding:2px 9px; }
   .focus-badge[hidden] { display:none; }
   .footer { display:flex; align-items:center; justify-content:center; gap:7px; padding:3px 14px; background:var(--bg-rail); border-top:1px solid var(--border); color:var(--text-faint); font-size:10.5px; font-family:ui-monospace,monospace; }
+  .footer .fdiv { width:1px; height:11px; background:var(--border); margin:0 4px; }
+  .footer .flink, .footer .flink:visited { color:var(--text-faint); text-decoration:none; }
+  .footer .flink:hover { color:var(--text-dim); text-decoration:underline; }
   .iconbtn[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
   .topbar { position:relative; display:flex; align-items:center; gap:12px; padding:0 14px; background:var(--bg-rail); border-bottom:1px solid var(--border); }
   .topbar .left { display:flex; align-items:center; gap:11px; }
@@ -277,6 +280,8 @@
   .remember input { width:14px; height:14px; accent-color:var(--accent); cursor:pointer; }
   .lstatus { padding:0 22px; min-height:18px; font-size:12px; color:var(--text-dim); } .lstatus.err { color:var(--accent); }
   .note { margin:4px 0 0; padding:14px 22px 18px; border-top:1px solid var(--border-soft); color:var(--text-faint); font-size:11.5px; line-height:1.5; }
+  .note a, .note a:visited { color:var(--accent); text-decoration:none; }
+  .note a:hover { text-decoration:underline; }
   .note b { color:var(--text-dim); }
   .hint { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:var(--accent); border:none; color:var(--accent-ink); padding:9px 15px; border-radius:9px; box-shadow:var(--shadow); font-size:12.5px; font-weight:500; z-index:150; opacity:0; transition:opacity .25s; pointer-events:none; }
   .hint.show { opacity:1; }
@@ -592,7 +597,7 @@
       <div><h1>Better.Chat</h1><p>a grid cockpit for Rocket.Chat</p></div>
     </div>
     <form id="loginForm">
-      <div class="field"><label for="srv">Server</label><input id="srv" value="chat.sorsix.com" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label for="srv">Server</label><input id="srv" placeholder="your.rocketchat-server.com" autocomplete="off" spellcheck="false"></div>
       <div class="field"><label for="usr">Username or email</label><input id="usr" autocomplete="username" spellcheck="false" placeholder="jane.doe"></div>
       <div class="field"><label for="pwd">Password</label><input id="pwd" type="password" autocomplete="current-password" placeholder="your password"></div>
       <label class="remember"><input type="checkbox" id="remember"> Keep me signed in on this browser</label>
@@ -602,7 +607,7 @@
       <button class="btn primary" id="connectBtn">Connect</button>
       <button class="btn ghost" id="demoBtn">Explore demo</button>
     </div>
-    <p class="note"><b>Heads up:</b> a published Claude artifact can't open a network connection (the sandbox blocks it) — run this file locally over <span class="mono">http://localhost</span> to sign in. &ldquo;Keep me signed in&rdquo; stores your login token in this browser's localStorage — convenient, but avoid it on a shared machine.</p>
+    <p class="note">Better.Chat is an HTML-only client that talks directly to your Rocket.Chat server — your credentials are never stored or sent anywhere else. &ldquo;Keep me signed in&rdquo; keeps the login token in this browser's localStorage only. Source: <a href="https://github.com/kotevskim/better.chat" target="_blank" rel="noopener noreferrer">github.com/kotevskim/better.chat</a></p>
   </div>
 </div>
 
@@ -658,7 +663,7 @@
   <div class="favbar" id="favbar"></div>
   <div class="unreadbar" id="unreadbar" hidden></div>
   <main class="workspace" id="workspace" data-layout="quad"></main>
-  <footer class="footer" id="footer"><span class="dot" id="connDot2"></span><span id="footerText">demo data</span></footer>
+  <footer class="footer" id="footer"><span class="dot" id="connDot2"></span><span id="footerText">demo data</span><span class="fdiv"></span><a class="flink" href="https://github.com/kotevskim/better.chat" target="_blank" rel="noopener noreferrer">github.com/kotevskim/better.chat</a></footer>
 </div>
 
 <div class="tour" id="tour" hidden><div class="tour-card"></div></div>
@@ -2883,6 +2888,7 @@
   // ---------- persistence ----------
   const LS = { get: k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }, del: k => { try { localStorage.removeItem(k); } catch (e) {} } };
   applyTheme(LS.get("rg.theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));   // restore saved theme
+  { const sv = LS.get("rg.server"); if (sv && !document.getElementById("srv").value) document.getElementById("srv").value = sv; }   // remember the last-used server (no hostname hardcoded)
   const ctxKey = () => connection === "real" ? `real:${serverHost}:${myUsername}` : "demo";
   function persist() { LS.set("rg.prefs", { layout: state.layout, font: fontPref }); LS.set("rg.grid." + ctxKey(), { slots: state.slots }); }
   function restorePrefs() { const p = LS.get("rg.prefs"); if (p) { if (layoutCount[p.layout]) state.layout = p.layout; if (p.font) fontPref = { size: p.font.size || "medium", family: p.font.family || "system" }; } }
@@ -2902,7 +2908,7 @@
     const usr = document.getElementById("usr").value.trim(), pwd = document.getElementById("pwd").value;
     if (!server || !usr || !pwd) { lstatus("Fill in server, username and password.", true); return; }
     lstatus("Connecting...");
-    try { await connectReal(server, { username: usr, password: pwd }); saveSession(); enterApp(); }
+    try { await connectReal(server, { username: usr, password: pwd }); LS.set("rg.server", server); saveSession(); enterApp(); }
     catch (err) { wantConnected = false; lstatus((err && err.message ? err.message : "Couldn't connect") + " - check the server, username and password.", true); try { if (ddp) ddp.close(); } catch (_) {} }
   });
   document.getElementById("loginForm").addEventListener("submit", e => { e.preventDefault(); document.getElementById("connectBtn").click(); });

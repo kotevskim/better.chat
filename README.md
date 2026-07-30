@@ -1,6 +1,6 @@
 # Better.Chat
 
-A grid cockpit for Rocket.Chat (`chat.sorsix.com`) — watch several chats at once,
+A grid cockpit for any Rocket.Chat server — watch several chats at once,
 keyboard-first, threads, starred, files, search, and more. Single HTML file + a
 tiny local Python proxy (the proxy serves the page and forwards REST calls so the
 browser's CORS rules don't get in the way; the live WebSocket goes straight to
@@ -12,7 +12,9 @@ the server).
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/kotevskim/better.chat/main/setup.sh)"
 ```
 
-Then open **http://chat.localhost:9000** (opens automatically after setup).
+The script asks for your Rocket.Chat server hostname once (stored only in
+`~/.better-chat/server`, never in this repo). Then open
+**http://chat.localhost:9000** (opens automatically after setup).
 
 Use **Chrome or Firefox** — they resolve `*.localhost` to your machine natively
 and treat it as a secure context (login + clipboard need that). Safari doesn't.
@@ -23,7 +25,7 @@ Requirements: macOS or Linux, `python3` (the script installs it if missing).
 
 - Downloads `index.html` + `proxy.py` into `~/.better-chat/`
 - Installs an always-on service (starts at login, auto-restarts):
-  - macOS: LaunchAgent `com.sorsix.betterchat`
+  - macOS: LaunchAgent `com.betterchat`
   - Linux: systemd user unit `better-chat`
 - Adds `bc-*` commands to your `~/.zshrc` / `~/.bashrc`
 
@@ -36,6 +38,21 @@ Requirements: macOS or Linux, `python3` (the script installs it if missing).
 | `bc-open`    | open http://chat.localhost:9000              |
 | `bc-logs`    | tail the proxy log                           |
 | `bc-update`  | pull the latest app + proxy and restart      |
+
+## Running locally for development
+
+Work on a checkout of this repo without touching your installed copy — run the
+proxy from the repo folder on a separate port (9001), pointed at whichever
+server you develop against:
+
+```bash
+cd better.chat
+python3 proxy.py <your-server-hostname> 9001
+```
+
+Then open **http://chat.localhost:9001**. Edits to `index.html` apply on
+browser refresh; `Ctrl+C` stops the proxy. The installed service on port 9000
+keeps running independently, and the two origins keep separate sessions.
 
 ## Notes
 

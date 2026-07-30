@@ -9,10 +9,9 @@ set -euo pipefail
 
 REPO_RAW="https://raw.githubusercontent.com/kotevskim/better.chat/main"
 DIR="$HOME/.better-chat"
-RC_SERVER="chat.sorsix.com"
 PORT=9000
 URL="http://chat.localhost:$PORT"
-LABEL="com.sorsix.betterchat"
+LABEL="com.betterchat"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 UNIT_DIR="$HOME/.config/systemd/user"
 UNIT="$UNIT_DIR/better-chat.service"
@@ -21,6 +20,15 @@ say()  { printf "\033[1;34m▸ %s\033[0m\n" "$*"; }
 fail() { printf "\033[1;31m✖ %s\033[0m\n" "$*"; exit 1; }
 
 OS="$(uname -s)"
+
+# ---------- 0. which Rocket.Chat server? (not hardcoded anywhere) ----------
+RC_SERVER="${BC_SERVER:-}"                                   # non-interactive: BC_SERVER=chat.example.com bash setup.sh
+if [ -z "$RC_SERVER" ] && [ -f "$DIR/server" ]; then RC_SERVER="$(cat "$DIR/server")"; fi   # keep existing choice on re-run
+if [ -z "$RC_SERVER" ]; then
+  read -rp "Rocket.Chat server hostname (e.g. chat.example.com): " RC_SERVER
+fi
+RC_SERVER="$(printf '%s' "$RC_SERVER" | sed -e 's#^https\?://##' -e 's#/$##' | tr -d '[:space:]')"
+[ -n "$RC_SERVER" ] || fail "A server hostname is required."
 
 # ---------- 1. python3 ----------
 if ! command -v python3 >/dev/null 2>&1; then
@@ -48,6 +56,7 @@ say "Installing files to $DIR"
 mkdir -p "$DIR"
 curl -fsSL "$REPO_RAW/index.html" -o "$DIR/index.html" || fail "Couldn't download index.html"
 curl -fsSL "$REPO_RAW/proxy.py"   -o "$DIR/proxy.py"   || fail "Couldn't download proxy.py"
+printf '%s\n' "$RC_SERVER" > "$DIR/server"   # the proxy reads its target from here (kept out of the public repo)
 
 PY="$(command -v python3)"
 
