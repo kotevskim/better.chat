@@ -1,7 +1,5 @@
 <meta charset="utf-8">
-<title>Better.Chat</title> 
-
-
+<title>Better.Chat</title>
 <style>
   :root {
     --bg:#0e141b; --bg-rail:#0a0f15; --tile:#131c26; --tile-head:#17222e;
@@ -84,6 +82,8 @@
   .iconbtn { border:1px solid var(--border); background:var(--tile); color:var(--text-dim); width:30px; height:30px; border-radius:6px; cursor:pointer; display:grid; place-items:center; }
   #themeBtn { color:#f5b338; } #themeBtn:hover { color:#ffc44d; }
   .tb-flat { display:inline-flex; flex-direction:column; align-items:center; gap:2px; border:none; background:none; color:var(--text-dim); cursor:pointer; padding:3px 7px; font:inherit; }
+  .tb-search { display:inline-flex; align-items:center; gap:7px; width:190px; height:30px; padding:0 11px; border:1px solid var(--border); background:var(--tile); border-radius:8px; color:var(--text-faint); font:inherit; font-size:12px; cursor:pointer; }
+  .tb-search:hover { border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); color:var(--text-dim); }
   .tb-flat span { font-size:9px; letter-spacing:.02em; color:var(--text-faint); }
   .tb-flat:hover { color:var(--text); } .tb-flat:hover span { color:var(--text-dim); }
   .thread-ind.bfocus { outline:2px solid var(--accent); outline-offset:1px; }
@@ -186,8 +186,27 @@
   .cimg-thumb { width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border); }
   .cimg-nm { font-size:12px; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cinput-wrap { position:relative; flex:1; display:flex; }
-  .cinput-wrap input { flex:1; padding-right:32px; }
+  .cinput-wrap input { flex:1; padding-right:60px; }
   .cexpand { position:absolute; right:5px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--text-faint); cursor:pointer; width:24px; height:24px; border-radius:5px; display:grid; place-items:center; }
+  .cattach { position:absolute; right:31px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--text-faint); cursor:pointer; width:24px; height:24px; border-radius:5px; display:grid; place-items:center; }
+  .cattach:hover { color:var(--text-dim); background:color-mix(in srgb,var(--text) 8%,transparent); }
+  .composer.droptarget .crow input { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+  .lver { text-align:center; color:var(--text-faint); font-size:10px; font-family:ui-monospace,monospace; padding:0 0 12px; }
+  .mm-pickrow { display:flex; align-items:center; gap:10px; }
+  .userpick { position:relative; }
+  .up-btn { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border); background:var(--tile); color:var(--text); border-radius:8px; padding:7px 12px; font:inherit; font-size:13px; cursor:pointer; min-width:200px; justify-content:space-between; }
+  .up-btn:hover { border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); }
+  .up-caret { color:var(--text-faint); font-size:10px; }
+  .up-drop { position:absolute; top:calc(100% + 4px); left:0; z-index:400; width:260px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:8px; }
+  .up-drop .up-q { width:100%; box-sizing:border-box; margin-bottom:6px; }
+  .up-list { max-height:220px; overflow-y:auto; display:flex; flex-direction:column; }
+  .up-item { display:flex; align-items:baseline; gap:8px; border:none; background:none; color:var(--text); font:inherit; font-size:12.5px; text-align:left; padding:6px 8px; border-radius:6px; cursor:pointer; }
+  .up-item b { font-weight:600; } .up-item span { color:var(--text-faint); font-size:11px; }
+  .up-item:hover, .up-item.on { background:color-mix(in srgb,var(--accent) 12%,transparent); }
+  .mm-get { margin-left:auto; }
+  .cbanner.cimg { flex-wrap:wrap; }
+  .cfile { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--tile); border-radius:8px; padding:3px 7px; max-width:230px; }
+  .cfile-ic { font-size:14px; }
   .cexpand:hover { color:var(--text-dim); background:color-mix(in srgb,var(--text) 8%,transparent); }
   .urpop.bigeditor { position:static !important; width:80vw; max-width:none; max-height:86vh; display:flex; flex-direction:column; }
   .bigeditor .be-send { justify-content:center; min-width:110px; }
@@ -313,7 +332,7 @@
   .actbar { flex-direction:row; align-items:center; gap:5px; }
   .actbar .mm-reactions { padding:3px 5px; }
   /* @mention autocomplete */
-  .mentionbox { position:fixed; z-index:330; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); overflow-y:auto; max-height:240px; }
+  .mentionbox { position:fixed; z-index:365; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); overflow-y:auto; max-height:240px; }
   .mn-item { display:flex; align-items:center; gap:9px; padding:7px 10px; cursor:pointer; }
   .mn-item.sel, .mn-item:hover { background:color-mix(in srgb,var(--accent) 14%,transparent); }
   .mn-item .avatar { width:26px; height:26px; }
@@ -526,6 +545,10 @@
   .pn-divider { height:1px; background:var(--border-soft); margin:2px 13px; }
   .muted-tag { color:#e5555f; font-size:9px; font-weight:800; letter-spacing:.08em; border:1px solid color-mix(in srgb,#e5555f 55%,transparent); border-radius:4px; padding:1px 5px; margin-left:7px; vertical-align:middle; }
   .muted-row { cursor:pointer; }
+  .releasespop { height:auto !important; }
+  .rel-row { display:flex; align-items:baseline; gap:10px; padding:10px 12px; border-radius:8px; text-decoration:none; color:var(--text); }
+  .rel-row:hover { background:color-mix(in srgb,var(--accent) 10%,transparent); }
+  .rel-row b { font-weight:600; } .rel-row span { color:var(--accent); font-size:12px; }
   .statuspop { height:auto !important; }
   .st-opts { display:flex; gap:8px; padding:14px 14px 4px; }
   .st-opt { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border); background:var(--tile); color:var(--text-dim); border-radius:10px; padding:8px 14px; font:inherit; cursor:pointer; }
@@ -610,6 +633,7 @@
       <button class="btn ghost" id="demoBtn">Explore demo</button>
     </div>
     <p class="note">Better.Chat is an HTML-only client that talks directly to your Rocket.Chat server — your credentials are never stored or sent anywhere else. &ldquo;Keep me signed in&rdquo; keeps the login token in this browser's localStorage only. Check the <a href="https://github.com/kotevskim/better.chat/tree/main#why-is-this-client-secure" target="_blank" rel="noopener noreferrer">security considerations</a> and the <a href="https://github.com/kotevskim/better.chat" target="_blank" rel="noopener noreferrer">code repository</a> for reference.</p>
+    <div class="lver" id="verLogin"></div>
   </div>
 </div>
 
@@ -621,7 +645,7 @@
       <span class="focus-badge" id="focusBadge" hidden>&#9679; Focus mode</span>
     </div>
     <div class="cluster">
-      <button class="tb-flat" id="finderBtn" title="Chats &mdash; &#8997;K" aria-label="Chats"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h1v3l3-3h2"/><path d="M22 11a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h5l3 3v-3h.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg><span>Chats</span></button>
+      <button class="tb-search" id="finderBtn" title="Search / open a chat &mdash; &#8997;K" aria-label="Search chats"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search (Opt + K)</span></button>
       <button class="tb-flat" id="starredBtn" title="Starred messages (all chats)" aria-label="All starred messages"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9.1 9z"/></svg><span>All Starred</span></button>
       <button class="tb-flat" id="feedbackBtn" title="Leave feedback (better.chat-feedback)" aria-label="Leave feedback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 5v-16l-4 5H4a1 1 0 0 0-1 1z" transform="translate(1,0)"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg><span>Feedback</span></button>
     </div>
@@ -641,6 +665,7 @@
       <div class="um-head"><b id="umName">You</b><span id="umSub">demo mode</span></div>
       <button class="um-item" id="statusBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg> Change status</button>
       <button class="um-item" id="mutedBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.7 21a2 2 0 0 1-3.4 0M18 8a6 6 0 0 0-9.3-5M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14M21 17h-2M3 3l18 18"/></svg> Muted chats</button>
+      <button class="um-item" id="releasesBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.6 13.4 12 22l-8.6-8.6a2 2 0 0 1 0-2.8L11 3h7a3 3 0 0 1 3 3v7z" transform="rotate(180 12 12.5) translate(0,1)"/><circle cx="16.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg> Releases</button>
       <button class="um-item" id="signOutBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg> Sign out</button>
     </div>
     <div class="fontmenu" id="fontMenu" hidden>
@@ -665,7 +690,7 @@
   <div class="favbar" id="favbar"></div>
   <div class="unreadbar" id="unreadbar" hidden></div>
   <main class="workspace" id="workspace" data-layout="quad"></main>
-  <footer class="footer" id="footer"><span class="dot" id="connDot2"></span><span id="footerText">demo data</span><span class="fdiv"></span><a class="flink" href="https://github.com/kotevskim/better.chat" target="_blank" rel="noopener noreferrer">github.com/kotevskim/better.chat</a></footer>
+  <footer class="footer" id="footer"><span class="dot" id="connDot2"></span><span id="footerText">demo data</span><span class="fdiv"></span><a class="flink" href="https://github.com/kotevskim/better.chat" target="_blank" rel="noopener noreferrer">github.com/kotevskim/better.chat</a><span class="fdiv"></span><span id="verFooter"></span></footer>
 </div>
 
 <div class="tour" id="tour" hidden><div class="tour-card"></div></div>
@@ -725,6 +750,7 @@
   const customEmoji = {};   // populated from the server: name -> image url
 
 
+  const APP_VERSION = "13";   // bump manually per release
   const sig = { c:"#", p:"🔒", d:"@", s:"⤷" };
   const stripe = { c:"var(--t-channel)", p:"var(--t-private)", d:"var(--t-direct)", s:"var(--t-discuss)" };
   const layoutCount = { solo:1, duo:2, quad:4, six:6 };
@@ -865,7 +891,7 @@
   // authenticated file access — token stays in headers (not the URL). Tries the server directly (needs
   // file-route CORS), then falls back to the same-origin path (works when served via proxy.py).
   const authFetch = url => fetch(url, { headers: { "X-Auth-Token": rcToken, "X-User-Id": myUserId } });
-  const isOurUrl = url => (serverHost && url.startsWith("https://" + serverHost + "/")) || url.startsWith(location.origin + "/") || url.startsWith("blob:") || (url.startsWith("/") && !url.startsWith("//"));
+  const isOurUrl = url => (serverHost && url.startsWith("https://" + serverHost + "/")) || url.startsWith(location.origin + "/") || url.startsWith("blob:") || url.startsWith("/");
   async function fileFetch(url) {
     if (!isOurUrl(url)) {   // external URL (e.g. a link-preview attachment): NEVER attach the auth token
       try { const r = await fetch(url); if (r.ok) return r; } catch (e) {}
@@ -1042,7 +1068,7 @@
   }
 
   // ---- message action toolbar: appears on hover / keyboard focus (Messenger style) ----
-  const QUICK = [["smiley","😃"],["smile","😄"],["sweat_smile","😅"],["thumbsup","👍"],["heart","❤️"],["rocket","🚀"],["clap","👏"]];
+  const QUICK = [["thumbsup","👍"],["smiley","😃"],["smile","😄"],["sweat_smile","😅"],["heart","❤️"],["rocket","🚀"],["clap","👏"]];
   const SVG_SMILE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>';
   const SVG_REPLY = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 17l-5-5 5-5"/><path d="M4 12h11a5 5 0 0 1 5 5v1"/></svg>';
   const SVG_COPY = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
@@ -1260,10 +1286,12 @@
     const np = emojiStart + ins.length; hideEmoji(); inp.focus(); inp.setSelectionRange(np, np);
   }
   document.addEventListener("input", e => {
-    const inp = e.target.closest('[data-role="composer"]') ? e.target : null; if (!inp || inp.tagName !== "INPUT") return;
-    updateMention(inp);
+    const t = e.target;
+    const ok = (t.tagName === "INPUT" && t.closest('[data-role="composer"]')) || t.classList.contains("be-input");   // tile/expanded-chat composer + expanded writer
+    if (!ok) return;
+    updateMention(t);
     if (mentionOpen) { hideEmoji(); return; }
-    updateEmoji(inp);
+    updateEmoji(t);
   });
   document.addEventListener("click", e => { const it = e.target.closest(".mn-item:not(.em-item)"); if (it) { e.stopPropagation(); chooseMention(it.dataset.u); } else if (mentionOpen && !e.target.closest(".mentionbox")) hideMention(); });
   document.addEventListener("click", e => { const it = e.target.closest(".em-item"); if (it) { e.stopPropagation(); chooseEmoji(it.dataset.name); } else if (emojiOpen && !e.target.closest(".emojibox")) hideEmoji(); });
@@ -1296,10 +1324,7 @@
     for (const it of items) { if (it.kind === "file" && /^image\//.test(it.type)) { file = it.getAsFile(); break; } }
     if (file) {
       e.preventDefault();
-      const st = roomState[rid] || (roomState[rid] = {});
-      if (st.pendingImg) { try { URL.revokeObjectURL(st.pendingImg.url); } catch (_) {} }
-      st.pendingImg = { file, url: URL.createObjectURL(file), name: file.name || "pasted.png" };
-      renderComposerAcc(rid); const inp = composerFor(rid); if (inp) inp.focus();
+      stageFiles(rid, [file]);
       return;
     }
     // multi-line text -> open the expanded writer with the merged content
@@ -1313,6 +1338,24 @@
       openBigEditor(rid, merged);
     }
   });
+
+  // ---- attach / drop files onto a composer ----
+  const filePicker = document.createElement("input");
+  filePicker.type = "file"; filePicker.multiple = true; filePicker.style.display = "none";
+  document.body.appendChild(filePicker);
+  let attachRoom = null;
+  function stageFiles(rid, files) {   // attach/drop/paste all stage in the composer — nothing is sent until you hit Send
+    const st = roomState[rid] || (roomState[rid] = {});
+    st.pendingFiles = st.pendingFiles || [];
+    [...files].forEach(f => st.pendingFiles.push({ file: f, url: URL.createObjectURL(f), name: f.name || "file", isImg: /^image\//.test(f.type) }));
+    renderComposerAcc(rid); const inp = composerFor(rid); if (inp) inp.focus();
+  }
+  function handleFiles(rid, files) { if (rid && files && files.length) stageFiles(rid, files); }
+  document.addEventListener("click", e => { const b = e.target.closest('[data-role="attach-file"]'); if (!b) return; e.preventDefault(); const f = b.closest('[data-role="composer"]'); attachRoom = f ? f.dataset.room : null; if (attachRoom) filePicker.click(); });
+  filePicker.addEventListener("change", () => { handleFiles(attachRoom, filePicker.files); filePicker.value = ""; });
+  document.addEventListener("dragover", e => { const f = e.target.closest && e.target.closest('[data-role="composer"]'); if (f) { e.preventDefault(); f.classList.add("droptarget"); } });
+  document.addEventListener("dragleave", e => { const f = e.target.closest && e.target.closest('[data-role="composer"]'); if (f) f.classList.remove("droptarget"); });
+  document.addEventListener("drop", e => { const f = e.target.closest && e.target.closest('[data-role="composer"]'); if (!f) return; e.preventDefault(); f.classList.remove("droptarget"); handleFiles(f.dataset.room, e.dataTransfer.files); });
 
   // ---- scroll-up paging: load older history when you reach the top ----
   async function loadOlder(id, streamEl) {
@@ -1511,7 +1554,7 @@
   function permalink(id, msgId) { const r = rooms[id]; if (!r || !serverHost || !msgId) return ""; const path = r.t === "d" ? "direct" : r.t === "p" ? "group" : "channel"; const name = r.t === "d" ? (r.username || r.name) : r.name; return `https://${serverHost}/${path}/${encodeURIComponent(name)}?msg=${msgId}`; }
   function bannerHtml(id) {
     const st = roomState[id] || {}; let h = "";
-    if (st.pendingImg) h += `<div class="cbanner cimg"><img class="cimg-thumb" src="${st.pendingImg.url}" alt=""><span class="cimg-nm">${esc(st.pendingImg.name)}</span><button type="button" class="cx" data-role="cancel-img" title="Remove image">&#10005;</button></div>`;
+    if (st.pendingFiles && st.pendingFiles.length) h += `<div class="cbanner cimg">${st.pendingFiles.map((p, i) => `<span class="cfile">${p.isImg ? `<img class="cimg-thumb" src="${p.url}" alt="">` : `<span class="cfile-ic">📎</span>`}<span class="cimg-nm">${esc(p.name)}</span><button type="button" class="cx" data-role="cancel-file" data-idx="${i}" title="Remove">&#10005;</button></span>`).join("")}</div>`;
     if (st.editing) h += `<div class="cbanner"><span>&#9998; Editing message</span><button type="button" class="cx" data-role="cancel-acc">&#10005;</button></div>`;
     else if (st.replyTo) {
       const r = rooms[id], parent = r && r.msgs.find(x => x.id === st.replyTo.id), isDM = r && r.t === "d";
@@ -1521,7 +1564,7 @@
     }
     return h;
   }
-  function composerHtml(id, r) { return `<form class="composer" data-role="composer" data-room="${id}"><div class="cbanner-slot">${bannerHtml(id)}</div><div class="crow"><div class="cinput-wrap"><input placeholder="Message ${esc(r.name)}" aria-label="Message"><button type="button" class="cexpand" data-role="expand-input" title="Expand editor (Shift+Enter)">${ICON.grow}</button></div><button class="send" title="Send">${ICON.send}</button></div></form>`; }
+  function composerHtml(id, r) { return `<form class="composer" data-role="composer" data-room="${id}"><div class="cbanner-slot">${bannerHtml(id)}</div><div class="crow"><div class="cinput-wrap"><input placeholder="Message ${esc(r.name)}" aria-label="Message"><button type="button" class="cattach" data-role="attach-file" title="Attach files">${ICON.paperclip}</button><button type="button" class="cexpand" data-role="expand-input" title="Expand editor (Shift+Enter)">${ICON.grow}</button></div><button class="send" title="Send">${ICON.send}</button></div></form>`; }
   function renderComposerAcc(id) {
     const slot = visibleSlots().indexOf(id);
     if (slot >= 0) { const el = ws.querySelector(`.tile[data-slot="${slot}"] .cbanner-slot`); if (el) el.innerHTML = bannerHtml(id); }
@@ -1545,8 +1588,8 @@
     ed.addEventListener("keydown", ev => { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); finish(true); } else if (ev.key === "Escape") { ev.preventDefault(); finish(false); } });
     ed.addEventListener("blur", () => setTimeout(() => finish(true), 120));   // clicking away saves
   }
-  function clearAcc(id) { const st = roomState[id]; if (st && st.pendingImg) { try { URL.revokeObjectURL(st.pendingImg.url); } catch (_) {} } delete roomState[id]; renderComposerAcc(id); const inp = composerFor(id); if (inp) inp.value = ""; }
-  function cancelPendingImg(id) { const st = roomState[id]; if (st && st.pendingImg) { try { URL.revokeObjectURL(st.pendingImg.url); } catch (_) {} delete st.pendingImg; renderComposerAcc(id); } }
+  function clearAcc(id) { const st = roomState[id]; if (st && st.pendingFiles) st.pendingFiles.forEach(p => { try { URL.revokeObjectURL(p.url); } catch (_) {} }); delete roomState[id]; renderComposerAcc(id); const inp = composerFor(id); if (inp) inp.value = ""; }
+  function cancelPendingFile(id, idx) { const st = roomState[id]; if (!st || !st.pendingFiles) return; const p = st.pendingFiles[idx]; if (p) { try { URL.revokeObjectURL(p.url); } catch (_) {} st.pendingFiles.splice(idx, 1); } if (!st.pendingFiles.length) delete st.pendingFiles; renderComposerAcc(id); }
   function renderVisibleStream(id) {
     const html = renderMsgs(rooms[id].msgs, rooms[id]);
     const slot = visibleSlots().indexOf(id);
@@ -1804,7 +1847,7 @@
     tileMenu.innerHTML =
       `<button class="tmenu-item" data-act="files">${ICON.paperclip}<span>Files</span></button>` +
       `<button class="tmenu-item" data-act="threads">${ICON.threads}<span>Threads</span></button>` +
-      `<button class="tmenu-item" data-act="mymsgs">${ICON.person}<span>My messages in this chat</span></button>` +
+      `<button class="tmenu-item" data-act="mymsgs">${ICON.person}<span>Messages by user</span></button>` +
       `<button class="tmenu-item" data-act="fav">${ICON.starLine}<span>${rm && rm.fav ? "Remove chat from favourites" : "Add chat to favourites"}</span></button>` +
       `<button class="tmenu-item" data-act="mute">${rm && rm.muted ? ICON.bellOff : ICON.bell}<span>${rm && rm.muted ? "Unmute chat" : "Mute chat"}</span></button>`;
     document.body.appendChild(tileMenu);
@@ -1836,16 +1879,53 @@
   }
   document.addEventListener("click", e => { if (tileMenu && !e.target.closest(".tmenu") && !e.target.closest('[data-role="more"]')) hideTileMenu(); });
   const myMsgData = {};
+  async function fetchChatMembers(roomId) {   // actual members of THIS chat (DM: just the two of you)
+    const r = rooms[roomId]; if (!r) return [];
+    if (r.t === "d") {
+      const peer = r.username || r.name;
+      return [{ u: myUsername, nm: ME }, { u: peer, nm: r.name }].filter(x => x.u);
+    }
+    if (connection === "real") {
+      const ep = r.t === "p" ? "groups.members" : "channels.members";
+      const res = await apiGet(`/api/v1/${ep}?roomId=${encodeURIComponent(roomId)}&count=500`);
+      if (res && res.members) return res.members.map(m => ({ u: m.username, nm: m.name || m.username })).filter(x => x.u).sort((a, b) => a.u.localeCompare(b.u));
+    }
+    const seen = new Map();   // fallback: users seen in this chat's loaded messages
+    (r.msgs || []).forEach(m => { if (m.username) seen.set(m.username.toLowerCase(), m.user || m.username); });
+    if (myUsername) seen.set(myUsername.toLowerCase(), ME);
+    return [...seen.entries()].map(([u, nm]) => ({ u, nm })).sort((a, b) => a.u.localeCompare(b.u));
+  }
   async function openMyMessages(roomId) {
     const r = rooms[roomId]; if (!r) return;
-    const card = openPanel(`${ICON.person}<span style="margin-left:6px">My messages in <b>${esc(r.name)}</b></span>`, `<div class="up-body pn-results" data-role="mymsg-body"><div class="pn-hint">Loading…</div></div>`, "mymsgpop");
-    card.dataset.room = roomId; const body = card.querySelector('[data-role="mymsg-body"]');
-    if (connection !== "real") { body.innerHTML = `<div class="pn-hint">Loads from the live server.</div>`; return; }
-    const res = await apiGet(`/api/v1/chat.search?roomId=${encodeURIComponent(roomId)}&searchText=${encodeURIComponent("from:" + myUsername)}&count=100`);
-    const arr = res && res.messages ? res.messages.map(mkRealMsg) : null;
-    if (!arr) { body.innerHTML = `<div class="pn-hint">Couldn't load (run via proxy.py or enable CORS).</div>`; return; }
-    arr.sort((a, b) => (b.tsMs || 0) - (a.tsMs || 0)); arr.forEach(m => myMsgData[m.id] = m);
-    body.innerHTML = arr.length ? arr.map(m => `<div class="mymsg-row" data-mid="${esc(m.id || "")}" data-tcount="${m.tcount || 0}" data-room="${esc(roomId)}"><div class="pn-r-head"><b>You</b>${m.tcount > 0 ? `<span class="mm-thread" title="has a thread">&#128172; ${m.tcount}</span>` : ""}<time>${esc(fmtDateTime(m.tsMs))}</time></div><div class="pn-r-text">${renderText(m.text)}</div></div>`).join("") : `<div class="pn-hint">No messages from you here.</div>`;
+    const card = openPanel(`${ICON.person}<span style="margin-left:6px">Messages by user in <b>${esc(r.name)}</b></span>`,
+      `<div class="pn-searchrow mm-pickrow"><div class="userpick" data-role="userpick"><button type="button" class="up-btn" data-role="up-btn"><span class="up-cur">@${esc(myUsername || "you")}</span><span class="up-caret">▾</span></button><div class="up-drop" hidden><input class="pn-q up-q" data-role="up-q" placeholder="Search user…"><div class="up-list" data-role="up-list"></div></div></div><button type="button" class="btn primary mm-get" data-role="mm-get">Get</button></div>` +
+      `<div class="up-body pn-results" data-role="mymsg-body"><div class="pn-hint">Pick a user and hit Get.</div></div>`, "mymsgpop");
+    card.dataset.room = roomId;
+    const body = card.querySelector('[data-role="mymsg-body"]'), pick = card.querySelector('[data-role="userpick"]');
+    const drop = pick.querySelector(".up-drop"), listEl = pick.querySelector('[data-role="up-list"]'), qEl = pick.querySelector('[data-role="up-q"]'), curEl = pick.querySelector(".up-cur");
+    let selUser = myUsername || "", cands = [];
+    fetchChatMembers(roomId).then(list => { cands = list; });
+    function renderList(q) {
+      q = (q || "").toLowerCase();
+      const list = cands.filter(c => !q || c.u.includes(q) || String(c.nm).toLowerCase().includes(q)).slice(0, 40);
+      listEl.innerHTML = list.length ? list.map(c => `<button type="button" class="up-item${c.u === selUser ? " on" : ""}" data-u="${esc(c.u)}"><b>@${esc(c.u)}</b>${c.nm && c.nm !== c.u ? `<span>${esc(c.nm)}</span>` : ""}</button>`).join("") : `<div class="pn-hint">No matching users.</div>`;
+    }
+    pick.querySelector('[data-role="up-btn"]').addEventListener("click", e => { e.stopPropagation(); drop.hidden = !drop.hidden; if (!drop.hidden) { renderList(""); qEl.value = ""; qEl.focus(); } });
+    qEl.addEventListener("input", () => renderList(qEl.value.trim()));
+    listEl.addEventListener("click", e => { const b = e.target.closest(".up-item"); if (!b) return; e.stopPropagation(); selUser = b.dataset.u; curEl.textContent = "@" + selUser; drop.hidden = true; });
+    document.addEventListener("click", e => { if (!drop.hidden && !e.target.closest(".userpick")) drop.hidden = true; });
+    async function load() {
+      if (!selUser) { body.innerHTML = `<div class="pn-hint">Pick a user first.</div>`; return; }
+      body.innerHTML = `<div class="pn-hint"><span class="spin"></span>Loading…</div>`;
+      if (connection !== "real") { body.innerHTML = `<div class="pn-hint">Loads from the live server.</div>`; return; }
+      const res = await apiGet(`/api/v1/chat.search?roomId=${encodeURIComponent(roomId)}&searchText=${encodeURIComponent("from:" + selUser)}&count=100`);
+      const arr = res && res.messages ? res.messages.map(mkRealMsg) : null;
+      if (!arr) { body.innerHTML = `<div class="pn-hint">Couldn't load (run via proxy.py or enable CORS).</div>`; return; }
+      arr.sort((a, b) => (b.tsMs || 0) - (a.tsMs || 0)); arr.forEach(m => myMsgData[m.id] = m);
+      body.innerHTML = arr.length ? arr.map(m => `<div class="mymsg-row" data-mid="${esc(m.id || "")}" data-tcount="${m.tcount || 0}" data-room="${esc(roomId)}"><div class="pn-r-head"><b>@${esc(selUser)}</b>${m.tcount > 0 ? `<span class="mm-thread" title="has a thread">&#128172; ${m.tcount}</span>` : ""}<time>${esc(fmtDateTime(m.tsMs))}</time></div><div class="pn-r-text">${renderText(m.text)}</div></div>`).join("") : `<div class="pn-hint">No messages by @${esc(selUser)} here.</div>`;
+    }
+    card.querySelector('[data-role="mm-get"]').addEventListener("click", load);
+    // no auto-load: the select is prepopulated with you — hit Get when ready
   }
   document.addEventListener("click", e => {
     const row = e.target.closest(".mymsg-row"); if (!row) return; e.stopPropagation();
@@ -2004,10 +2084,10 @@
 
   function mySend(id, text) {
     const st = roomState[id] || {};
-    if (st.pendingImg) {                                 // staged image -> upload/send (text becomes the caption)
-      const pend = st.pendingImg; delete st.pendingImg; renderComposerAcc(id); const inp = composerFor(id); if (inp) inp.value = "";
-      if (connection === "real") { hint("Uploading image…"); uploadImage(id, pend.file, text); }
-      else { receiveMessage(id, { user: ME, username: myUsername, time: now(), text: text || "", tsMs: Date.now(), attachments: [{ image: true, url: pend.url, name: pend.name }] }, true); }
+    if (st.pendingFiles && st.pendingFiles.length) {     // staged files -> upload on Send (text becomes the first file's caption)
+      const pend = st.pendingFiles; delete st.pendingFiles; renderComposerAcc(id); const inp = composerFor(id); if (inp) inp.value = "";
+      if (connection === "real") { hint(`Uploading ${pend.length} file${pend.length > 1 ? "s" : ""}…`); (async () => { for (let i = 0; i < pend.length; i++) await uploadImage(id, pend[i].file, i === 0 ? text : ""); })(); }
+      else pend.forEach((p, i) => receiveMessage(id, { user: ME, username: myUsername, time: now(), text: i === 0 ? (text || "") : "", tsMs: Date.now(), attachments: [{ image: p.isImg, url: p.url, name: p.name }] }, true));
       return;
     }
     if (st.editing) {                                   // edit the existing message in place
@@ -2083,7 +2163,7 @@
     if (e.target.closest('[data-role="starred"]')) { openStarred(state.slots[slot]); return; }
     if (e.target.closest('[data-role="unread"]')) { markUnread(state.slots[slot]); return; }
     if (e.target.closest('[data-role="cancel-acc"]')) { const f = e.target.closest('[data-role="composer"]'); if (f) clearAcc(f.dataset.room); return; }
-    if (e.target.closest('[data-role="cancel-img"]')) { const f = e.target.closest('[data-role="composer"]'); if (f) cancelPendingImg(f.dataset.room); return; }
+    if (e.target.closest('[data-role="cancel-file"]')) { const b = e.target.closest('[data-role="cancel-file"]'), f = e.target.closest('[data-role="composer"]'); if (f) cancelPendingFile(f.dataset.room, +b.dataset.idx); return; }
     if (e.target.closest('[data-role="name"]')) { setActive(slot); tryOpenSwitch(slot); return; }   // click the chat name -> switcher
     focusAndRead(slot);   // clicking a chat focuses AND marks it read
   });
@@ -2109,7 +2189,7 @@
     const form = e.target.closest('[data-role="composer"]'); if (!form) return;
     e.preventDefault();
     const id = form.dataset.room, input = form.querySelector(".crow input"), txt = input.value.trim();
-    if (!id) return; if (!txt && !(roomState[id] && roomState[id].pendingImg)) return;   // allow send when only a staged image
+    if (!id) return; if (!txt && !(roomState[id] && roomState[id].pendingFiles && roomState[id].pendingFiles.length)) return;   // allow send when only staged files
     input.value = ""; mySend(id, txt);
   });
   function tryOpenSwitch(slot) { openFinder(slot); }
@@ -2276,15 +2356,15 @@
   }
   function pickRoom(id) {
     const existing = visibleSlots().indexOf(id);
-    if (existing >= 0 && existing !== modalTarget) { closeModal(); setActive(existing); hint("Already open — focused that window."); return; }   // no duplicates: focus the existing one
+    if (existing >= 0 && existing !== modalTarget) { closeModal(); setActive(existing); focusComposer(existing); hint("Already open — focused that window."); return; }   // no duplicates: focus the existing one
     if (modalTarget < 0) modalTarget = firstEmptyTile() >= 0 ? firstEmptyTile() : 0;
     state.slots[modalTarget] = id; markRead(id);
-    const t = modalTarget; closeModal(); renderTiles(); setActive(t); ensureHistory(id); persist();
+    const t = modalTarget; closeModal(); renderTiles(); setActive(t); ensureHistory(id); persist(); focusComposer(t);
   }
   backdrop.addEventListener("click", e => {
     if (e.target === backdrop || e.target.closest('[data-role="close"]')) return closeModal();
     if (e.target.closest('[data-role="cancel-acc"]')) { const f = e.target.closest('[data-role="composer"]'); if (f) clearAcc(f.dataset.room); return; }
-    if (e.target.closest('[data-role="cancel-img"]')) { const f = e.target.closest('[data-role="composer"]'); if (f) cancelPendingImg(f.dataset.room); return; }
+    if (e.target.closest('[data-role="cancel-file"]')) { const b = e.target.closest('[data-role="cancel-file"]'), f = e.target.closest('[data-role="composer"]'); if (f) cancelPendingFile(f.dataset.room, +b.dataset.idx); return; }
     const exp = e.target.closest('[data-role="exp"]');
     if (exp) {  // toggle the unread roll WITHOUT opening the chat (stays unread)
       e.stopPropagation();
@@ -2421,8 +2501,9 @@
       if (inPopup) { if (!modalResults.length) return; e.preventDefault(); modalSel = (modalSel + (e.shiftKey ? -1 : 1) + modalResults.length) % modalResults.length; renderResults(); return; }
       if (backdrop.hidden) { e.preventDefault(); const cnt = n(), ni = (state.active + (e.shiftKey ? -1 : 1) + cnt) % cnt; setActive(ni); setFocusedMsg(null); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return; }
     }
-    // arrows move between chat windows — ← → always; ↑ ↓ when no message is keyboard-focused (never while typing)
-    if (!typing && backdrop.hidden && !inPopup && (e.key === "ArrowLeft" || e.key === "ArrowRight" || ((e.key === "ArrowUp" || e.key === "ArrowDown") && !focusedMsgEl))) {
+    // arrows move between chat windows — ← → always; ↑ ↓ when no message is keyboard-focused (never while typing or focused anywhere in a composer)
+    const inComposer = document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"], .up-reply, .bigeditor');
+    if (!typing && !inComposer && backdrop.hidden && !inPopup && (e.key === "ArrowLeft" || e.key === "ArrowRight" || ((e.key === "ArrowUp" || e.key === "ArrowDown") && !focusedMsgEl))) {
       e.preventDefault(); moveWindow(e.key); return;
     }
     // ↑ from the composer input jumps up into the messages (last one)
@@ -2659,6 +2740,14 @@
   document.addEventListener("click", e => { if (!userMenu.hidden && !e.target.closest("#userMenu") && !e.target.closest("#meBtn")) hideUserMenu(); });
   document.getElementById("signOutBtn").addEventListener("click", signOut);
   document.getElementById("mutedBtn").addEventListener("click", () => { document.getElementById("userMenu").hidden = true; openMutedChats(); });
+  document.getElementById("releasesBtn").addEventListener("click", () => { document.getElementById("userMenu").hidden = true; openReleases(); });
+  const RELEASES = [
+    { v: "13", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v13" },
+  ];
+  function openReleases() {
+    const card = openPanel(`<span>Releases</span>`,
+      `<div class="up-body pn-results">${RELEASES.map(r => `<a class="rel-row" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><b>Version ${esc(r.v)}</b><span>release notes ↗</span></a>`).join("")}</div>`, "releasespop");
+  }
   document.getElementById("statusBtn").addEventListener("click", () => { document.getElementById("userMenu").hidden = true; openStatusPopup(); });
   function openStatusPopup() {
     const STATUSES = [{ k: "online", label: "Online", c: "var(--live)" }, { k: "busy", label: "Busy", c: "#e5555f" }, { k: "offline", label: "Offline", c: "#8a97a6" }];
@@ -2895,6 +2984,7 @@
   // ---------- persistence ----------
   const LS = { get: k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }, del: k => { try { localStorage.removeItem(k); } catch (e) {} } };
   applyTheme(LS.get("rg.theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));   // restore saved theme
+  document.getElementById("verFooter").textContent = APP_VERSION; document.getElementById("verLogin").textContent = APP_VERSION;
   { const sv = LS.get("rg.server"); if (sv && !document.getElementById("srv").value) document.getElementById("srv").value = sv; }   // remember the last-used server (no hostname hardcoded)
   const ctxKey = () => connection === "real" ? `real:${serverHost}:${myUsername}` : "demo";
   function persist() { LS.set("rg.prefs", { layout: state.layout, font: fontPref }); LS.set("rg.grid." + ctxKey(), { slots: state.slots }); }
