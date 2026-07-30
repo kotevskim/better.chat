@@ -73,6 +73,7 @@
   .iconbtn { height:32px; width:32px; }
   .segmented button { border:none; background:none; color:var(--text-dim); cursor:pointer; padding:4px 7px; border-radius:4px; display:grid; place-items:center; transition:background .12s,color .12s; }
   .segmented button:hover { color:var(--text); }
+  .segmented button[hidden] { display:none; }   /* author display:grid would otherwise override the hidden attribute */
   .segmented button[aria-pressed="true"] { background:color-mix(in srgb,var(--accent) 90%,black); color:var(--accent-ink); }
   .segmented button[aria-pressed="true"] .glyph i { background:currentColor; }
   .glyph { display:grid; gap:1.5px; width:16px; }
@@ -2828,7 +2829,8 @@
       return id || null;
     });
     state.layout = hg.layout; state.slots = resolved; state.active = -1;   // the home grid fully defines the workspace
-    syncLayoutButtons(); renderTiles(); persist();
+    renderTiles(); persist();
+    homeActive = true; syncLayoutButtons();   // after persist(), so the 🏠 stays selected
     visibleSlots().filter(Boolean).forEach(ensureHistory);
     if (missing.length) hintLong("Home grid: couldn't find " + missing.join(", "));
   }
@@ -3122,12 +3124,19 @@
   document.getElementById("verFooter").textContent = APP_VERSION; document.getElementById("verLogin").textContent = APP_VERSION;
   { const sv = LS.get("rg.server"); if (sv && !document.getElementById("srv").value) document.getElementById("srv").value = sv; }   // remember the last-used server (no hostname hardcoded)
   const ctxKey = () => connection === "real" ? `real:${serverHost}:${myUsername}` : "demo";
-  function persist() { LS.set("rg.prefs", { layout: state.layout, font: fontPref }); LS.set("rg.grid." + ctxKey(), { slots: state.slots }); }
+  let homeActive = false;   // 🏠 stays selected until the grid changes (then the same-size layout takes over)
+  function persist() {
+    if (homeActive) { homeActive = false; syncLayoutButtons(); }   // any layout/slot change leaves "home" state
+    LS.set("rg.prefs", { layout: state.layout, font: fontPref }); LS.set("rg.grid." + ctxKey(), { slots: state.slots });
+  }
   function restorePrefs() { const p = LS.get("rg.prefs"); if (p) { if (layoutCount[p.layout]) state.layout = p.layout; if (p.font) fontPref = { size: p.font.size || "medium", family: p.font.family || "system" }; } }
   function restoreGrid() { const g = LS.get("rg.grid." + ctxKey()); if (g && Array.isArray(g.slots)) { state.slots = g.slots.map(id => id && rooms[id] ? id : null).concat([null,null,null,null,null,null]).slice(0, 6); if (state.active >= n()) state.active = 0; } }
   function saveSession() { if (document.getElementById("remember").checked && rcToken) LS.set("rg.session", { server: serverHost, user: myUsername, token: rcToken }); else LS.del("rg.session"); }
   function clearSession() { LS.del("rg.session"); }
-  function syncLayoutButtons() { document.querySelectorAll(".segmented button").forEach(x => x.setAttribute("aria-pressed", x.dataset.layout === state.layout ? "true" : "false")); }
+  function syncLayoutButtons() {
+    document.querySelectorAll(".segmented button").forEach(x => x.setAttribute("aria-pressed", (!homeActive && x.dataset.layout === state.layout) ? "true" : "false"));
+    const hb = document.getElementById("homeGridBtn"); if (hb) hb.setAttribute("aria-pressed", homeActive ? "true" : "false");
+  }
 
   // ---------- login ----------
   const loginEl = document.getElementById("login"), loadingEl = document.getElementById("loading"), lstatusEl = document.getElementById("lstatus"), loadStatusEl = document.getElementById("loadStatus");
