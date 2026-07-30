@@ -131,7 +131,7 @@ bc-restart() { bc-stop 2>/dev/null; bc-start; }
 bc-status()  { launchctl list | grep -q $LABEL && echo "better.chat: running ($URL)" || echo "better.chat: stopped"; }
 bc-logs()    { tail -f "$DIR/proxy.log"; }
 bc-open()    { open "$URL"; }
-bc-update()  { curl -fsSL "$REPO_RAW/index.html" -o "$DIR/index.html" && curl -fsSL "$REPO_RAW/proxy.py" -o "$DIR/proxy.py" && bc-restart && echo "better.chat updated"; }
+bc-update()  { local ts=\$(date +%s); curl -fsSL "$REPO_RAW/index.html?ts=\$ts" -o "$DIR/index.html" && curl -fsSL "$REPO_RAW/proxy.py?ts=\$ts" -o "$DIR/proxy.py" && bc-restart && echo "better.chat updated"; }   # ?ts busts the raw CDN cache (~5 min TTL)
 $MARK_END
 EOF
   else
@@ -143,7 +143,7 @@ bc-restart() { systemctl --user restart better-chat; }
 bc-status()  { systemctl --user is-active better-chat >/dev/null && echo "better.chat: running ($URL)" || echo "better.chat: stopped"; }
 bc-logs()    { tail -f "$DIR/proxy.log"; }
 bc-open()    { xdg-open "$URL" >/dev/null 2>&1 & }
-bc-update()  { curl -fsSL "$REPO_RAW/index.html" -o "$DIR/index.html" && curl -fsSL "$REPO_RAW/proxy.py" -o "$DIR/proxy.py" && bc-restart && echo "better.chat updated"; }
+bc-update()  { local ts=\$(date +%s); curl -fsSL "$REPO_RAW/index.html?ts=\$ts" -o "$DIR/index.html" && curl -fsSL "$REPO_RAW/proxy.py?ts=\$ts" -o "$DIR/proxy.py" && bc-restart && echo "better.chat updated"; }   # ?ts busts the raw CDN cache (~5 min TTL)
 $MARK_END
 EOF
   fi
