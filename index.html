@@ -657,7 +657,7 @@
     <div class="cluster">
       <button class="tb-search" id="finderBtn" title="Search / open a chat &mdash; &#8997;K" aria-label="Search chats"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search (Opt + K)</span></button>
       <button class="tb-flat" id="starredBtn" title="Starred messages (all chats)" aria-label="All starred messages"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9.1 9z"/></svg><span>All Starred</span></button>
-      <button class="tb-flat" id="feedbackBtn" title="Leave feedback (better.chat-feedback)" aria-label="Leave feedback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 5v-16l-4 5H4a1 1 0 0 0-1 1z" transform="translate(1,0)"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg><span>Feedback</span></button>
+      <button class="tb-flat" id="feedbackBtn" title="Leave feedback (better.chat.feedback)" aria-label="Leave feedback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 5v-16l-4 5H4a1 1 0 0 0-1 1z" transform="translate(1,0)"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg><span>Feedback</span></button>
     </div>
     <div class="right">
       <div class="segmented" role="group" aria-label="Grid layout — ⌥L cycles">
@@ -665,6 +665,7 @@
         <button data-layout="duo" title="2-up (⌥L cycles layouts)" aria-pressed="false"><span class="glyph duo"><i></i><i></i></span></button>
         <button data-layout="quad" title="2×2 (⌥L cycles layouts)" aria-pressed="true"><span class="glyph quad"><i></i><i></i><i></i><i></i></span></button>
         <button data-layout="six" title="3×2 (⌥L cycles layouts)" aria-pressed="false"><span class="glyph six"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+        <button id="homeGridBtn" title="Home grid (⌥H)" aria-label="Apply home grid" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></button>
       </div>
       <button class="iconbtn" id="focusBtn" title="Focus mode — cover all chats but one or two" aria-label="Focus mode" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button>
       <button class="iconbtn fontbtn" id="fontBtn" title="Chat font & size" aria-label="Chat font and size">Aa</button>
@@ -675,6 +676,7 @@
       <div class="um-head"><b id="umName">You</b><span id="umSub">demo mode</span></div>
       <button class="um-item" id="statusBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg> Change status</button>
       <button class="um-item" id="mutedBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.7 21a2 2 0 0 1-3.4 0M18 8a6 6 0 0 0-9.3-5M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14M21 17h-2M3 3l18 18"/></svg> Muted chats</button>
+      <button class="um-item" id="saveGridBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Save grid as Home</button>
       <button class="um-item" id="bcConfigBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.12-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.12 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01A1.7 1.7 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01c.26.63.87 1.04 1.56 1.04H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51.94z"/></svg> Better.Chat config</button>
       <button class="um-item" id="releasesBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.6 13.4 12 22l-8.6-8.6a2 2 0 0 1 0-2.8L11 3h7a3 3 0 0 1 3 3v7z" transform="rotate(180 12 12.5) translate(0,1)"/><circle cx="16.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg> Releases</button>
       <button class="um-item" id="signOutBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg> Sign out</button>
@@ -761,7 +763,7 @@
   const customEmoji = {};   // populated from the server: name -> image url
 
 
-  const APP_VERSION = "14";   // bump manually per release
+  const APP_VERSION = "15";   // bump manually per release
   const sig = { c:"#", p:"🔒", d:"@", s:"⤷" };
   const stripe = { c:"var(--t-channel)", p:"var(--t-private)", d:"var(--t-direct)", s:"var(--t-discuss)" };
   const layoutCount = { solo:1, duo:2, quad:4, six:6 };
@@ -1084,6 +1086,7 @@
   let QUICK = DEFAULT_QUICK.map(k => [k, EMOJI[k]]);
   let bcConfig = { version: 1, quickReactions: DEFAULT_QUICK.slice() };
   function bcExtractJson(text) { const m = /```json\s*([\s\S]*?)```/.exec(text || ""); return m ? m[1].trim() : null; }
+  let bcRawConfig = {};   // last good config as written (unknown keys preserved for merge-saves)
   function applyBcConfig(raw) {   // validate hard, fail soft: bad config never breaks the app
     let obj = raw;
     if (typeof raw === "string") { try { obj = JSON.parse(raw); } catch (e) { return { ok: false, err: "Invalid JSON: " + e.message }; } }
@@ -1093,8 +1096,15 @@
       const valid = [...new Set(obj.quickReactions.filter(x => typeof x === "string").map(x => normEmojiKey(x)).filter(k => EMOJI[k]))];
       if (valid.length) eff.quickReactions = valid.slice(0, 10);
     }
-    bcConfig = eff;
+    if (obj.homeGrid && typeof obj.homeGrid === "object" && !Array.isArray(obj.homeGrid)) {
+      const hg = obj.homeGrid;
+      if (layoutCount[hg.layout] && Array.isArray(hg.slots)) {
+        eff.homeGrid = { layout: hg.layout, slots: hg.slots.slice(0, 6).map(x => (typeof x === "string" && x.trim()) ? x.trim() : null) };
+      }
+    }
+    bcRawConfig = obj; bcConfig = eff;
     QUICK = eff.quickReactions.map(k => [k, EMOJI[k]]);
+    const hb = document.getElementById("homeGridBtn"); if (hb) hb.hidden = !eff.homeGrid;   // 🏠 shows only when a home grid exists
     return { ok: true };
   }
   const SVG_SMILE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>';
@@ -1542,7 +1552,7 @@
   }
   function receiveMessage(roomId, m, fromMe) {
     const r = rooms[roomId]; if (!r) return;
-    if (r.name === bcCfgName()) { const j = bcExtractJson(m.text); if (j) { const rc2 = applyBcConfig(j); if (rc2.ok) { LS.set("rg.bcconfig", bcConfig); if (!fromMe) hint("Better.Chat config updated"); } } }
+    if (r.name === bcCfgName()) { const j = bcExtractJson(m.text); if (j) { const rc2 = applyBcConfig(j); if (rc2.ok) { LS.set("rg.bcconfig", bcRawConfig); if (!fromMe) hint("Better.Chat config updated"); } } }
     if (m.id) {                                              // edit / reaction / thread-count echo -> update in place
       const ex = r.msgs.find(x => x.id === m.id);
       if (ex) { ex.text = m.text; ex.reactions = m.reactions; ex.tcount = m.tcount; rerenderMsgById(roomId, m.id); return; }
@@ -2243,8 +2253,8 @@
     refreshTopbar();
   }
   function openFeedback() {
-    const id = order().find(x => { const nm = (rooms[x].name || "").toLowerCase(); return nm === "better.chat-feedback" || nm === "better-chat-feedback"; });
-    if (!id) { hintLong("No 'better.chat-feedback' channel found — join it on the server first."); return; }
+    const id = order().find(x => { const nm = (rooms[x].name || "").toLowerCase(); return nm === "better.chat.feedback" || nm === "better.chat-feedback"; });
+    if (!id) { hintLong("No 'better.chat.feedback' channel found — join it on the server first."); return; }
     openExpandById(id);
   }
 
@@ -2336,6 +2346,7 @@
       row("⌥ Z", "Mark the focused chat unread (adds it to the unread bar)") +
       row("⌥ ← → ↑ ↓", "Swap the focused chat with the neighbouring tile (either may be empty)") +
       row("⌥ S / header 🔍", "Search this chat’s messages; click a hit to jump to it") +
+      row("⌥ H / 🏠 in the layout switch", "Apply your Home grid (save it via the avatar menu → Save grid as Home)") +
       row("Header ☆ / 📎", "Open this chat’s starred messages / files (files: filter by type, preview, download)") +
       row("esc", "Close any open popup, else defocus the current chat / message") +
       `<div class="kbsec">Messages</div>` +
@@ -2525,6 +2536,7 @@
       if (e.code === "KeyL") { e.preventDefault(); cycleLayout(); return; }
       if (e.code === "KeyX") { e.preventDefault(); closeTile(state.active); return; }
       if (e.code === "KeyS") { e.preventDefault(); if (state.slots[state.active]) openSearch(state.slots[state.active]); return; }
+      if (e.code === "KeyH") { e.preventDefault(); applyHomeGrid(); return; }
     }
     if (e.key === "Tab") {
       if (inPopup) { if (!modalResults.length) return; e.preventDefault(); modalSel = (modalSel + (e.shiftKey ? -1 : 1) + modalResults.length) % modalResults.length; renderResults(); return; }
@@ -2782,11 +2794,57 @@
       arr.sort((a, b) => tsToMs(b.ts) - tsToMs(a.ts));
       for (const mm of arr) {
         const j = bcExtractJson(mm.msg);
-        if (j) { const r = applyBcConfig(j); if (r.ok) LS.set("rg.bcconfig", bcConfig); return; }
+        if (j) { const r = applyBcConfig(j); if (r.ok) LS.set("rg.bcconfig", bcRawConfig); return; }
       }
     } catch (e) {}
   }
-  const BC_EXAMPLE = '{\n  "version": 1,\n  "quickReactions": ["thumbsup", "heart", "tada", "eyes"]\n}';
+  async function bcPushConfig(text) {   // send a config JSON to the <username>.bc.config channel (creates it on first use)
+    let rid = bcCfgRoomId();
+    if (!rid) {
+      const g = await ddp.call("createPrivateGroup", [bcCfgName(), []]);
+      if (g && g.rid) { await refreshSubscriptions(); rid = bcCfgRoomId() || g.rid; }
+    }
+    if (!rid) throw new Error("couldn't create #" + bcCfgName());
+    await ddp.call("sendMessage", [{ rid, msg: "```json\n" + text.trim() + "\n```" }]);
+  }
+  document.getElementById("saveGridBtn").addEventListener("click", async () => {
+    document.getElementById("userMenu").hidden = true;
+    const slots = visibleSlots().map(id => id && rooms[id] ? rooms[id].name : null);
+    const merged = { ...bcRawConfig, version: 1, homeGrid: { layout: state.layout, slots } };
+    const res = applyBcConfig(merged);
+    if (!res.ok) { hintLong("Couldn't save grid: " + res.err); return; }
+    LS.set("rg.bcconfig", bcRawConfig);
+    if (connection !== "real") { hint("Home grid saved locally (demo) 🏠"); return; }
+    try { await bcPushConfig(JSON.stringify(merged, null, 2)); hint("Home grid saved 🏠"); }
+    catch (e) { hintLong("Couldn't save grid: " + ((e && (e.reason || e.message)) || "error")); }
+  });
+  function applyHomeGrid() {
+    const hg = bcConfig.homeGrid; if (!hg) { hint("No home grid saved yet — use the avatar menu."); return; }
+    const byName = {}; order().forEach(id => byName[(rooms[id].name || "").toLowerCase()] = id);
+    const missing = [];
+    const resolved = Array.from({ length: 6 }, (_, i) => {
+      const nm = hg.slots[i]; if (!nm) return null;
+      const id = byName[nm.toLowerCase()]; if (!id) missing.push(nm);
+      return id || null;
+    });
+    state.layout = hg.layout; state.slots = resolved; state.active = -1;   // the home grid fully defines the workspace
+    syncLayoutButtons(); renderTiles(); persist();
+    visibleSlots().filter(Boolean).forEach(ensureHistory);
+    if (missing.length) hintLong("Home grid: couldn't find " + missing.join(", "));
+  }
+  document.getElementById("homeGridBtn").addEventListener("click", applyHomeGrid);
+  async function joinUpdatesChannel() {   // auto-join the public better.chat.updates channel if it exists (silent)
+    if (connection !== "real") return;
+    try {
+      const nm = "better.chat.updates";
+      if (order().some(id => (rooms[id].name || "").toLowerCase() === nm)) return;   // already a member
+      const info = await apiGet(`/api/v1/channels.info?roomName=${encodeURIComponent(nm)}`);
+      const rid = info && info.channel && info.channel._id; if (!rid) return;
+      const opts = { method: "POST", headers: { "Content-Type": "application/json", "X-Auth-Token": rcToken, "X-User-Id": myUserId }, body: JSON.stringify({ roomId: rid }) };
+      for (const base of [location.origin, "https://" + serverHost]) { try { const r = await fetch(base + "/api/v1/channels.join", opts); if (r.ok) { await refreshSubscriptions(); hint("Joined #better.chat.updates 📣"); return; } } catch (e) {} }
+    } catch (e) {}
+  }
+  const BC_EXAMPLE = '{\n  "version": 1,\n  "quickReactions": ["thumbsup", "heart", "tada", "eyes"],\n  "homeGrid": { "layout": "quad", "slots": ["pinga-team", "merge-requests", "john.smith", null] }\n}';
   async function openBcConfig() {
     const card = openPanel(`<span>Better.Chat config</span><button type="button" class="bc-help" data-role="bc-help" title="Show an example config">?</button>`,
       `<pre class="bc-example" data-role="bc-example" hidden>${esc(BC_EXAMPLE)}</pre>` +
@@ -2794,33 +2852,28 @@
       `<div class="bc-foot"><span class="bc-status" data-role="bc-status"></span><button type="button" class="btn primary" data-role="bc-save">Save</button></div>`, "bcconfigpop");
     const ta = card.querySelector('[data-role="bc-json"]'), st = card.querySelector('[data-role="bc-status"]');
     card.querySelector('[data-role="bc-help"]').addEventListener("click", () => { const ex = card.querySelector('[data-role="bc-example"]'); ex.hidden = !ex.hidden; });
-    ta.value = JSON.stringify(bcConfig, null, 2);
+    ta.value = JSON.stringify(Object.keys(bcRawConfig).length ? bcRawConfig : bcConfig, null, 2);
     if (connection === "real") {
       st.textContent = "Loading latest config…";
       await fetchBcConfig();
-      ta.value = JSON.stringify(bcConfig, null, 2);
+      ta.value = JSON.stringify(Object.keys(bcRawConfig).length ? bcRawConfig : bcConfig, null, 2);
       st.textContent = bcCfgRoomId() ? `Loaded from #${bcCfgName()}.` : `No #${bcCfgName()} channel yet — it'll be created on Save.`;
     } else st.textContent = "Demo mode — saves locally only.";
     card.querySelector('[data-role="bc-save"]').addEventListener("click", async () => {
       const res = applyBcConfig(ta.value);
       if (!res.ok) { st.textContent = "✖ " + res.err; return; }   // invalid config: nothing is sent, nothing changes
-      LS.set("rg.bcconfig", bcConfig);
+      LS.set("rg.bcconfig", bcRawConfig);
       if (connection !== "real") { st.textContent = "✔ Saved locally (demo)."; hint("Config applied"); return; }
       st.textContent = "Saving…";
       try {
-        let rid = bcCfgRoomId();
-        if (!rid) {   // first time: create the private config channel in the background
-          const g = await ddp.call("createPrivateGroup", [bcCfgName(), []]);
-          if (g && g.rid) { await refreshSubscriptions(); rid = bcCfgRoomId() || g.rid; }
-        }
-        if (!rid) { st.textContent = `✖ couldn't create #${bcCfgName()}`; return; }
-        await ddp.call("sendMessage", [{ rid, msg: "```json\n" + ta.value.trim() + "\n```" }]);
+        await bcPushConfig(ta.value);
         st.textContent = "✔ Saved & applied.";
         hint("Better.Chat config saved");
       } catch (e) { st.textContent = "✖ save failed: " + ((e && (e.reason || e.message)) || "error"); }
     });
   }
   const RELEASES = [
+    { v: "15", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v15" },
     { v: "14", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v14" },
     { v: "13", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v13" },
   ];
@@ -3031,7 +3084,7 @@
     lstatus("Loading recent messages...");
     await Promise.all(visibleSlots().filter(Boolean).map(ensureHistory));
     setConn("real", server);
-    refreshMyStatus(); fetchBcConfig();
+    refreshMyStatus(); fetchBcConfig(); joinUpdatesChannel();
   }
   async function ensureHistory(id) {
     if (connection !== "real" || !ddp || !rooms[id] || rooms[id]._loaded) return;
