@@ -63,7 +63,10 @@ PY="$(command -v python3)"
 # ---------- 3. always-on service (starts at login, auto-restarts) ----------
 if [ "$OS" = "Darwin" ]; then
   say "Installing LaunchAgent $LABEL"
-  launchctl unload "$PLIST" 2>/dev/null || true
+  # bootout any previous incarnation (incl. the old label) — `unload` chokes with EIO on stale jobs
+  launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
+  launchctl bootout "gui/$(id -u)/com.sorsix.betterchat" 2>/dev/null || true
+  rm -f "$HOME/Library/LaunchAgents/com.sorsix.betterchat.plist"
   mkdir -p "$HOME/Library/LaunchAgents"
   cat > "$PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -71,7 +74,7 @@ if [ "$OS" = "Darwin" ]; then
 <plist version="1.0"><dict>
   <key>Label</key><string>$LABEL</string>
   <key>ProgramArguments</key><array>
-    <string>$PY</string><string>$DIR/proxy.py</string><string>$RC_SERVER</string><string>$PORT</string>
+    <string>$PY</string><string>-u</string><string>$DIR/proxy.py</string><string>$RC_SERVER</string><string>$PORT</string>
   </array>
   <key>WorkingDirectory</key><string>$DIR</string>
   <key>RunAtLoad</key><true/>
@@ -80,7 +83,7 @@ if [ "$OS" = "Darwin" ]; then
   <key>StandardErrorPath</key><string>$DIR/proxy.log</string>
 </dict></plist>
 EOF
-  launchctl load "$PLIST"
+  launchctl bootstrap "gui/$(id -u)" "$PLIST"
 else
   say "Installing systemd user service better-chat"
   mkdir -p "$UNIT_DIR"
@@ -122,8 +125,8 @@ if [ -n "$RC_FILE" ]; then
   if [ "$OS" = "Darwin" ]; then
     cat >> "$RC_FILE" <<EOF
 $MARK_BEGIN
-bc-start()   { launchctl load "$PLIST"; }
-bc-stop()    { launchctl unload "$PLIST"; }
+bc-start()   { launchctl bootstrap "gui/\$(id -u)" "$PLIST"; }
+bc-stop()    { launchctl bootout "gui/\$(id -u)/$LABEL"; }
 bc-restart() { bc-stop 2>/dev/null; bc-start; }
 bc-status()  { launchctl list | grep -q $LABEL && echo "better.chat: running ($URL)" || echo "better.chat: stopped"; }
 bc-logs()    { tail -f "$DIR/proxy.log"; }
