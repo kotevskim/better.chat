@@ -23,7 +23,7 @@ Requirements: macOS or Linux, `python3` (the script installs it if missing).
 
 ## What the script does
 
-- Downloads `index.html` + `proxy.py` into `~/.better-chat/`
+- Downloads `index.html` + `proxy.py` (the newest released version) into `~/.better-chat/`
 - Installs an always-on service (starts at login, auto-restarts):
   - macOS: LaunchAgent `com.betterchat`
   - Linux: systemd user unit `better-chat`

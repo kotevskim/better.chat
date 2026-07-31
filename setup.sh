@@ -9,7 +9,6 @@ set -euo pipefail
 
 REPO="kotevskim/better.chat"
 REPO_RAW_BASE="https://raw.githubusercontent.com/$REPO"
-REPO_RAW="$REPO_RAW_BASE/main"          # installer itself always pulls from main
 EDGE_BRANCH="main"                       # what `bc-update edge` tracks (latest pushed code, not a release)
 DIR="$HOME/.better-chat"
 PORT=9000
@@ -55,13 +54,17 @@ fi
 command -v python3 >/dev/null 2>&1 || fail "python3 still not available."
 
 # ---------- 2. files ----------
-say "Installing files to $DIR"
 mkdir -p "$DIR"
+# fresh installs get the newest RELEASE (like `bc-update`); main/edge is opt-in via `bc-update edge`
+REF=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
+[ -z "$REF" ] && REF=$(curl -fsSL "https://api.github.com/repos/$REPO/tags" 2>/dev/null | sed -n 's/.*"name": *"\([^"]*\)".*/\1/p' | head -1)
+[ -z "$REF" ] && { REF="main"; say "Couldn't resolve the latest release — installing the development build (main)"; }
+say "Installing $REF to $DIR"
 TS=$(date +%s)   # cache-bust the raw CDN (~5 min TTL) so a fresh push installs fresh files
-curl -fsSL "$REPO_RAW/index.html?ts=$TS" -o "$DIR/index.html" || fail "Couldn't download index.html"
-curl -fsSL "$REPO_RAW/proxy.py?ts=$TS"   -o "$DIR/proxy.py"   || fail "Couldn't download proxy.py"
+curl -fsSL "$REPO_RAW_BASE/$REF/index.html?ts=$TS" -o "$DIR/index.html" || fail "Couldn't download index.html"
+curl -fsSL "$REPO_RAW_BASE/$REF/proxy.py?ts=$TS"   -o "$DIR/proxy.py"   || fail "Couldn't download proxy.py"
 printf '%s\n' "$RC_SERVER" > "$DIR/server"   # the proxy reads its target from here (kept out of the public repo)
-printf '%s\n' "main" > "$DIR/ref"          # which git ref the installed files came from
+printf '%s\n' "$REF" > "$DIR/ref"           # which git ref the installed files came from
 
 PY="$(command -v python3)"
 
