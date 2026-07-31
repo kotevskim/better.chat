@@ -164,7 +164,7 @@
   .msg.cont:hover .ts { color:var(--text-faint); }
   code.inline { font-family:ui-monospace,Menlo,monospace; font-size:12px; background:color-mix(in srgb,var(--text) 11%,transparent); padding:1px 5px; border-radius:4px; }
   pre.code { font-family:ui-monospace,Menlo,monospace; font-size:12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:9px 11px; margin:5px 0 2px; overflow-x:auto; white-space:pre; line-height:1.5; }
-  pre.code .tok-k { color:#c792ea; font-weight:600; } pre.code .tok-s { color:#8bd07a; } pre.code .tok-n { color:#e5945c; } pre.code .tok-c { color:var(--text-faint); font-style:italic; }
+  pre.code .tok-k, .bc-example .tok-k { color:#c792ea; font-weight:600; } pre.code .tok-s, .bc-example .tok-s { color:#8bd07a; } pre.code .tok-n, .bc-example .tok-n { color:#e5945c; } pre.code .tok-c, .bc-example .tok-c { color:var(--text-faint); font-style:italic; }
   .mention { color:var(--t-channel); background:color-mix(in srgb,var(--t-channel) 16%,transparent); border-radius:4px; padding:0 3px; font-weight:600; }
   .mention.me { color:var(--accent); background:color-mix(in srgb,var(--accent) 18%,transparent); }
   .chanref { color:var(--t-channel); font-weight:600; }
@@ -637,7 +637,11 @@
   .bc-help { margin-left:8px; border:1px solid var(--border); background:var(--tile); color:var(--text-dim); width:20px; height:20px; border-radius:50%; cursor:pointer; font:inherit; font-size:11px; line-height:1; }
   .bc-help:hover { color:var(--accent); border-color:var(--accent); }
   .bc-example { margin:10px 14px 0; padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; font-family:ui-monospace,monospace; font-size:11.5px; white-space:pre; overflow-x:auto; color:var(--text-dim); }
-  .bc-json { margin:10px 14px; min-height:180px; resize:vertical; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:ui-monospace,monospace; font-size:12px; line-height:1.5; outline:none; }
+  /* JSON editor: the textarea's text is transparent — a highlighted <pre> mirror sits underneath */
+  .bc-edwrap { position:relative; margin:10px 14px; }
+  .bc-json { display:block; width:100%; box-sizing:border-box; min-height:180px; resize:vertical; background:transparent; border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:transparent; caret-color:var(--text); font-family:ui-monospace,monospace; font-size:12px; line-height:1.5; outline:none; white-space:pre; overflow:auto; position:relative; z-index:2; }
+  .bc-json::selection { background:color-mix(in srgb,var(--accent) 30%,transparent); }
+  .bc-edwrap pre.bc-hl { position:absolute; inset:0; margin:0; z-index:1; background:var(--bg); border:1px solid transparent; border-radius:8px; padding:10px 12px; font-family:ui-monospace,monospace; font-size:12px; line-height:1.5; white-space:pre; overflow:hidden; pointer-events:none; color:var(--text); max-height:none; }
   .bc-json:focus { border-color:color-mix(in srgb,var(--accent) 55%,var(--border)); }
   .bc-foot { display:flex; align-items:center; gap:10px; padding:0 14px 14px; }
   .bc-status { color:var(--text-faint); font-size:12px; }
@@ -3282,16 +3286,20 @@
   const BC_EXAMPLE = '{\n  "version": 1,\n  "quickReactions": ["thumbsup", "heart", "tada", "eyes"],\n  "snapshotGrid": { "layout": "quad", "slots": ["pinga-team", "merge-requests", "john.smith", null] }\n}';
   async function openBcConfig() {
     const card = openPanel(`<span>Better.Chat config</span><button type="button" class="bc-help" data-role="bc-help" title="Show an example config">?</button>`,
-      `<pre class="bc-example" data-role="bc-example" hidden>${esc(BC_EXAMPLE)}</pre>` +
-      `<textarea class="bc-json" data-role="bc-json" spellcheck="false"></textarea>` +
+      `<pre class="bc-example" data-role="bc-example" hidden>${highlightCode("json", BC_EXAMPLE)}</pre>` +
+      `<div class="bc-edwrap"><pre class="code bc-hl" data-role="bc-hl" aria-hidden="true"></pre><textarea class="bc-json" data-role="bc-json" spellcheck="false" wrap="off"></textarea></div>` +
       `<div class="bc-foot"><span class="bc-status" data-role="bc-status"></span><button type="button" class="btn primary" data-role="bc-save">Save</button></div>`, "bcconfigpop");
     const ta = card.querySelector('[data-role="bc-json"]'), st = card.querySelector('[data-role="bc-status"]');
+    const hl = card.querySelector('[data-role="bc-hl"]');   // highlighted mirror behind the transparent textarea
+    const paint = () => { hl.innerHTML = highlightCode("json", ta.value) + "\n"; hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; };
+    ta.addEventListener("input", paint);
+    ta.addEventListener("scroll", () => { hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; }, { passive: true });
     card.querySelector('[data-role="bc-help"]').addEventListener("click", () => { const ex = card.querySelector('[data-role="bc-example"]'); ex.hidden = !ex.hidden; });
-    ta.value = JSON.stringify(Object.keys(bcRawConfig).length ? bcRawConfig : bcConfig, null, 2);
+    ta.value = JSON.stringify(Object.keys(bcRawConfig).length ? bcRawConfig : bcConfig, null, 2); paint();
     if (connection === "real") {
       st.textContent = "Loading latest config…";
       await fetchBcConfig();
-      ta.value = JSON.stringify(Object.keys(bcRawConfig).length ? bcRawConfig : bcConfig, null, 2);
+      ta.value = JSON.stringify(Object.keys(bcRawConfig).length ? bcRawConfig : bcConfig, null, 2); paint();
       st.textContent = bcCfgRoomId() ? `Loaded from #${bcCfgName()}.` : `No #${bcCfgName()} channel yet — it'll be created on Save.`;
     } else st.textContent = "Demo mode — saves locally only.";
     card.querySelector('[data-role="bc-save"]').addEventListener("click", async () => {
