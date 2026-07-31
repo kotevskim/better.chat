@@ -870,9 +870,9 @@
   // ---- ⌥/Opt on macOS, Alt everywhere else ----
   const IS_MAC = /Mac|iPhone|iPad|iPod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent);
   const MODK = IS_MAC ? "Opt" : "Alt";
-  const osKeys = v => IS_MAC ? String(v) : String(v).replace(/⌥\s?/g, "Alt + ").replace(/\bOpt\b/g, "Alt");
-  const helpKeys = v => IS_MAC ? String(v).replace(/⌥\s?/g, "Opt + ") : osKeys(v);
-  if (!IS_MAC) {   // static markup is authored mac-first; rewrite it once for Alt keyboards
+  const osKeys = v => String(v).replace(/⌥\s?/g, MODK + " + ").replace(/\bOpt\b/g, MODK);   // the ⌥ glyph is never shown — it becomes "Opt + " / "Alt + "
+  const helpKeys = osKeys;
+  {   // static markup is authored with ⌥/Opt; rewrite it once for the detected OS
     document.querySelectorAll("[title],[placeholder],[aria-label]").forEach(el => {
       for (const a of ["title", "placeholder", "aria-label"]) { const v = el.getAttribute(a); if (v && (v.includes("⌥") || /\bOpt\b/.test(v))) el.setAttribute(a, osKeys(v)); }
     });
@@ -1730,14 +1730,14 @@
           <div class="tile-head" data-role="head">
             ${headSigil(r)}
             <div class="tile-name" data-role="name" title="Click to switch this chat"><div class="tile-title"><b>${esc(r.name)}${r.muted ? '<span class="muted-tag">MUTED</span>' : ""}</b></div><span class="name-switch" title="Switch chat">${ICON.swap}</span></div>
-            <span class="head-hint"><span>Double-click to expand (&#8997;E)</span><span class="hh2">&#8997;X to close</span></span>
+            <span class="head-hint"><span>Double-click to expand (${osKeys("⌥E")})</span><span class="hh2">${osKeys("⌥X")} to close</span></span>
             <div class="tools">
               <span class="tile-unread" data-role="badge" title="Jump to next unread" ${showUnread?"":"hidden"}>${ru(r)}</span>
               <button class="thead-btn" data-role="more" title="More actions">${ICON.dots}</button>
-              <button class="thead-btn" data-role="search" title="Search messages (&#8997;S)">${ICON.search}</button>
+              <button class="thead-btn" data-role="search" title="Search messages (${osKeys("⌥S")})">${ICON.search}</button>
               <button class="thead-btn" data-role="starred" title="Starred messages">${ICON.starLine}</button>
-              <button class="thead-btn" data-role="unread" title="Mark unread (&#8997;Z)">${ICON.eyeoff}</button>
-              <button class="thead-btn" data-role="clear" title="Close chat (&#8997;X)">${ICON.close}</button>
+              <button class="thead-btn" data-role="unread" title="Mark unread (${osKeys("⌥Z")})">${ICON.eyeoff}</button>
+              <button class="thead-btn" data-role="clear" title="Close chat (${osKeys("⌥X")})">${ICON.close}</button>
             </div>
           </div>
           <div class="stream" data-role="stream">${renderMsgs(r.msgs, r)}</div>
@@ -3327,7 +3327,6 @@
     });
   }
   const RELEASES = [
-    { v: "18", url: "https://github.com/kotevskim/better.chat/releases#release-v18" },
     { v: "17", url: "https://github.com/kotevskim/better.chat/releases#release-v17" },
     { v: "16", url: "https://github.com/kotevskim/better.chat/releases#release-v16" },
     { v: "15", url: "https://github.com/kotevskim/better.chat/releases#release-v15" },
