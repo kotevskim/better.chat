@@ -144,6 +144,13 @@
 
   .msg { display:grid; grid-template-columns:30px 1fr; gap:9px; }
   .msg.cont { margin-top:-6px; }
+  .sysrow { display:grid; grid-template-columns:30px auto auto; justify-content:start; gap:9px; align-items:center; font-size:11.5px; color:var(--text-faint); }
+  .sysrow b { font-weight:600; color:var(--text-dim); }
+  .sysrow time { font-family:ui-monospace,monospace; font-size:10px; }
+  .sysrow .sys-av { display:flex; justify-content:center; }
+  .sysrow .avatar { width:20px; height:20px; font-size:8px; border-radius:6px; }
+  .avatar.av-click { cursor:pointer; }
+  .avatar.av-click:hover { outline:2px solid color-mix(in srgb,var(--accent) 70%,transparent); outline-offset:1px; }
   .avatar { flex:none; width:30px; height:30px; border-radius:6px; display:grid; place-items:center; font-size:11px; font-weight:650; color:#fff; font-family:ui-monospace,monospace; overflow:hidden; }
   img.avatar { object-fit:cover; background:var(--tile-head); }
   .msg .body { min-width:0; }
@@ -855,7 +862,7 @@
   const customEmoji = {};   // populated from the server: name -> image url
 
 
-  const APP_VERSION = "17";   // bump manually per release
+  const APP_VERSION = "edge";   // set to "<N>" for a release commit+tag, then back to "edge" — main builds show edge
   const sig = { c:"#", p:"🔒", d:"@", s:"⤷" };
   const stripe = { c:"var(--t-channel)", p:"var(--t-private)", d:"var(--t-direct)", s:"var(--t-discuss)" };
   const layoutCount = { solo:1, duo:2, tri:3, quad:4, six:6 };
@@ -1167,6 +1174,7 @@
       if (m.tmid && !m.replyTag) { const p = msgs.find(x => x.id === m.tmid); m.replyTag = { user: p ? p.user : "someone", text: p ? p.text : "", pid: m.tmid, direct: !!(r && r.t === "d") }; }   // thread reply -> Messenger-style quote of its parent
       else if (m.replyTag && typeof m.replyTag === "object" && r) m.replyTag.direct = r.t === "d";
       if (dk !== prevDay) { h += `<div class="daymark">${esc(dayLabel(m))}</div>`; prevDay = dk; prev = null; }   // date divider on day change
+      if (m.sys) { h += sysRow(m); prev = null; continue; }   // "joined the channel" etc — quiet line, breaks grouping
       const mine = isMine(m), cont = m.user === prev, unread = i >= start && !mine;
       h += cont ? contRow(m, mine, unread) : fullRow(m, mine, unread); prev = m.user;
     }
@@ -1597,6 +1605,7 @@
     const ok = t.classList.contains("cinput") || (t.tagName === "INPUT" && (t.closest('[data-role="composer"]') || t.closest(".up-reply"))) || t.classList.contains("be-input");   // tile/expanded composer + thread & quick reply + expanded writer
     if (!ok) return;
     if (t.classList.contains("cinput")) { t.style.height = "auto"; t.style.height = Math.min(150, t.scrollHeight) + "px"; }   // grow with content (Shift+Enter adds lines)
+    const cf = t.closest('[data-role="composer"]'); if (cf && cf.dataset.room) { if (t.value) drafts[cf.dataset.room] = t.value; else delete drafts[cf.dataset.room]; }
     updateMention(t);
     if (mentionOpen) { hideEmoji(); return; }
     updateEmoji(t);
@@ -1712,9 +1721,9 @@
       const tile = document.createElement("section");
       tile.className = "tile" + (i === state.active ? " active" : "") + (r ? "" : " empty") + (r && hasNew(r) && i !== state.active ? " has-unread" : "");
       tile.dataset.slot = i;
-      if (r) tile.style.setProperty("--stripe", stripe[r.t]);
+      if (r) { tile.style.setProperty("--stripe", stripe[r.t]); tile.dataset.rt = r.t; }
       if (!r) {
-        tile.innerHTML = `<div class="tile-head" data-role="head"><span class="sigil">&middot;</span><div class="tile-name" data-role="name" title="Pick a chat"><div class="tile-title"><b>Pin chat</b><span class="meta">click to pick a chat</span></div></div></div><div class="stream"><div class="pin-hint"><b>Pin a chat by:</b><span>Double-click here</span><span>Click on &ldquo;Pin chat&rdquo; above</span><span>Drop a favourite</span><span>Press ${MODK} + K</span></div></div>`;
+        tile.innerHTML = `<div class="stream"><div class="pin-hint"><b>Pin a chat by:</b><span>Double-click here</span><span>Drop a favourite</span><span>Press ${MODK} + K</span></div></div>`;
       } else {
         const showUnread = ru(r) > 0;
         tile.innerHTML = `
@@ -1735,7 +1744,7 @@
           ${composerHtml(id, r)}`;
       }
       ws.appendChild(tile);
-      if (r) { const s = tile.querySelector('[data-role="stream"]'); s.scrollTop = s.scrollHeight; attachScroll(s, id); if (focusMode && !uncovered.has(id)) { const cv = document.createElement("div"); cv.className = "tile-cover"; cv.innerHTML = '<span class="cover-label">Click to uncover</span>'; tile.appendChild(cv); } }
+      if (r) { const s = tile.querySelector('[data-role="stream"]'); s.scrollTop = s.scrollHeight; attachScroll(s, id); restoreDraft(tile, id); if (focusMode && !uncovered.has(id)) { const cv = document.createElement("div"); cv.className = "tile-cover"; cv.innerHTML = '<span class="cover-label">Click to uncover</span>'; tile.appendChild(cv); } }
     }
     refreshTopbar(); refreshDmStatuses();
   }
@@ -1808,7 +1817,7 @@
     const cont = last && last.dataset.user === m.user && sameDay;
     const near = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 60;
     if (!sameDay) streamEl.insertAdjacentHTML("beforeend", `<div class="daymark">${esc(dayLabel(m))}</div>`);   // new day -> date divider
-    streamEl.insertAdjacentHTML("beforeend", cont ? contRow(m, mine, unread && !mine) : fullRow(m, mine, unread && !mine));
+    streamEl.insertAdjacentHTML("beforeend", m.sys ? sysRow(m) : (cont ? contRow(m, mine, unread && !mine) : fullRow(m, mine, unread && !mine)));
     if (near || mine) streamEl.scrollTop = streamEl.scrollHeight;   // sending your own message always jumps to the bottom
   }
   function appendToTile(slot, m, unread) { const s = ws.querySelector(`.tile[data-slot="${slot}"] [data-role="stream"]`); if (s) appendToStreamEl(s, m, unread); }
@@ -1838,7 +1847,7 @@
       if (echoK >= 0) { pendingSent.splice(echoK, 1); const opt = [...r.msgs].reverse().find(x => !x.id && isMine(x) && x.text === m.text); if (opt) { opt.id = m.id; opt.reactions = m.reactions; opt.tmid = m.tmid; opt.tshow = true; opt.replyTag = m.replyTag; rerenderMsgById(roomId, m.id); refreshTopbar(); return; } }
       r.msgs.push(m); if (m.tsMs) r.lm = Math.max(r.lm || 0, m.tsMs);
       const read = fromMe || roomId === activeRoomId() || roomId === expandRoomId;
-      if (!read && !r.muted) { r.unread = (r.unread || 0) + 1; r.alert = true; r._walk = null; }   // muted chats never count unread
+      if (!read && !r.muted && !m.sys) { r.unread = (r.unread || 0) + 1; r.alert = true; r._walk = null; }   // muted chats never count unread; system lines (joins etc.) don't either
       const vi = visibleSlots().indexOf(roomId); if (vi >= 0) { appendToTile(vi, m, !read); refreshTileBadge(vi); }
       if (roomId === expandRoomId) appendToExpand(roomId, m, !read);
       refreshTopbar();
@@ -1871,6 +1880,11 @@
       h += `<div class="cbanner"><span>${who} &middot; ${esc(previewText(st.replyTo.text))}</span><label class="tsend cbanner-cb"><input type="checkbox" data-role="reply-tochannel" ${checked}> also send to channel</label><button type="button" class="cx" data-role="cancel-acc">&#10005;</button></div>`;
     }
     return h;
+  }
+  const drafts = {};   // per-room unsent composer text — survives re-renders (pinning chats, layout changes, expand)
+  function restoreDraft(scope, id) {
+    const ci = scope && scope.querySelector('[data-role="composer"] .crow .cinput');
+    if (ci && drafts[id]) { ci.value = drafts[id]; ci.style.height = "auto"; ci.style.height = Math.min(150, ci.scrollHeight) + "px"; }
   }
   function composerHtml(id, r) { return `<form class="composer" data-role="composer" data-room="${id}"><div class="cbanner-slot">${bannerHtml(id)}</div><div class="crow"><div class="cinput-wrap"><textarea class="cinput" rows="1" placeholder="Message ${esc(r.name)}" aria-label="Message"></textarea><button type="button" class="cattach" data-role="attach-file" title="Attach files">${ICON.paperclip}</button><button type="button" class="cpreview-btn" data-role="preview-input" title="Preview formatting">${ICON.eye}</button><button type="button" class="cexpand" data-role="expand-input" title="Expand editor">${ICON.grow}</button></div><button class="send" title="Send">${ICON.send}</button></div></form>`; }
   function renderComposerAcc(id) {
@@ -2064,7 +2078,7 @@
     if (!m) { hint("No messages that day — or history couldn't reach it."); return; }
     renderVisibleStream(roomId);
     const stream = streamElFor(roomId); if (!stream) return;
-    const el = stream.querySelector(`.msg[data-uid="${m._uid}"]`); if (!el) return;
+    const el = stream.querySelector(`[data-uid="${m._uid}"]`); if (!el) return;
     const mark = (el.previousElementSibling && el.previousElementSibling.classList.contains("daymark")) ? el.previousElementSibling : el;
     mark.scrollIntoView({ block: "start" });
     el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1600);
@@ -2611,7 +2625,7 @@
     const id = form.dataset.room, input = form.querySelector(".crow .cinput"), txt = input.value.trim();
     if (!id) return; if (!txt && !(roomState[id] && roomState[id].pendingFiles && roomState[id].pendingFiles.length)) return;   // allow send when only staged files
     const pv = form.querySelector(".cpreview"); if (pv) { pv.remove(); input.style.display = ""; const pb = form.querySelector('[data-role="preview-input"]'); if (pb) { pb.innerHTML = ICON.eye; pb.title = "Preview formatting"; pb.classList.remove("on"); } }
-    input.value = ""; input.style.height = "auto"; mySend(id, txt);
+    input.value = ""; input.style.height = "auto"; delete drafts[id]; mySend(id, txt);
   });
   function tryOpenSwitch(slot) { openFinder(slot); }
 
@@ -2631,6 +2645,7 @@
       ${composerHtml(id, r)}`;
     backdrop.hidden = false;
     const s = modal.querySelector('[data-role="stream"]'); if (s) { s.scrollTop = s.scrollHeight; attachScroll(s, id); }
+    restoreDraft(modal, id);
     if (!r._loaded) ensureHistory(id).then(() => { if (expandRoomId === id) { const st = modal.querySelector('[data-role="stream"]'); if (st) { st.innerHTML = renderMsgs(r.msgs, r); st.scrollTop = st.scrollHeight; } } });
     refreshTopbar();
   }
@@ -2853,6 +2868,41 @@
     else hint("No empty window — drag onto a chat to replace it.");
   }
   function pickFavByNumber(k) { const id = favbarRooms()[k - 1]; if (id) placeFavourite(id); }
+  // clicking a user's avatar in a channel opens (or creates) the DM in the first free window
+  async function openDmWith(username, display) {
+    const uname = (username || "").toLowerCase();
+    if (!uname && !display) { hint("Can't identify that user."); return; }
+    if (myUsername && uname === myUsername.toLowerCase()) { hint("That's you 🙂"); return; }
+    let id = Object.keys(rooms).find(k => rooms[k].t === "d" &&
+      ((uname && (rooms[k].username || "").toLowerCase() === uname) || (display && rooms[k].name === display)));
+    if (!id && connection === "real" && ddp && uname) {
+      try {
+        const res = await ddp.call("createDirectMessage", [username]);
+        id = res && (res.rid || res._id);
+        if (id && !rooms[id]) { rooms[id] = { t: "d", name: display || username, username, slug: "", topic: "direct message", fav: false, unread: 0, threadUnread: 0, threadUnreadIds: new Set(), msgs: [], _loaded: false }; ddp.sub("stream-room-messages", [id, false]); }
+      } catch (e) { hintLong("Couldn't open a direct chat with @" + username); return; }
+    }
+    if (!id) { hint("No direct chat with " + (display || "@" + username) + " here."); return; }
+    placeFavourite(id);   // first free window, else the "no empty window" hint
+  }
+  function avatarUserCtx(el) {   // avatar -> {username, display, roomType} via the message it belongs to
+    const row = el.closest(".msg, .sysrow"); if (!row) return null;
+    const ctx = msgCtx(row); if (!ctx) return null;   // sysrow carries data-uid too, so msgCtx resolves both
+    const r = rooms[ctx.roomId]; if (!r) return null;
+    return { username: ctx.m.username || "", display: ctx.m.user || "", rt: r.t, mine: isMine(ctx.m) };
+  }
+  document.addEventListener("mouseover", e => {
+    const av = e.target.closest('[data-role="stream"] .avatar'); if (!av || av.dataset.avHover) return;
+    av.dataset.avHover = "1";
+    const u = avatarUserCtx(av);
+    if (u && u.rt !== "d" && !u.mine) { av.classList.add("av-click"); av.title = "Open a direct chat with " + (u.display || "@" + u.username) + " in the first free window"; }
+  });
+  document.addEventListener("click", e => {
+    const av = e.target.closest('[data-role="stream"] .avatar'); if (!av) return;
+    const u = avatarUserCtx(av); if (!u || u.rt === "d" || u.mine) return;
+    e.stopPropagation();
+    openDmWith(u.username, u.display);
+  });
 
   // buffered ⌥number so double digits work (⌥1 then ⌥2 = 12); numbers cover ALL favourites
   let numBuf = "", numTimer = null, lastEnter = 0;
@@ -3131,6 +3181,7 @@
         ["Kire","10:45","```js\nuseEffect(() => {\n  const ob = new ResizeObserver(fn);\n  ob.observe(el); return () => ob.disconnect();\n}, []);```"] ]},
       "incidents":{t:"c",name:"incidents",topic:"on-call",fav:true,unread:1,msgs:[
         ["PagerBot","11:58","p95 latency on api-gw > 800ms",[{emoji:"👀",count:4,users:["marija.k","dejan.petrov","ana.r","kire"]},{emoji:"😅",count:2,users:["marija.k","bojan.s"]}]],
+        ["sanja.krsteska","12:00","",null,null,"joined the channel"],
         ["Marija","12:01","looking - cache node again. see #ops-alerts"] ]},
       "sara-l":{t:"d",name:"Sara Lambeva",topic:"direct message",fav:true,unread:2,msgs:[
         ["Sara","12:20","review my DDP reconnect logic?"],
@@ -3151,7 +3202,7 @@
       "ivana-m":{t:"d",name:"Ivana Markova",topic:"direct message",fav:false,unread:0,msgs:[["Ivana","11:20","sending the figma link now"]]},
     };
     const out = {};
-    for (const k in raw) { const r = raw[k]; out[k] = { ...r, msgs: r.msgs.map((m, i, a) => ({ user:m[0], time:m[1], text:m[2], reactions:m[3]||null, attachments:m[4]||null, tsMs: Date.now() - (i === 0 && a.length > 1 ? 2 * 86400000 : 0) })) }; }
+    for (const k in raw) { const r = raw[k]; out[k] = { ...r, msgs: r.msgs.map((m, i, a) => ({ user:m[0], time:m[1], text:m[2], reactions:m[3]||null, attachments:m[4]||null, sys:m[5]||null, tsMs: Date.now() - (i === 0 && a.length > 1 ? 2 * 86400000 : 0) })) }; }
     return out;
   }
   let feedTick = 0, feedTimer = null;
@@ -3387,6 +3438,22 @@
     return out.length ? out : null;
   }
   function fmtSize(b) { if (!b) return ""; if (b < 1024) return b + " B"; if (b < 1048576) return (b / 1024).toFixed(0) + " KB"; return (b / 1048576).toFixed(1) + " MB"; }
+  function sysText(m) {   // RC system messages (m.t) -> human line; null for normal messages
+    if (!m.t) return null;
+    const what = m.msg || "";
+    const MAP = {
+      uj: "joined the channel", ul: "left the channel", ult: "left the channel", ut: "joined this conversation",
+      au: `added ${what}`, ru: `removed ${what}`,
+      "added-user-to-team": `added ${what} to the team`, "removed-user-from-team": `removed ${what} from the team`,
+      r: `changed the room name to ${what}`,
+      room_changed_topic: `changed the topic to ${what}`, room_changed_announcement: "changed the announcement", room_changed_description: "changed the description",
+      "subscription-role-added": `set ${what} as ${m.role || "a role"}`, "subscription-role-removed": `removed ${what} as ${m.role || "a role"}`,
+      "user-muted": `muted ${what}`, "user-unmuted": `unmuted ${what}`,
+      rm: "removed a message", message_pinned: "pinned a message", room_e2e_enabled: "enabled encryption", room_e2e_disabled: "disabled encryption",
+    };
+    return MAP[m.t] || String(m.t).replace(/[-_]/g, " ");   // unknown types still show as a quiet system line
+  }
+  function sysRow(m) { return `<div class="sysrow" ${msgAttrs(m)}><span class="sys-av">${avatarHtml(m)}</span><span><b>${esc(m.user)}</b> ${esc(m.sys)}</span><time>${m.time}</time></div>`; }
   function mkRealMsg(m) {
     const uname = (m.u && m.u.username) || "";
     if (uname) addMentionUser(uname, (m.u && m.u.name) || uname);
@@ -3394,7 +3461,7 @@
       avatarUrl: uname ? `https://${serverHost}/avatar/${encodeURIComponent(uname)}` : null,
       time: fmtTs(m.ts), tsMs: tsToMs(m.ts), text: m.msg || "", reactions: parseReactions(m.reactions),
       attachments: parseAttachments(m), quotes: parseQuotes(m), tcount: m.tcount || 0, tmid: m.tmid || null, tshow: !!m.tshow,
-      starred: Array.isArray(m.starred) && m.starred.some(s => (s && (s._id || s)) === myUserId) };
+      starred: Array.isArray(m.starred) && m.starred.some(s => (s && (s._id || s)) === myUserId), sys: sysText(m) };
   }
   async function loadCustomEmoji() {
     try {
@@ -3532,7 +3599,8 @@
   const LS = { get: k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }, del: k => { try { localStorage.removeItem(k); } catch (e) {} } };
   applyTheme(LS.get("rg.theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));   // restore saved theme
   { const c = LS.get("rg.bcconfig"); if (c) applyBcConfig(c); }   // last good config applies instantly; the server copy refreshes it async
-  document.getElementById("verFooter").textContent = "v" + APP_VERSION; document.getElementById("verLogin").textContent = "v" + APP_VERSION;
+  const verLabel = /^\d/.test(APP_VERSION) ? "v" + APP_VERSION : APP_VERSION;
+  document.getElementById("verFooter").textContent = verLabel; document.getElementById("verLogin").textContent = verLabel;
   { const sv = LS.get("rg.server"); if (sv && !document.getElementById("srv").value) document.getElementById("srv").value = sv; }   // remember the last-used server (no hostname hardcoded)
   const ctxKey = () => connection === "real" ? `real:${serverHost}:${myUsername}` : "demo";
   let snapActive = false;   // 📷 stays selected until the grid changes (then the same-size layout takes over)
