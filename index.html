@@ -91,8 +91,15 @@
   .glyph { display:grid; gap:1.5px; width:16px; }
   .glyph.solo{grid-template-columns:1fr;height:12px;} .glyph.duo{grid-template-columns:1fr 1fr;height:12px;}
   .glyph.tri{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.tri i:last-child{grid-column:1 / -1;}
-  .glyph.quad{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.six{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;height:12px;}
   .glyph i { display:block; background:var(--text-dim); border-radius:1px; }
+  .glyph.quad{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.six{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;height:12px;}
+  .savedbtn { height:32px; width:34px; box-sizing:border-box; background:var(--tile); border:1px solid var(--border); border-radius:6px; display:grid; place-items:center; color:var(--text-dim); cursor:pointer; padding:0; }
+  .savedbtn:hover { color:var(--text); }
+  .savedbtn[hidden] { display:none; }
+  .savedbtn[aria-pressed="true"] { background:color-mix(in srgb,var(--accent) 90%,black); border-color:transparent; color:var(--accent-ink); }
+  .savedbtn[aria-pressed="true"] .glyph i { background:currentColor; }
+  .g-saved { position:relative; overflow:visible; }
+  .g-saved .g-star { position:absolute; top:-6px; right:-7px; font-size:8.5px; line-height:1; color:#f4c430; font-style:normal; font-weight:400; }
   .iconbtn { border:1px solid var(--border); background:var(--tile); color:var(--text-dim); width:30px; height:30px; border-radius:6px; cursor:pointer; display:grid; place-items:center; }
   #themeBtn { color:#f5b338; } #themeBtn:hover { color:#ffc44d; }
   .tb-flat { display:inline-flex; flex-direction:column; align-items:center; gap:2px; border:none; background:none; color:var(--text-dim); cursor:pointer; padding:3px 7px; font:inherit; }
@@ -772,7 +779,7 @@
     <div class="usermenu" id="userMenu" hidden>
       <div class="um-head"><b id="umName">You</b><span id="umSub">demo mode</span></div>
       <button class="um-item" id="statusBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg> Change Status</button>
-      <button class="um-item" id="saveGridBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5a2 2 0 0 1 2-2h2.2l1.3-2h6l1.3 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.4"/></svg> Snapshot Current Grid</button>
+      <button class="um-item" id="saveGridBtn"><span class="glyph quad g-saved"><i></i><i></i><i></i><i></i><b class="g-star">★</b></span> Save Current Grid</button>
       <button class="um-item" id="bcConfigBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.12-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.12 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01A1.7 1.7 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01c.26.63.87 1.04 1.56 1.04H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51.94z"/></svg> Better.Chat Config</button>
       <div class="um-sub-wrap">
         <button class="um-item" id="fontBtn"><span class="um-aa">Aa</span> Fonts &amp; Size<span class="um-caret">›</span></button>
@@ -1235,15 +1242,15 @@
       const valid = [...new Set(obj.quickReactions.filter(x => typeof x === "string").map(x => normEmojiKey(x)).filter(k => EMOJI[k]))];
       if (valid.length) eff.quickReactions = valid.slice(0, 10);
     }
-    const sg = obj.snapshotGrid || obj.homeGrid;   // homeGrid = the pre-v17 name, still honoured
+    const sg = obj.savedGrid || obj.snapshotGrid || obj.homeGrid;   // snapshotGrid/homeGrid = older names, still honoured
     if (sg && typeof sg === "object" && !Array.isArray(sg)) {
       if (layoutCount[sg.layout] && Array.isArray(sg.slots)) {
-        eff.snapshotGrid = { layout: sg.layout, slots: sg.slots.slice(0, 6).map(x => (typeof x === "string" && x.trim()) ? x.trim() : null) };
+        eff.savedGrid = { layout: sg.layout, slots: sg.slots.slice(0, 6).map(x => (typeof x === "string" && x.trim()) ? x.trim() : null) };
       }
     }
     bcRawConfig = obj; bcConfig = eff;
     QUICK = eff.quickReactions.map(k => [k, EMOJI[k]]);
-    const hb = document.getElementById("snapGridBtn"); if (hb) hb.hidden = !eff.snapshotGrid;   // the camera shows only once a snapshot exists
+    const hb = document.getElementById("savedGridBtn"); if (hb) hb.hidden = !eff.savedGrid;   // the ★ grid shows only once a grid was saved
     return { ok: true };
   }
   const SVG_SMILE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>';
@@ -2740,15 +2747,14 @@
   function helpTableHtml() {
     const SECTIONS = [
       ["Chats", [
-        ["Tab · ← → ↑ ↓", "Move focus between chat windows (Shift+Tab = previous) — does NOT mark it read"],
-        ["Enter", "Mark the focused chat read (clears its unread) and focus its message input"],
-        ["Double-click header · ⌥ E", "Expand the focused chat to a big window"],
-        ["⌥ L", "Cycle grid layout (1-up → 2-up → 2+1 → 2×2 → 3×2 → 📷 snapshot, once saved)"],
-        ["⌥ X", "Close the focused chat (the tile stays focused, now empty)"],
+        ["← → ↑ ↓", "Move focus between chat windows (does <b>NOT</b> mark it read). Hit [[Enter]] to mark the chat read and focus its message input"],
+        ["⌥ E", "Expand the focused chat to a big window"],
+        ["⌥ L", "Cycle grid layout (1 → 2 → 2+1 → 2×2 → 3×2)"],
+        ["⌥ X", "Close the focused chat"],
         ["⌥ Z", "Mark the focused chat unread (adds it to the unread bar)"],
-        ["⌥ ← → ↑ ↓", "Swap the focused chat with the neighbouring tile (either may be empty)"],
-        ["⌥ S", "Search this chat’s messages; click a hit to jump to it"],
-        ["⌥ G · 📷 in the layout switch", "Apply your snapshot grid (take one via the avatar menu → Snapshot Current Grid)"],
+        ["⌥ ← → ↑ ↓", "Swap the focused chat with the neighbouring tile"],
+        ["⌥ S", "Search focused chat’s messages"],
+        ["⌥ G", "Apply your saved grid (save one via the avatar menu → Save Current Grid)"],
       ]],
       ["Messages", [
         ["Tab · Enter (on a focused message)", "Select the emoji action; Tab / ← → cycle actions, Enter runs the selected one"],
@@ -2962,11 +2968,7 @@
       if (e.code === "KeyL") { e.preventDefault(); cycleLayout(); return; }
       if (e.code === "KeyX") { e.preventDefault(); closeTile(state.active); return; }
       if (e.code === "KeyS") { e.preventDefault(); if (state.slots[state.active]) openSearch(state.slots[state.active]); return; }
-      if (e.code === "KeyG") { e.preventDefault(); applySnapshotGrid(); return; }   // ⌥G (G = grid)
-    }
-    if (e.key === "Tab") {
-      if (inPopup) { if (!modalResults.length) return; e.preventDefault(); modalSel = (modalSel + (e.shiftKey ? -1 : 1) + modalResults.length) % modalResults.length; renderResults(); return; }
-      if (backdrop.hidden) { e.preventDefault(); const cnt = n(), ni = (state.active + (e.shiftKey ? -1 : 1) + cnt) % cnt; setActive(ni); setFocusedMsg(null); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return; }
+      if (e.code === "KeyG") { e.preventDefault(); applySavedGrid(); return; }   // ⌥G (G = grid)
     }
     // arrows move between chat windows — ← → always; ↑ ↓ when no message is keyboard-focused (never while typing or focused anywhere in a composer)
     const inComposer = document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"], .up-reply, .bigeditor, .inline-edit');
@@ -3248,16 +3250,16 @@
   document.getElementById("saveGridBtn").addEventListener("click", async () => {
     document.getElementById("userMenu").hidden = true;
     const slots = visibleSlots().map(id => id && rooms[id] ? rooms[id].name : null);
-    const merged = { ...bcRawConfig, version: 1, snapshotGrid: { layout: state.layout, slots } }; delete merged.homeGrid;
+    const merged = { ...bcRawConfig, version: 1, savedGrid: { layout: state.layout, slots } }; delete merged.snapshotGrid; delete merged.homeGrid;
     const res = applyBcConfig(merged);
     if (!res.ok) { hintLong("Couldn't save grid: " + res.err); return; }
     LS.set("rg.bcconfig", bcRawConfig);
-    if (connection !== "real") { hintLong(osKeys("Grid snapshot saved (demo) 📷 — revert to it any time with the 📷 button in the layout switcher or ⌥G.")); return; }
-    try { await bcPushConfig(JSON.stringify(merged, null, 2)); hintLong(osKeys("Grid snapshot saved 📷 — revert to it any time with the 📷 button in the layout switcher or ⌥G.")); }
+    if (connection !== "real") { hintLong(osKeys("Grid saved (demo) ★ — apply it any time with the ★ button next to the layout switcher or ⌥G.")); return; }
+    try { await bcPushConfig(JSON.stringify(merged, null, 2)); hintLong(osKeys("Grid saved ★ — apply it any time with the ★ button next to the layout switcher or ⌥G.")); }
     catch (e) { hintLong("Couldn't save grid: " + ((e && (e.reason || e.message)) || "error")); }
   });
-  function applySnapshotGrid() {
-    const hg = bcConfig.snapshotGrid; if (!hg) { hint("No grid snapshot yet — take one from the avatar menu."); return; }
+  function applySavedGrid() {
+    const hg = bcConfig.savedGrid; if (!hg) { hint("No saved grid yet — save one from the avatar menu."); return; }
     const byName = {}; order().forEach(id => byName[(rooms[id].name || "").toLowerCase()] = id);
     const missing = [];
     const resolved = Array.from({ length: 6 }, (_, i) => {
@@ -3267,11 +3269,11 @@
     });
     state.layout = hg.layout; state.slots = resolved; state.active = -1;   // the home grid fully defines the workspace
     renderTiles(); persist();
-    snapActive = true; syncLayoutButtons();   // after persist(), so the 📷 stays selected
+    savedActive = true; syncLayoutButtons();   // after persist(), so the ★ grid stays selected
     visibleSlots().filter(Boolean).forEach(ensureHistory);
-    if (missing.length) hintLong("Snapshot grid: couldn't find " + missing.join(", "));
+    if (missing.length) hintLong("Saved grid: couldn't find " + missing.join(", "));
   }
-  document.getElementById("snapGridBtn").addEventListener("click", applySnapshotGrid);
+  document.getElementById("savedGridBtn").addEventListener("click", applySavedGrid);
   async function joinUpdatesChannel() {   // auto-join the public better.chat.updates channel if it exists (silent)
     if (connection !== "real") return;
     try {
@@ -3283,7 +3285,7 @@
       for (const base of [location.origin, "https://" + serverHost]) { try { const r = await fetch(base + "/api/v1/channels.join", opts); if (r.ok) { await refreshSubscriptions(); hint("Joined #better.chat.updates 📣"); return; } } catch (e) {} }
     } catch (e) {}
   }
-  const BC_EXAMPLE = '{\n  "version": 1,\n  "quickReactions": ["thumbsup", "heart", "tada", "eyes"],\n  "snapshotGrid": { "layout": "quad", "slots": ["pinga-team", "merge-requests", "john.smith", null] }\n}';
+  const BC_EXAMPLE = '{\n  "version": 1,\n  "quickReactions": ["thumbsup", "heart", "tada", "eyes"],\n  "savedGrid": { "layout": "quad", "slots": ["pinga-team", "merge-requests", "john.smith", null] }\n}';
   async function openBcConfig() {
     const card = openPanel(`<span>Better.Chat config</span><button type="button" class="bc-help" data-role="bc-help" title="Show an example config">?</button>`,
       `<pre class="bc-example" data-role="bc-example" hidden>${highlightCode("json", BC_EXAMPLE)}</pre>` +
@@ -3592,9 +3594,9 @@
   document.getElementById("verFooter").textContent = verLabel; document.getElementById("verLogin").textContent = verLabel;
   { const sv = LS.get("rg.server"); if (sv && !document.getElementById("srv").value) document.getElementById("srv").value = sv; }   // remember the last-used server (no hostname hardcoded)
   const ctxKey = () => connection === "real" ? `real:${serverHost}:${myUsername}` : "demo";
-  let snapActive = false;   // 📷 stays selected until the grid changes (then the same-size layout takes over)
+  let savedActive = false;   // the ★ grid stays selected until the grid changes (then the same-size layout takes over)
   function persist() {
-    if (snapActive) { snapActive = false; syncLayoutButtons(); }   // any layout/slot change leaves snapshot state
+    if (savedActive) { savedActive = false; syncLayoutButtons(); }   // any layout/slot change leaves saved-grid state
     LS.set("rg.prefs", { layout: state.layout, font: fontPref }); LS.set("rg.grid." + ctxKey(), { slots: state.slots });
   }
   function restorePrefs() { const p = LS.get("rg.prefs"); if (p) { if (layoutCount[p.layout]) state.layout = p.layout; if (p.font) fontPref = { size: p.font.size || "medium", family: p.font.family || "system" }; } }
@@ -3602,8 +3604,8 @@
   function saveSession() { if (document.getElementById("remember").checked && rcToken) LS.set("rg.session", { server: serverHost, user: myUsername, token: rcToken }); else LS.del("rg.session"); }
   function clearSession() { LS.del("rg.session"); }
   function syncLayoutButtons() {
-    document.querySelectorAll(".segmented button").forEach(x => x.setAttribute("aria-pressed", (!snapActive && x.dataset.layout === state.layout) ? "true" : "false"));
-    const hb = document.getElementById("snapGridBtn"); if (hb) hb.setAttribute("aria-pressed", snapActive ? "true" : "false");
+    document.querySelectorAll(".segmented button").forEach(x => x.setAttribute("aria-pressed", (!savedActive && x.dataset.layout === state.layout) ? "true" : "false"));
+    const hb = document.getElementById("savedGridBtn"); if (hb) hb.setAttribute("aria-pressed", savedActive ? "true" : "false");
   }
 
   // ---------- login ----------
