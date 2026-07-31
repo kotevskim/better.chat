@@ -79,6 +79,8 @@
   .modebtn .hint { color:var(--text-faint); font-size:10.5px; }
   .modeinfo { display:inline-grid; place-items:center; width:15px; height:15px; border-radius:50%; border:1px solid var(--text-faint); color:var(--text-faint); font-size:9.5px; font-weight:700; }
   .modebtn:hover .modeinfo { color:var(--accent); border-color:var(--accent); }
+  .seg-stack { display:flex; flex-direction:column; align-items:center; gap:1px; transform:translateY(5px); }   /* switcher stays aligned with the 32px buttons; the caption hangs into the bar's lower padding */
+  .seg-cap { font-family:ui-monospace,monospace; font-size:8px; line-height:1; letter-spacing:.05em; color:var(--text-faint); }
   .segmented { display:flex; align-items:center; height:32px; box-sizing:border-box; background:var(--tile); border:1px solid var(--border); border-radius:6px; padding:2px; gap:2px; }
   .iconbtn { height:32px; width:32px; }
   .segmented button { border:none; background:none; color:var(--text-dim); cursor:pointer; padding:4px 7px; border-radius:4px; display:grid; place-items:center; transition:background .12s,color .12s; }
@@ -751,14 +753,14 @@
       <button class="tb-flat" id="feedbackBtn" title="Leave feedback (better.chat.feedback)" aria-label="Leave feedback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 5v-16l-4 5H4a1 1 0 0 0-1 1z" transform="translate(1,0)"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg><span>Feedback</span></button>
     </div>
     <div class="right">
-      <div class="segmented" role="group" aria-label="Grid layout — ⌥L cycles">
+      <div class="seg-stack"><div class="segmented" role="group" aria-label="Grid layout — ⌥L cycles">
         <button data-layout="solo" title="1-up (⌥L cycles layouts)" aria-pressed="false"><span class="glyph solo"><i></i></span></button>
         <button data-layout="duo" title="2-up (⌥L cycles layouts)" aria-pressed="false"><span class="glyph duo"><i></i><i></i></span></button>
         <button data-layout="tri" title="2+1 (⌥L cycles layouts)" aria-pressed="false"><span class="glyph tri"><i></i><i></i><i></i></span></button>
         <button data-layout="quad" title="2×2 (⌥L cycles layouts)" aria-pressed="true"><span class="glyph quad"><i></i><i></i><i></i><i></i></span></button>
         <button data-layout="six" title="3×2 (⌥L cycles layouts)" aria-pressed="false"><span class="glyph six"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
         <button id="snapGridBtn" title="Snapshot grid (⌥G)" aria-label="Apply snapshot grid" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5a2 2 0 0 1 2-2h2.2l1.3-2h6l1.3 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.4"/></svg></button>
-      </div>
+      </div><span class="seg-cap" aria-hidden="true">⌥L cycles</span></div>
       <button class="iconbtn" id="focusBtn" title="Focus mode — cover all chats but one or two" aria-label="Focus mode" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button>
       <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts — ?" aria-label="Keyboard shortcuts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.2a2.6 2.6 0 1 1 3.7 2.4c-.8.4-1.1.9-1.1 1.7"/><path d="M12 17.2h.01"/></svg></button>
       <button class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
@@ -877,7 +879,7 @@
     document.querySelectorAll("[title],[placeholder],[aria-label]").forEach(el => {
       for (const a of ["title", "placeholder", "aria-label"]) { const v = el.getAttribute(a); if (v && (v.includes("⌥") || /\bOpt\b/.test(v))) el.setAttribute(a, osKeys(v)); }
     });
-    document.querySelectorAll(".tb-search span").forEach(el => { el.textContent = osKeys(el.textContent); });
+    document.querySelectorAll(".tb-search span, .seg-cap").forEach(el => { el.textContent = osKeys(el.textContent); });
   }
   const palette = ["#5b7cff","#ff7a59","#3fd08a","#a98bff","#e0a44c","#ff5c8a","#42c2d6","#7bd15b"];
 
