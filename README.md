@@ -16,6 +16,10 @@ The script asks for your Rocket.Chat server hostname once (stored only in
 `~/.better-chat/server`, never in this repo). Then open
 **http://chat.localhost:9000** (opens automatically after setup).
 
+> Re-running the command is safe — it's also how you pick up new or updated
+> `bc-*` commands. After it finishes, run `source ~/.zshrc` (Linux: `~/.bashrc`)
+> or open a new terminal; your current shell keeps the old commands until then.
+
 Use **Chrome or Firefox** — they resolve `*.localhost` to your machine natively
 and treat it as a secure context (login + clipboard need that). Safari doesn't.
 
