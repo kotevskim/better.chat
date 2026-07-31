@@ -33,8 +33,9 @@
   .status-dot[data-status="away"] { background:#e0a44c; } .status-dot[data-status="busy"] { background:#e5555f; } .status-dot[data-status="offline"] { background:#8a97a6; }
   .focus-badge { font-family:ui-monospace,monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); border:1px solid color-mix(in srgb,var(--accent) 45%,transparent); border-radius:20px; padding:2px 9px; }
   .focus-badge[hidden] { display:none; }
-  .footer { display:flex; align-items:center; justify-content:center; gap:7px; padding:3px 14px; background:var(--bg-rail); border-top:1px solid var(--border); color:var(--text-faint); font-size:10.5px; font-family:ui-monospace,monospace; }
-  .footer .fdiv { width:1px; height:11px; background:var(--border); margin:0 4px; }
+  .footer { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:7px; padding:3px 14px; background:var(--bg-rail); border-top:1px solid var(--border); color:var(--text-faint); font-size:10.5px; font-family:ui-monospace,monospace; }
+  .footer .fcenter { display:flex; align-items:center; gap:7px; justify-self:center; }
+  .footer .fright { justify-self:end; }
   .footer .flink, .footer .flink:visited { color:var(--text-faint); text-decoration:none; }
   .footer .flink:hover { color:var(--text-dim); text-decoration:underline; }
   .iconbtn[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
@@ -330,7 +331,7 @@
   .mm-react { border:none; background:none; cursor:pointer; font-size:19px; line-height:1; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; transition:transform .1s, background .1s; }
   .mm-react:hover { transform:scale(1.25); background:color-mix(in srgb,var(--text) 8%,transparent); }
   .mm-acts { display:flex; gap:5px; }
-  .mm-act { width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:var(--tile); color:var(--text-dim); cursor:pointer; display:grid; place-items:center; box-shadow:var(--shadow); }
+  .mm-act { width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:var(--tile); color:var(--accent); cursor:pointer; display:grid; place-items:center; box-shadow:var(--shadow); }
   .mm-act:hover, .mm-act.mmsel { color:var(--accent); border-color:var(--accent); }
   .actbar { flex-direction:row; align-items:center; gap:5px; }
   .actbar .mm-reactions { padding:3px 5px; }
@@ -706,7 +707,7 @@
   <div class="favbar" id="favbar"></div>
   <div class="unreadbar" id="unreadbar" hidden></div>
   <main class="workspace" id="workspace" data-layout="quad"></main>
-  <footer class="footer" id="footer"><span class="dot" id="connDot2"></span><span id="footerText">demo data</span><span class="fdiv"></span><a class="flink" href="https://github.com/kotevskim/better.chat" target="_blank" rel="noopener noreferrer">github.com/kotevskim/better.chat</a><span class="fdiv"></span><span id="verFooter"></span></footer>
+  <footer class="footer" id="footer"><span id="verFooter"></span><span class="fcenter"><span class="dot" id="connDot2"></span><span id="footerText">demo data</span></span><a class="flink fright" href="https://github.com/kotevskim/better.chat" target="_blank" rel="noopener noreferrer">github.com/kotevskim/better.chat</a></footer>
 </div>
 
 <div class="tour" id="tour" hidden><div class="tour-card"></div></div>
@@ -1154,7 +1155,7 @@
     msgMenu = document.createElement("div"); msgMenu.className = "msgmenu actbar"; document.body.appendChild(msgMenu);
     renderMenu(); positionMenu(el);
     msgMenu.addEventListener("mouseenter", () => clearTimeout(menuHideT));
-    msgMenu.addEventListener("mouseleave", () => { if (!kbMsgFocus) menuHideT = setTimeout(hideMsgMenu, 160); });
+    msgMenu.addEventListener("mouseleave", () => { if (!kbMsgFocus) scheduleHideMenu(); });
   }
   // send first, update UI only on success (so a failed reaction never shows optimistically)
   async function react(ctx, ch, short) {
@@ -1268,8 +1269,24 @@
     if (el) { showActBar(el); applyMenuSel(); if (document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"] .crow')) document.activeElement.blur(); }
     else hideMsgMenu();
   }
-  function onMsgHover(e) { if (kbMsgFocus) return; const m = e.target.closest(".msg"); if (m && (m.closest('[data-role="stream"]') || m.closest(".threadpop"))) { clearTimeout(menuHideT); showActBar(m); } }
-  function onMsgOut(e) { const to = e.relatedTarget; if (to && to.closest && (to.closest(".msg") || to.closest(".actbar"))) return; if (!kbMsgFocus) menuHideT = setTimeout(hideMsgMenu, 160); }
+  const MSG_HIT = ".bubble, .text, .atts, .reacts, .thread-ind, .reply-ref, .reply-tag";   // the message itself — not the name/time row, avatar or blank filler
+  let ptrX = 0, ptrY = 0;
+  document.addEventListener("mousemove", e => { ptrX = e.clientX; ptrY = e.clientY; }, { passive: true });
+  function scheduleHideMenu() {   // decide at fire time from the real cursor position — relatedTarget is unreliable on fast moves
+    clearTimeout(menuHideT);
+    menuHideT = setTimeout(() => {
+      const under = document.elementFromPoint(ptrX, ptrY);
+      if (under && under.closest && (under.closest(MSG_HIT) || under.closest(".actbar"))) return;   // still on the message / toolbar
+      hideMsgMenu();
+    }, 200);
+  }
+  function onMsgHover(e) {
+    if (kbMsgFocus) return;
+    const hit = e.target.closest(MSG_HIT), m = hit && hit.closest(".msg");
+    if (m && (m.closest('[data-role="stream"]') || m.closest(".threadpop"))) { clearTimeout(menuHideT); showActBar(m); }
+    else if (msgMenu && !e.target.closest(".actbar")) scheduleHideMenu();   // moved onto blank space / the name row
+  }
+  function onMsgOut(e) { const to = e.relatedTarget; if (to && to.closest && (to.closest(MSG_HIT) || to.closest(".actbar"))) return; if (!kbMsgFocus) scheduleHideMenu(); }
   document.addEventListener("mouseover", onMsgHover); document.addEventListener("mouseout", onMsgOut);   // grid, expand AND thread popups
   document.addEventListener("keydown", e => {
     const t = e.target;
@@ -1284,7 +1301,7 @@
     if (msgMenu && !e.target.closest(".msgmenu")) hideMsgMenu();
     // clicking the message itself (bubble/text/header/attachments) toggles its focus; blank space — even in the same row — unfocuses
     if (e.target.closest('button, a, img, .inline-edit, [data-role="lightbox"]')) return;
-    const hit = e.target.closest(".bubble, .text, .head, .atts");
+    const hit = e.target.closest(MSG_HIT);
     const m = hit && hit.closest(".msg");
     if (m && m.closest('[data-role="stream"]')) { if (focusedMsgEl === m && kbMsgFocus) setFocusedMsg(null); else setFocusedMsg(m, true); return; }
     if (focusedMsgEl && e.target.closest('[data-role="stream"]')) setFocusedMsg(null);   // blank space inside the chat (incl. beside a message)
@@ -3146,7 +3163,7 @@
   const LS = { get: k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }, del: k => { try { localStorage.removeItem(k); } catch (e) {} } };
   applyTheme(LS.get("rg.theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));   // restore saved theme
   { const c = LS.get("rg.bcconfig"); if (c) applyBcConfig(c); }   // last good config applies instantly; the server copy refreshes it async
-  document.getElementById("verFooter").textContent = APP_VERSION; document.getElementById("verLogin").textContent = APP_VERSION;
+  document.getElementById("verFooter").textContent = "v" + APP_VERSION; document.getElementById("verLogin").textContent = "v" + APP_VERSION;
   { const sv = LS.get("rg.server"); if (sv && !document.getElementById("srv").value) document.getElementById("srv").value = sv; }   // remember the last-used server (no hostname hardcoded)
   const ctxKey = () => connection === "real" ? `real:${serverHost}:${myUsername}` : "demo";
   let homeActive = false;   // 🏠 stays selected until the grid changes (then the same-size layout takes over)
