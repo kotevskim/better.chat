@@ -106,6 +106,7 @@
   .tb-search { display:inline-flex; align-items:center; gap:7px; width:190px; height:30px; padding:0 11px; border:1px solid var(--border); background:var(--tile); border-radius:8px; color:var(--text-faint); font:inherit; font-size:12px; cursor:pointer; }
   .tb-search:hover { border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); color:var(--text-dim); }
   .tb-flat span { font-size:9px; letter-spacing:.02em; color:var(--text-faint); }
+  .tb-flat[aria-pressed="true"] { color:var(--accent); } .tb-flat[aria-pressed="true"] span { color:var(--accent); }
   .tb-flat:hover { color:var(--text); } .tb-flat:hover span { color:var(--text-dim); }
   .thread-ind.bfocus { outline:2px solid var(--accent); outline-offset:1px; }
   .tmenu { position:fixed; z-index:345; display:flex; flex-direction:column; min-width:190px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:5px; }
@@ -761,6 +762,7 @@
     <div class="cluster">
       <button class="tb-search" id="finderBtn" title="Search / open a chat &mdash; &#8997;K" aria-label="Search chats"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search (Opt + K)</span></button>
       <button class="tb-flat" id="starredBtn" title="Starred messages (all chats)" aria-label="All starred messages"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9.1 9z"/></svg><span>All Starred</span></button>
+      <button class="tb-flat" id="focusBtn" title="Focus mode — cover all chats but one or two (sets you Busy)" aria-label="Focus mode" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5a8 8 0 0 1 16 0"/><path d="M4 13.5v4.2a1.8 1.8 0 0 0 1.8 1.8H7a1 1 0 0 0 1-1v-3.6a1 1 0 0 0-1-1z"/><path d="M20 13.5v4.2a1.8 1.8 0 0 1-1.8 1.8H17a1 1 0 0 1-1-1v-3.6a1 1 0 0 1 1-1z"/></svg><span>Focus Mode</span></button>
       <button class="tb-flat" id="feedbackBtn" title="Leave feedback (better.chat.feedback)" aria-label="Leave feedback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 5v-16l-4 5H4a1 1 0 0 0-1 1z" transform="translate(1,0)"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg><span>Feedback</span></button>
     </div>
     <div class="right">
@@ -3117,8 +3119,16 @@
   document.addEventListener("submit", e => { const f = e.target.closest(".up-reply"); if (!f || f.matches('[data-role="thread-reply"]')) return; e.preventDefault(); const id = f.dataset.room, inp = f.querySelector("input"), t = inp.value.trim(); if (!t) return; mySend(id, t); markRead(id); hideUrPop(); renderFavbar(); renderUnreadbar(); });   // NOT the thread form — its own handler sends with tmid (this one would read the checkbox as "on")
 
   // ---------- focus mode ----------
-  let focusMode = false; const uncovered = new Set();
-  function setFocusMode(on) { focusMode = on; if (!on) uncovered.clear(); document.getElementById("app").classList.toggle("focusmode", on); document.getElementById("focusBtn").setAttribute("aria-pressed", on ? "true" : "false"); document.getElementById("focusBadge").hidden = !on; renderTiles(); }
+  let focusMode = false; const uncovered = new Set(); let preFocusStatus = null;
+  async function focusStatus(on) {   // entering focus -> Busy; leaving -> whatever you were before
+    if (on) { preFocusStatus = myStatusName || "online"; if (preFocusStatus === "busy") return; }
+    const target = on ? "busy" : (preFocusStatus || "online");
+    if (!on && (preFocusStatus === "busy" || myStatusName !== "busy")) { preFocusStatus = null; return; }   // user changed status meanwhile — leave it alone
+    if (connection === "real") { if (!(await restPost("/api/v1/users.setStatus", { status: target, message: myStatusText || "" }))) return; }
+    myStatusName = target; applyMyStatus();
+    if (!on) preFocusStatus = null;
+  }
+  function setFocusMode(on) { focusMode = on; if (!on) uncovered.clear(); document.getElementById("app").classList.toggle("focusmode", on); document.getElementById("focusBtn").setAttribute("aria-pressed", on ? "true" : "false"); document.getElementById("focusBadge").hidden = !on; focusStatus(on); renderTiles(); }
   document.getElementById("focusBtn").addEventListener("click", () => setFocusMode(!focusMode));
 
   // ---------- chat font + size ----------
