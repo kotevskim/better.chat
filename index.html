@@ -79,8 +79,7 @@
   .modebtn .hint { color:var(--text-faint); font-size:10.5px; }
   .modeinfo { display:inline-grid; place-items:center; width:15px; height:15px; border-radius:50%; border:1px solid var(--text-faint); color:var(--text-faint); font-size:9.5px; font-weight:700; }
   .modebtn:hover .modeinfo { color:var(--accent); border-color:var(--accent); }
-  .seg-stack { display:flex; flex-direction:column; align-items:center; gap:1px; transform:translateY(5px); }   /* switcher stays aligned with the 32px buttons; the caption hangs into the bar's lower padding */
-  .seg-cap { font-family:ui-monospace,monospace; font-size:8px; line-height:1; letter-spacing:.05em; color:var(--text-faint); }
+  .seg-cap { font-family:ui-monospace,monospace; font-size:8.5px; line-height:1; letter-spacing:.05em; color:var(--text-faint); margin-right:-4px; }
   .segmented { display:flex; align-items:center; height:32px; box-sizing:border-box; background:var(--tile); border:1px solid var(--border); border-radius:6px; padding:2px; gap:2px; }
   .iconbtn { height:32px; width:32px; }
   .segmented button { border:none; background:none; color:var(--text-dim); cursor:pointer; padding:4px 7px; border-radius:4px; display:grid; place-items:center; transition:background .12s,color .12s; }
@@ -106,8 +105,8 @@
   .tb-search { display:inline-flex; align-items:center; gap:7px; width:190px; height:30px; padding:0 11px; border:1px solid var(--border); background:var(--tile); border-radius:8px; color:var(--text-faint); font:inherit; font-size:12px; cursor:pointer; }
   .tb-search:hover { border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); color:var(--text-dim); }
   .tb-flat span { font-size:9px; letter-spacing:.02em; color:var(--text-faint); }
-  .tb-flat[aria-pressed="true"] { color:var(--accent); } .tb-flat[aria-pressed="true"] span { color:var(--accent); }
   .tb-flat:hover { color:var(--text); } .tb-flat:hover span { color:var(--text-dim); }
+  .tb-flat[aria-pressed="true"] { color:var(--accent); } .tb-flat[aria-pressed="true"] span { color:var(--accent); }
   .thread-ind.bfocus { outline:2px solid var(--accent); outline-offset:1px; }
   .tmenu { position:fixed; z-index:345; display:flex; flex-direction:column; min-width:190px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:5px; }
   .jump-bottom { position:absolute; left:50%; transform:translateX(-50%); bottom:62px; width:34px; height:34px; border-radius:50%; border:none; background:var(--accent); color:var(--accent-ink); display:grid; place-items:center; cursor:pointer; box-shadow:var(--shadow); z-index:6; }
@@ -712,6 +711,8 @@
   .kbrow:nth-of-type(1) { border-top:none; }
   .kbkeys { display:flex; flex-wrap:wrap; gap:4px; flex:0 0 42%; }
   .kbgrid kbd { font-family:ui-monospace,monospace; font-size:11px; background:var(--tile-head); border:1px solid var(--border); border-radius:4px; padding:2px 6px; white-space:nowrap; }
+  .kbgrid .kbd-desc kbd { font-size:10px; padding:1px 5px; }
+  .kb-or { font-style:normal; font-size:10px; color:var(--text-faint); align-self:center; padding:0 2px; }
   .kbrow .kbd-desc { flex:1; font-size:12.5px; color:var(--text-dim); }
   .tour-card .kbgrid { padding:0; grid-template-columns:1fr; }
   .mm-react.mmsel, .mm-act.mmsel { outline:2px solid var(--accent); outline-offset:1px; }
@@ -761,21 +762,20 @@
     </div>
     <div class="cluster">
       <button class="tb-search" id="finderBtn" title="Search / open a chat &mdash; &#8997;K" aria-label="Search chats"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search (Opt + K)</span></button>
-      <button class="tb-flat" id="starredBtn" title="Starred messages (all chats)" aria-label="All starred messages"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9.1 9z"/></svg><span>All Starred</span></button>
       <button class="tb-flat" id="focusBtn" title="Focus mode — cover all chats but one or two (sets you Busy)" aria-label="Focus mode" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5a8 8 0 0 1 16 0"/><path d="M4 13.5v4.2a1.8 1.8 0 0 0 1.8 1.8H7a1 1 0 0 0 1-1v-3.6a1 1 0 0 0-1-1z"/><path d="M20 13.5v4.2a1.8 1.8 0 0 1-1.8 1.8H17a1 1 0 0 1-1-1v-3.6a1 1 0 0 1 1-1z"/></svg><span>Focus Mode</span></button>
+      <button class="tb-flat" id="starredBtn" title="Starred messages (all chats)" aria-label="All starred messages"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9.1 9z"/></svg><span>All Starred</span></button>
       <button class="tb-flat" id="feedbackBtn" title="Leave feedback (better.chat.feedback)" aria-label="Leave feedback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 5v-16l-4 5H4a1 1 0 0 0-1 1z" transform="translate(1,0)"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg><span>Feedback</span></button>
     </div>
     <div class="right">
-      <div class="seg-stack"><div class="segmented" role="group" aria-label="Grid layout — ⌥L cycles">
+      <span class="seg-cap" aria-hidden="true">⌥L</span><div class="segmented" role="group" aria-label="Grid layout — ⌥L cycles">
         <button data-layout="solo" title="1-up (⌥L cycles layouts)" aria-pressed="false"><span class="glyph solo"><i></i></span></button>
         <button data-layout="duo" title="2-up (⌥L cycles layouts)" aria-pressed="false"><span class="glyph duo"><i></i><i></i></span></button>
         <button data-layout="tri" title="2+1 (⌥L cycles layouts)" aria-pressed="false"><span class="glyph tri"><i></i><i></i><i></i></span></button>
         <button data-layout="quad" title="2×2 (⌥L cycles layouts)" aria-pressed="true"><span class="glyph quad"><i></i><i></i><i></i><i></i></span></button>
         <button data-layout="six" title="3×2 (⌥L cycles layouts)" aria-pressed="false"><span class="glyph six"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
-        <button id="snapGridBtn" title="Snapshot grid (⌥G)" aria-label="Apply snapshot grid" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5a2 2 0 0 1 2-2h2.2l1.3-2h6l1.3 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.4"/></svg></button>
-      </div><span class="seg-cap" aria-hidden="true">⌥L cycles</span></div>
-      <button class="iconbtn" id="focusBtn" title="Focus mode — cover all chats but one or two" aria-label="Focus mode" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button>
-      <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts — ?" aria-label="Keyboard shortcuts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.2a2.6 2.6 0 1 1 3.7 2.4c-.8.4-1.1.9-1.1 1.7"/><path d="M12 17.2h.01"/></svg></button>
+      </div>
+      <button class="savedbtn" id="savedGridBtn" title="Saved grid (⌥G)" aria-label="Apply saved grid" hidden><span class="glyph quad g-saved"><i></i><i></i><i></i><i></i><b class="g-star">★</b></span></button>
+      <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts — ?" aria-label="Keyboard shortcuts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12.5" rx="2"/><path d="M6.2 9.8h.01M9.8 9.8h.01M13.4 9.8h.01M17 9.8h.01M6.2 12.8h.01M9.8 12.8h.01M13.4 12.8h.01M17 12.8h.01M8 15.7h8"/></svg></button>
       <button class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </div>
     <div class="usermenu" id="userMenu" hidden>
@@ -2742,7 +2742,7 @@
   function openHelp() {
     modalKind = "help"; modalSel = 0; modalResults = []; modal.className = "modal help";
     modal.innerHTML =
-      `<div class="mhead"><div class="mtitle">Keyboard shortcuts &amp; clicks</div><span class="mkbd">?</span><button class="mclose" data-role="close">✕</button></div>` +
+      `<div class="mhead"><div class="mtitle">Keyboard shortcuts</div><span class="mkbd">?</span><button class="mclose" data-role="close">✕</button></div>` +
       `<div class="mbody">${helpTableHtml()}</div>`;
     backdrop.hidden = false;
   }
@@ -2759,21 +2759,18 @@
         ["⌥ G", "Apply your saved grid (save one via the avatar menu → Save Current Grid)"],
       ]],
       ["Messages", [
-        ["Tab · Enter (on a focused message)", "Select the emoji action; Tab / ← → cycle actions, Enter runs the selected one"],
+        ["Tab · Enter (on a focused message)", "Select the emoji action; [[Tab]] / [[← →]] cycle actions, [[Enter]] runs the selected one"],
         ["↑ from the input", "Jump up from the composer into the messages"],
-        ["↑ ↓ (on a message)", "Move between messages; ↓ past the last returns to the composer"],
-        ["Click the counter", "Jump to the next unread message and mark it read (threads jump to their start)"],
-        ["Shift+Enter (in the input)", "Add a line — the input grows; 👁 previews the formatting, ⤢ opens the big writer"],
+        ["↑ ↓ (on a message)", "Move between messages; [[↓]] past the last returns to the composer"],
       ]],
       ["Bars, search & favourites", [
-        ["Hover an unread chip", "Preview its messages and quick-reply from the popup"],
         ["⌥ K", "Open a chat — into the focused tile, or the first empty one if nothing's focused"],
-        ["⌥ F", "Cycle the favourites bar; Enter opens the highlighted one in the first free window"],
-        ["⌥ U", "Cycle the unread bar; Enter opens the highlighted one, ⌥Enter previews & quick-replies"],
-        ["⌥ number", "Open favourite N (double-digits ok, e.g. ⌥12) — or the numbered popup item"],
+        ["⌥ F", "Cycle the favourites bar; [[Enter]] opens the highlighted one in the first free window"],
+        ["⌥ U", "Cycle the unread bar; [[Enter]] opens the highlighted one, [[⌥ Enter]] brings up the quick-reply popup"],
+        ["⌥ number", "Open favourite N (double-digits ok, e.g. [[⌥ 12]])"],
       ]],
     ];
-    const rowH = ([k, d]) => `<div class="kbrow"><span class="kbkeys">${k.split(/\s·\s|\s\/\s/).map(p => `<kbd>${helpKeys(p)}</kbd>`).join("")}</span><div class="kbd-desc">${helpKeys(d)}</div></div>`;
+    const rowH = ([k, d]) => `<div class="kbrow"><span class="kbkeys">${k.split(/\s·\s|\s\/\s/).map(p => `<kbd>${helpKeys(p)}</kbd>`).join('<i class="kb-or">or</i>')}</span><div class="kbd-desc">${helpKeys(d).replace(/\[\[(.+?)\]\]/g, "<kbd>$1</kbd>")}</div></div>`;
     return `<div class="kbgrid">` + SECTIONS.map(([t, rows]) => `<section class="kbtile"><h4>${t}</h4>${rows.map(rowH).join("")}</section>`).join("") + `</div>`;
   }
   function setLayout(name) {
@@ -2815,15 +2812,10 @@
 
   // ---------- keyboard ----------
   const LAYOUTS = ["solo", "duo", "tri", "quad", "six"];
-  function cycleLayout() {   // ⌥L — once a snapshot exists it joins the cycle as the last stop
-    const seq = bcConfig.snapshotGrid ? [...LAYOUTS, "snap"] : LAYOUTS;
-    const cur = (bcConfig.snapshotGrid && snapActive) ? seq.length - 1 : LAYOUTS.indexOf(state.layout);
-    const next = seq[(cur + 1) % seq.length];
-    if (next === "snap") applySnapshotGrid(); else setLayout(next);
-  }
+  function cycleLayout() { setLayout(LAYOUTS[(LAYOUTS.indexOf(state.layout) + 1) % LAYOUTS.length]); }   // ⌥L — plain layouts only; the saved grid has its own ⌥G
   function moveWindow(key) {   // arrow navigation between chat windows — grid-aware, wraps on ← →, jumps by row on ↑ ↓
-    const cnt = n(); if (cnt <= 1) { setActive(0); setFocusedMsg(null); return; }
-    const cols = layoutCols[state.layout] || 1, cur = state.active >= 0 ? state.active : 0;
+    const cnt = n(); if (cnt <= 1 || state.active < 0) { setActive(0); setFocusedMsg(null); return; }   // nothing focused -> the first press just focuses the first window
+    const cols = layoutCols[state.layout] || 1, cur = state.active;
     let t = cur;
     if (key === "ArrowLeft") t = (cur - 1 + cnt) % cnt;
     else if (key === "ArrowRight") t = (cur + 1) % cnt;
@@ -2972,6 +2964,7 @@
       if (e.code === "KeyS") { e.preventDefault(); if (state.slots[state.active]) openSearch(state.slots[state.active]); return; }
       if (e.code === "KeyG") { e.preventDefault(); applySavedGrid(); return; }   // ⌥G (G = grid)
     }
+    if (e.key === "Tab" && inPopup) { if (!modalResults.length) return; e.preventDefault(); modalSel = (modalSel + (e.shiftKey ? -1 : 1) + modalResults.length) % modalResults.length; renderResults(); return; }
     // arrows move between chat windows — ← → always; ↑ ↓ when no message is keyboard-focused (never while typing or focused anywhere in a composer)
     const inComposer = document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"], .up-reply, .bigeditor, .inline-edit');
     if (!typing && !inComposer && backdrop.hidden && !inPopup && (e.key === "ArrowLeft" || e.key === "ArrowRight" || ((e.key === "ArrowUp" || e.key === "ArrowDown") && !focusedMsgEl))) {
