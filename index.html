@@ -178,20 +178,22 @@
   .reactpop .rp-user { color:var(--text); padding:2px 0; }
 
   .composer { border-top:1px solid var(--border-soft); padding:8px; display:flex; align-items:center; gap:8px; background:var(--tile-head); }
-  .composer input { flex:1; background:var(--tile); border:1px solid var(--border); border-radius:6px; padding:7px 10px; color:var(--text); font:inherit; outline:none; }
-  .composer input:focus { border-color:color-mix(in srgb,var(--accent) 55%,var(--border)); }
-  .composer input::placeholder { color:var(--text-faint); }
+  .composer input, .composer .cinput { flex:1; background:var(--tile); border:1px solid var(--border); border-radius:6px; padding:7px 10px; color:var(--text); font:inherit; outline:none; }
+  .composer input:focus, .composer .cinput:focus { border-color:color-mix(in srgb,var(--accent) 55%,var(--border)); }
+  .composer input::placeholder, .composer .cinput::placeholder { color:var(--text-faint); }
+  .composer .cinput { resize:none; overflow-y:auto; max-height:150px; line-height:1.4; }
+  .fbadge.fb-dot { font-size:13px; line-height:1; padding:0 4px; }
   .send { border:none; background:var(--accent); color:var(--accent-ink); cursor:pointer; width:32px; height:32px; border-radius:6px; display:grid; place-items:center; flex:none; }
   .send:hover { filter:brightness(1.06); }
   .cbanner.cimg { display:flex; align-items:center; gap:8px; }
   .cimg-thumb { width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border); }
   .cimg-nm { font-size:12px; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cinput-wrap { position:relative; flex:1; display:flex; }
-  .cinput-wrap input { flex:1; padding-right:60px; }
+  .cinput-wrap input, .cinput-wrap .cinput { flex:1; padding-right:60px; }
   .cexpand { position:absolute; right:5px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--text-faint); cursor:pointer; width:24px; height:24px; border-radius:5px; display:grid; place-items:center; }
   .cattach { position:absolute; right:31px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--text-faint); cursor:pointer; width:24px; height:24px; border-radius:5px; display:grid; place-items:center; }
   .cattach:hover { color:var(--text-dim); background:color-mix(in srgb,var(--text) 8%,transparent); }
-  .composer.droptarget .crow input { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+  .composer.droptarget .crow input, .composer.droptarget .crow .cinput { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
   .lver { text-align:center; color:var(--text-faint); font-size:10px; font-family:ui-monospace,monospace; padding:0 0 12px; }
   .mm-pickrow { display:flex; align-items:center; gap:10px; }
   .userpick { position:relative; }
@@ -764,7 +766,7 @@
   const customEmoji = {};   // populated from the server: name -> image url
 
 
-  const APP_VERSION = "15";   // bump manually per release
+  const APP_VERSION = "16";   // bump manually per release
   const sig = { c:"#", p:"🔒", d:"@", s:"⤷" };
   const stripe = { c:"var(--t-channel)", p:"var(--t-private)", d:"var(--t-direct)", s:"var(--t-discuss)" };
   const layoutCount = { solo:1, duo:2, quad:4, six:6 };
@@ -790,6 +792,7 @@
   const now = () => { const d = new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
   const tuIds = x => new Set(Array.isArray(x) ? x : []);      // subscription.tunread -> set of unread thread parent ids
   const ru = r => (r.unread || 0) + (r.threadUnread || 0);   // per-room total unread = channel + thread replies
+  const hasNew = r => !r.muted && (ru(r) > 0 || !!r.alert);  // RC channels often count only mentions: new messages set alert with unread=0
   const totalUnread = () => order().reduce((a,id) => a + ru(rooms[id]), 0);
   const n = () => layoutCount[state.layout];
   const visibleSlots = () => state.slots.slice(0, n());
@@ -1077,8 +1080,8 @@
     if (el2) { focusedMsgEl = null; setFocusedMsg(el2, true); el2.scrollIntoView({ block: "nearest" }); }
   }
   function composerFor(roomId) {   // the TEXT input (.crow input) — not the reply banner's checkbox
-    if (expandRoomId === roomId) { const i = modal.querySelector('[data-role="composer"] .crow input'); if (i) return i; }
-    const slot = visibleSlots().indexOf(roomId); return slot >= 0 ? ws.querySelector(`.tile[data-slot="${slot}"] [data-role="composer"] .crow input`) : null;
+    if (expandRoomId === roomId) { const i = modal.querySelector('[data-role="composer"] .crow .cinput'); if (i) return i; }
+    const slot = visibleSlots().indexOf(roomId); return slot >= 0 ? ws.querySelector(`.tile[data-slot="${slot}"] [data-role="composer"] .crow .cinput`) : null;
   }
 
   // ---- message action toolbar: appears on hover / keyboard focus (Messenger style) ----
@@ -1236,8 +1239,18 @@
   function setFocusedBadge(el) { if (focusedBadgeEl) focusedBadgeEl.classList.remove("bfocus"); focusedBadgeEl = el; if (el) el.classList.add("bfocus"); }
   function focusDateShow(el, on) {   // focused message shows date + time in its header
     const ctx = msgCtx(el); if (!ctx || !ctx.m.tsMs) return;
-    const t = el.querySelector(".head time") || el.querySelector(".ts"); if (!t) return;
-    if (on) { if (!t.dataset.orig) t.dataset.orig = t.textContent; t.textContent = fmtDateTime(ctx.m.tsMs); }
+    let t = el.querySelector(".head time"), ts = ctx.m.tsMs;
+    if (!t && el.classList.contains("cont")) {   // continuation row: show the full date on the group's first message above (same date — the gutter is too narrow)
+      let head = el.previousElementSibling;
+      while (head && head.classList && head.classList.contains("cont")) head = head.previousElementSibling;
+      if (head && head.classList && head.classList.contains("msg")) {
+        t = head.querySelector(".head time");
+        const hctx = msgCtx(head); if (hctx && hctx.m.tsMs) ts = hctx.m.tsMs;
+      }
+      if (!t) t = el.querySelector(".ts");   // no group head found — fall back to the gutter
+    }
+    if (!t) return;
+    if (on) { if (!t.dataset.orig) t.dataset.orig = t.textContent; t.textContent = fmtDateTime(ts); }
     else if (t.dataset.orig) { t.textContent = t.dataset.orig; delete t.dataset.orig; }
   }
   function setFocusedMsg(el, byKey) {
@@ -1248,22 +1261,29 @@
       if (el) { el.classList.add("mfocus"); focusDateShow(el, true); }
     }
     setFocusedBadge(null); menuSel = -1;
-    if (el) { showActBar(el); applyMenuSel(); if (document.activeElement && document.activeElement.tagName === "INPUT" && document.activeElement.closest('[data-role="composer"]')) document.activeElement.blur(); }
+    if (el) { showActBar(el); applyMenuSel(); if (document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"] .crow')) document.activeElement.blur(); }
     else hideMsgMenu();
   }
   function onMsgHover(e) { if (kbMsgFocus) return; const m = e.target.closest(".msg"); if (m && (m.closest('[data-role="stream"]') || m.closest(".threadpop"))) { clearTimeout(menuHideT); showActBar(m); } }
   function onMsgOut(e) { const to = e.relatedTarget; if (to && to.closest && (to.closest(".msg") || to.closest(".actbar"))) return; if (!kbMsgFocus) menuHideT = setTimeout(hideMsgMenu, 160); }
   document.addEventListener("mouseover", onMsgHover); document.addEventListener("mouseout", onMsgOut);   // grid, expand AND thread popups
-  document.addEventListener("focusin", e => { if (e.target.tagName === "INPUT" && e.target.closest('[data-role="composer"]') && focusedMsgEl) setFocusedMsg(null); });   // input focus and message focus are exclusive
+  document.addEventListener("keydown", e => {
+    const t = e.target;
+    if (t.classList && t.classList.contains("cinput") && e.key === "Enter" && !e.shiftKey) { e.preventDefault(); const f = t.closest("form"); if (f) (f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))); }
+  });
+  document.addEventListener("focusin", e => { if (e.target.closest && e.target.closest('[data-role="composer"] .crow') && focusedMsgEl) setFocusedMsg(null); });   // input focus and message focus are exclusive
 
   document.addEventListener("click", e => {
     const mmR = e.target.closest(".mm-react"); if (mmR) { e.stopPropagation(); doReact(mmR.dataset.emoji, mmR.dataset.char); return; }
     const mmA = e.target.closest(".mm-act"); if (mmA) { e.stopPropagation(); doAction(mmA.dataset.act); return; }
     const chip = e.target.closest('[data-role="react"]'); if (chip) { e.stopPropagation(); const ctx = msgCtx(chip.closest(".msg")); if (ctx) toggleReactionAt(ctx, +chip.dataset.ri); return; }
     if (msgMenu && !e.target.closest(".msgmenu")) hideMsgMenu();
-    // clicking a message's body focuses it (buttons/links/images handle themselves)
+    // clicking the message itself (bubble/text/header/attachments) toggles its focus; blank space — even in the same row — unfocuses
     if (e.target.closest('button, a, img, .inline-edit, [data-role="lightbox"]')) return;
-    const m = e.target.closest(".msg"); if (m && m.closest('[data-role="stream"]')) setFocusedMsg(m, true);
+    const hit = e.target.closest(".bubble, .text, .head, .atts");
+    const m = hit && hit.closest(".msg");
+    if (m && m.closest('[data-role="stream"]')) { if (focusedMsgEl === m && kbMsgFocus) setFocusedMsg(null); else setFocusedMsg(m, true); return; }
+    if (focusedMsgEl && e.target.closest('[data-role="stream"]')) setFocusedMsg(null);   // blank space inside the chat (incl. beside a message)
   });
   document.addEventListener("contextmenu", e => {
     const m = e.target.closest(".msg"); if (m && m.closest('[data-role="stream"]')) { e.preventDefault(); setFocusedMsg(m, true); }
@@ -1326,8 +1346,9 @@
   }
   document.addEventListener("input", e => {
     const t = e.target;
-    const ok = (t.tagName === "INPUT" && t.closest('[data-role="composer"]')) || t.classList.contains("be-input");   // tile/expanded-chat composer + expanded writer
+    const ok = t.classList.contains("cinput") || (t.tagName === "INPUT" && t.closest('[data-role="composer"]')) || t.classList.contains("be-input");   // tile/expanded-chat composer + expanded writer
     if (!ok) return;
+    if (t.classList.contains("cinput")) { t.style.height = "auto"; t.style.height = Math.min(150, t.scrollHeight) + "px"; }   // grow with content (Shift+Enter adds lines)
     updateMention(t);
     if (mentionOpen) { hideEmoji(); return; }
     updateEmoji(t);
@@ -1370,7 +1391,7 @@
     const text = e.clipboardData ? e.clipboardData.getData("text") : "";
     if (text && /\r?\n/.test(text.trim())) {
       e.preventDefault();
-      const inp = ae.matches && ae.matches('.crow input') ? ae : composerFor(rid);
+      const inp = ae.matches && ae.matches('.crow .cinput, .crow input') ? ae : composerFor(rid);
       const cur = inp ? inp.value : ""; const pos = inp ? inp.selectionStart : cur.length;
       const merged = cur.slice(0, pos) + text + cur.slice(inp ? inp.selectionEnd : cur.length);
       if (inp) inp.value = "";
@@ -1442,7 +1463,7 @@
     for (let i = 0; i < cnt; i++) {
       const id = state.slots[i], r = rooms[id];
       const tile = document.createElement("section");
-      tile.className = "tile" + (i === state.active ? " active" : "") + (r ? "" : " empty") + (r && ru(r) > 0 && i !== state.active ? " has-unread" : "");
+      tile.className = "tile" + (i === state.active ? " active" : "") + (r ? "" : " empty") + (r && hasNew(r) && i !== state.active ? " has-unread" : "");
       tile.dataset.slot = i;
       if (r) tile.style.setProperty("--stripe", stripe[r.t]);
       if (!r) {
@@ -1475,8 +1496,8 @@
   // mark a room read locally + on the server (real read-marker)
   function markRead(id) {
     const r = rooms[id]; if (!r) return;
-    const wasUnread = (r.unread || 0) > 0;   // channel unread only — thread-unread is cleared by clearVisibleThreadReads (only when visible)
-    r.unread = 0; r.lastSeen = Date.now(); r.manualUnread = false;
+    const wasUnread = (r.unread || 0) > 0 || !!r.alert;   // channel unread only — thread-unread is cleared by clearVisibleThreadReads (only when visible)
+    r.unread = 0; r.alert = false; r.lastSeen = Date.now(); r.manualUnread = false;
     if (wasUnread) rc("readMessages", [id], "mark read");
   }
   // clear thread-unread for "also sent to channel" replies that are actually visible in the viewport (scrolled-off ones stay unread until seen)
@@ -1495,7 +1516,7 @@
   }
   function focusAndRead(slot) {   // clicking a chat focuses it AND marks it read (like Enter) — non-destructive so hover/reactions keep working
     setActive(slot); const id = state.slots[slot], r = rooms[id]; if (!r) return;
-    if ((r.unread || 0) > 0) { markRead(id); refreshTileBadge(slot); refreshTopbar(); const s = ws.querySelector(`.tile[data-slot="${slot}"] [data-role="stream"]`); if (s) s.querySelectorAll(".msg.unread").forEach(el => el.classList.remove("unread")); }
+    if ((r.unread || 0) > 0 || r.alert) { markRead(id); refreshTileBadge(slot); refreshTopbar(); const s = ws.querySelector(`.tile[data-slot="${slot}"] [data-role="stream"]`); if (s) s.querySelectorAll(".msg.unread").forEach(el => el.classList.remove("unread")); }
     clearVisibleThreadReads(id, slot);
   }
   function setActive(slot) {
@@ -1509,7 +1530,7 @@
     });
     refreshTopbar();
   }
-  function focusComposer(slot) { const inp = ws.querySelector(`.tile[data-slot="${slot}"] [data-role="composer"] input`); if (inp) inp.focus(); }
+  function focusComposer(slot) { const inp = ws.querySelector(`.tile[data-slot="${slot}"] [data-role="composer"] .cinput`); if (inp) inp.focus(); }
   function refreshTopbar() { if (typeof renderFavbar === "function") renderFavbar(); if (typeof renderUnreadbar === "function") renderUnreadbar(); updateFavicon(); }
   // dynamic favicon: a rocket, with a red dot when anything is unread
   let _favLink = null;
@@ -1517,7 +1538,7 @@
     try {
       const cv = document.createElement("canvas"); cv.width = 64; cv.height = 64; const c = cv.getContext("2d");
       c.font = "46px serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("🚀", 30, 36);
-      if (totalUnread() > 0) { c.beginPath(); c.arc(50, 15, 13, 0, Math.PI * 2); c.fillStyle = "#ff4d4f"; c.fill(); c.lineWidth = 4; c.strokeStyle = "#0b0e14"; c.stroke(); }
+      if (totalUnread() > 0 || order().some(id => hasNew(rooms[id]))) { c.beginPath(); c.arc(50, 15, 13, 0, Math.PI * 2); c.fillStyle = "#ff4d4f"; c.fill(); c.lineWidth = 4; c.strokeStyle = "#0b0e14"; c.stroke(); }
       if (!_favLink) { _favLink = document.querySelector("link[rel~='icon']") || document.createElement("link"); _favLink.rel = "icon"; document.head.appendChild(_favLink); }
       _favLink.href = cv.toDataURL("image/png");
     } catch (e) {}
@@ -1541,7 +1562,7 @@
     const near = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 60;
     if (!sameDay) streamEl.insertAdjacentHTML("beforeend", `<div class="daymark">${esc(dayLabel(m))}</div>`);   // new day -> date divider
     streamEl.insertAdjacentHTML("beforeend", cont ? contRow(m, mine, unread && !mine) : fullRow(m, mine, unread && !mine));
-    if (near) streamEl.scrollTop = streamEl.scrollHeight;
+    if (near || mine) streamEl.scrollTop = streamEl.scrollHeight;   // sending your own message always jumps to the bottom
   }
   function appendToTile(slot, m, unread) { const s = ws.querySelector(`.tile[data-slot="${slot}"] [data-role="stream"]`); if (s) appendToStreamEl(s, m, unread); }
   function appendToExpand(id, m, unread) { if (expandRoomId !== id) return; const s = modal.querySelector('[data-role="stream"]'); if (s) appendToStreamEl(s, m, unread); }
@@ -1558,7 +1579,7 @@
       const ex = r.msgs.find(x => x.id === m.id);
       if (ex) { ex.text = m.text; ex.reactions = m.reactions; ex.tcount = m.tcount; rerenderMsgById(roomId, m.id); return; }
     }
-    if (!fromMe && !document.hasFocus() && !r.muted) chime();   // new message while the tab is unfocused -> sound (muted chats stay silent)
+    if (!fromMe && !document.hasFocus() && !r.muted && !r.silent) chime();   // no sound for muted chats or alerts-off chats
     if (m.tmid) {                                            // thread reply
       if (threadPop && threadPop.dataset.parent === m.tmid) appendThreadMsg(m);
       if (!m.tshow) {                                        // thread-only reply: unread is driven by the server's subscription.tunread (respects follow/unfollow), handled in subscriptions-changed
@@ -1570,7 +1591,7 @@
       if (echoK >= 0) { pendingSent.splice(echoK, 1); const opt = [...r.msgs].reverse().find(x => !x.id && isMine(x) && x.text === m.text); if (opt) { opt.id = m.id; opt.reactions = m.reactions; opt.tmid = m.tmid; opt.tshow = true; opt.replyTag = m.replyTag; rerenderMsgById(roomId, m.id); refreshTopbar(); return; } }
       r.msgs.push(m); if (m.tsMs) r.lm = Math.max(r.lm || 0, m.tsMs);
       const read = fromMe || roomId === activeRoomId() || roomId === expandRoomId;
-      if (!read && !r.muted) { r.unread = (r.unread || 0) + 1; r._walk = null; }   // muted chats never count unread
+      if (!read && !r.muted) { r.unread = (r.unread || 0) + 1; r.alert = true; r._walk = null; }   // muted chats never count unread
       const vi = visibleSlots().indexOf(roomId); if (vi >= 0) { appendToTile(vi, m, !read); refreshTileBadge(vi); }
       if (roomId === expandRoomId) appendToExpand(roomId, m, !read);
       refreshTopbar();
@@ -1583,7 +1604,7 @@
     r.msgs.push(m); if (m.tsMs) r.lm = Math.max(r.lm || 0, m.tsMs);
     const slots = visibleSlots(); let idx = slots.indexOf(roomId);
     const read = fromMe || roomId === activeRoomId() || roomId === expandRoomId;
-    if (!read && !r.muted) { r.unread = (r.unread || 0) + 1; r._walk = null; }   // muted chats never count unread
+    if (!read && !r.muted) { r.unread = (r.unread || 0) + 1; r.alert = true; r._walk = null; }   // muted chats never count unread
     if (idx >= 0) { appendToTile(idx, m, !read); refreshTileBadge(idx); }
     else if (!fromMe) { const target = firstEmptyTile(); if (target >= 0) { state.slots[target] = roomId; renderTiles(); ensureHistory(roomId); persist(); } }
     if (roomId === expandRoomId) appendToExpand(roomId, m, !read);
@@ -1604,7 +1625,7 @@
     }
     return h;
   }
-  function composerHtml(id, r) { return `<form class="composer" data-role="composer" data-room="${id}"><div class="cbanner-slot">${bannerHtml(id)}</div><div class="crow"><div class="cinput-wrap"><input placeholder="Message ${esc(r.name)}" aria-label="Message"><button type="button" class="cattach" data-role="attach-file" title="Attach files">${ICON.paperclip}</button><button type="button" class="cexpand" data-role="expand-input" title="Expand editor (Shift+Enter)">${ICON.grow}</button></div><button class="send" title="Send">${ICON.send}</button></div></form>`; }
+  function composerHtml(id, r) { return `<form class="composer" data-role="composer" data-room="${id}"><div class="cbanner-slot">${bannerHtml(id)}</div><div class="crow"><div class="cinput-wrap"><textarea class="cinput" rows="1" placeholder="Message ${esc(r.name)}" aria-label="Message"></textarea><button type="button" class="cattach" data-role="attach-file" title="Attach files">${ICON.paperclip}</button><button type="button" class="cexpand" data-role="expand-input" title="Expand editor (Shift+Enter)">${ICON.grow}</button></div><button class="send" title="Send">${ICON.send}</button></div></form>`; }
   function renderComposerAcc(id) {
     const slot = visibleSlots().indexOf(id);
     if (slot >= 0) { const el = ws.querySelector(`.tile[data-slot="${slot}"] .cbanner-slot`); if (el) el.innerHTML = bannerHtml(id); }
@@ -1913,7 +1934,7 @@
     let ok = true;
     if (connection === "real") ok = await restPost("/api/v1/rooms.saveNotification", { roomId: id, notifications });
     if (!ok) return;
-    r.muted = mute; if (mute) { r.unread = 0; r.threadUnread = 0; if (r.threadUnreadIds) r.threadUnreadIds.clear(); }
+    r.muted = mute; r.silent = mute; if (mute) { r.unread = 0; r.alert = false; r.threadUnread = 0; if (r.threadUnreadIds) r.threadUnreadIds.clear(); }
     renderTiles(); refreshTopbar();
     hint(mute ? `Muted ${r.name} 🔕` : `Unmuted ${r.name} 🔔`);
   }
@@ -2187,7 +2208,7 @@
     card.querySelector(".be-send").addEventListener("click", doBigSend);
     card.querySelector('[data-role="be-close"]').addEventListener("click", closeBigEditor);
   }
-  document.addEventListener("click", e => { const b = e.target.closest('[data-role="expand-input"]'); if (b) { e.preventDefault(); const f = b.closest('[data-role="composer"]'); if (f) { const inp = f.querySelector(".crow input"); openBigEditor(f.dataset.room, inp ? inp.value : ""); } } });
+  document.addEventListener("click", e => { const b = e.target.closest('[data-role="expand-input"]'); if (b) { e.preventDefault(); const f = b.closest('[data-role="composer"]'); if (f) { const inp = f.querySelector(".crow .cinput"); openBigEditor(f.dataset.room, inp ? inp.value : ""); } } });
   document.addEventListener("click", e => { const b = e.target.closest('[data-role="expand-thread-input"]'); if (b && threadPop) { e.preventDefault(); const inp = threadPop.querySelector(".crow input"); openBigEditor(threadPop.dataset.room, inp ? inp.value : "", threadPop.dataset.parent); } });
 
   // ---------- workspace events ----------
@@ -2228,9 +2249,9 @@
   document.addEventListener("submit", e => {
     const form = e.target.closest('[data-role="composer"]'); if (!form) return;
     e.preventDefault();
-    const id = form.dataset.room, input = form.querySelector(".crow input"), txt = input.value.trim();
+    const id = form.dataset.room, input = form.querySelector(".crow .cinput"), txt = input.value.trim();
     if (!id) return; if (!txt && !(roomState[id] && roomState[id].pendingFiles && roomState[id].pendingFiles.length)) return;   // allow send when only staged files
-    input.value = ""; mySend(id, txt);
+    input.value = ""; input.style.height = "auto"; mySend(id, txt);
   });
   function tryOpenSwitch(slot) { openFinder(slot); }
 
@@ -2510,11 +2531,7 @@
       }
     }
     const inPopup = !backdrop.hidden && modalKind && modalKind !== "expand";
-    const typing = /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName);
-    if (e.key === "Enter" && e.shiftKey && typing) {   // Shift+Enter in a composer -> expanded writer
-      const ae = document.activeElement;
-      if (ae && ae.matches('[data-role="composer"] input')) { e.preventDefault(); const f = ae.closest('[data-role="composer"]'); openBigEditor(f.dataset.room, ae.value); return; }
-    }
+    const typing = /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName) || !!(document.activeElement && document.activeElement.isContentEditable);   // inputs + inline message editing
     if (e.key === "?" && backdrop.hidden && !typing) { e.preventDefault(); openHelp(); return; }
     if ((favCycleId || unreadCycleId) && backdrop.hidden && !typing) {   // bar-cycle mode (⌥F favourites / ⌥U unread)
       if (e.key === "Enter" && e.altKey && unreadCycleId) {   // ⌥Enter -> preview & quick-reply the highlighted unread
@@ -2544,12 +2561,12 @@
       if (backdrop.hidden) { e.preventDefault(); const cnt = n(), ni = (state.active + (e.shiftKey ? -1 : 1) + cnt) % cnt; setActive(ni); setFocusedMsg(null); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return; }
     }
     // arrows move between chat windows — ← → always; ↑ ↓ when no message is keyboard-focused (never while typing or focused anywhere in a composer)
-    const inComposer = document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"], .up-reply, .bigeditor');
+    const inComposer = document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"], .up-reply, .bigeditor, .inline-edit');
     if (!typing && !inComposer && backdrop.hidden && !inPopup && (e.key === "ArrowLeft" || e.key === "ArrowRight" || ((e.key === "ArrowUp" || e.key === "ArrowDown") && !focusedMsgEl))) {
       e.preventDefault(); moveWindow(e.key); return;
     }
     // ↑ from the composer input jumps up into the messages (last one)
-    if (e.key === "ArrowUp" && typing && document.activeElement.matches('[data-role="composer"] input')) {
+    if (e.key === "ArrowUp" && typing && document.activeElement.matches('[data-role="composer"] .cinput') && (!/\n/.test(document.activeElement.value) || document.activeElement.selectionStart === 0)) {
       const cont = document.activeElement.closest(".tile") || document.activeElement.closest(".modal");
       const s = cont && cont.querySelector('[data-role="stream"]'), msgs = s ? [...s.querySelectorAll(".msg")] : [];
       if (msgs.length) { document.activeElement.blur(); setFocusedMsg(msgs[msgs.length - 1], true); msgs[msgs.length - 1].scrollIntoView({ block: "nearest" }); e.preventDefault(); return; }
@@ -2572,12 +2589,12 @@
           if (idx < 0) { e.preventDefault(); return; }
           if (!focusedBadgeEl) { const badge = focusedMsgEl.querySelector(".thread-ind"); if (badge) { setFocusedBadge(badge); hideMsgMenu(); badge.scrollIntoView({ block: "nearest" }); e.preventDefault(); return; } }   // message -> its "N replies" badge
           else setFocusedBadge(null);
-          if (idx >= msgs.length - 1) { const cont = streamEl.closest(".tile") || streamEl.closest(".modal"); const inp = cont && cont.querySelector('[data-role="composer"] .crow input'); if (inp) { setFocusedMsg(null); inp.focus(); e.preventDefault(); return; } }   // ↓ past the last message focuses the input
+          if (idx >= msgs.length - 1) { const cont = streamEl.closest(".tile") || streamEl.closest(".modal"); const inp = cont && cont.querySelector('[data-role="composer"] .crow .cinput'); if (inp) { setFocusedMsg(null); inp.focus(); e.preventDefault(); return; } }   // ↓ past the last message focuses the input
           idx = Math.min(msgs.length - 1, idx + 1);
         }
         setFocusedMsg(msgs[idx], true); msgs[idx].scrollIntoView({ block: "nearest" }); e.preventDefault(); return;
       }
-      if (e.key === "Enter" && !kbMsgFocus && state.active >= 0 && state.slots[state.active]) { e.preventDefault(); markRead(state.slots[state.active]); renderTiles(); const inp = modalKind === "expand" ? modal.querySelector('[data-role="composer"] input') : ws.querySelector(`.tile[data-slot="${state.active}"] [data-role="composer"] input`); if (inp) inp.focus(); return; }   // Enter on a chat (no message kb-focused) marks it read and drops into its composer
+      if (e.key === "Enter" && !kbMsgFocus && state.active >= 0 && state.slots[state.active]) { e.preventDefault(); markRead(state.slots[state.active]); renderTiles(); const inp = modalKind === "expand" ? modal.querySelector('[data-role="composer"] .cinput') : ws.querySelector(`.tile[data-slot="${state.active}"] [data-role="composer"] .cinput`); if (inp) inp.focus(); return; }   // Enter on a chat (no message kb-focused) marks it read and drops into its composer
     }
     if (e.key === "Escape" && backdrop.hidden) { e.preventDefault(); state.active = -1; document.querySelectorAll(".tile.active").forEach(t => t.classList.remove("active")); setFocusedMsg(null); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return; }  // defocus
     if (backdrop.hidden) return;
@@ -2622,7 +2639,7 @@
   // ---------- favourites + unread bars ----------
   const favbarEl = document.getElementById("favbar"), unreadbarEl = document.getElementById("unreadbar");
   function favbarRooms() {   // all read favourites (even ones pinned to a window) — unread ones live in the unread bar instead
-    return favList().filter(id => !(ru(rooms[id]) > 0)).sort((a, b) => rooms[a].name.localeCompare(rooms[b].name));
+    return favList().filter(id => !hasNew(rooms[id])).sort((a, b) => rooms[a].name.localeCompare(rooms[b].name));
   }
   function renderFavbar() {
     const shown = favbarRooms(), open = visibleSlots();
@@ -2633,14 +2650,14 @@
   // ⌥F cycles a highlight through the favourites bar; Enter opens the highlighted one in the first free window
   let favCycleId = null, unreadCycleId = null;
   function cycleFav() { unreadCycleId = null; renderUnreadbar(); const list = favbarRooms(); if (!list.length) { hint("No favourites to cycle."); return; } const i = (list.indexOf(favCycleId) + 1) % list.length; favCycleId = list[i]; renderFavbar(); const chip = favbarEl.querySelector(`.favchip[data-room="${favCycleId}"]`); if (chip) chip.scrollIntoView({ inline: "nearest", block: "nearest" }); }
-  function unreadbarRooms() { return order().filter(id => ru(rooms[id]) > 0).sort((a, b) => (ru(rooms[b]) - ru(rooms[a])) || rooms[a].name.localeCompare(rooms[b].name)); }
+  function unreadbarRooms() { return order().filter(id => hasNew(rooms[id])).sort((a, b) => (ru(rooms[b]) - ru(rooms[a])) || rooms[a].name.localeCompare(rooms[b].name)); }
   function renderUnreadbar() {
     const list = unreadbarRooms();
     if (unreadCycleId && !list.includes(unreadCycleId)) unreadCycleId = null;
     if (!list.length) { unreadbarEl.hidden = true; unreadbarEl.innerHTML = ""; return; }
     unreadbarEl.hidden = false;
     unreadbarEl.innerHTML = `<span class="bar-icon" title="Unread — click to open, double-click to preview & reply">${ICON.eye}</span>` +
-      `<div class="ur-chips">${list.map(id => { const r = rooms[id]; return `<button class="favchip is-unread ${id === unreadCycleId ? "fcycle" : ""}" draggable="true" data-room="${id}" title="Click to open · double-click (or ⌥Enter when highlighted) to preview & reply">${r.fav ? '<span class="ur-star">★</span>' : ""}<span class="sigil ${r.t}">${sig[r.t]}</span><span class="fnm">${esc(r.name)}</span><span class="fbadge">${ru(r)}</span></button>`; }).join("")}</div>`;
+      `<div class="ur-chips">${list.map(id => { const r = rooms[id]; return `<button class="favchip is-unread ${id === unreadCycleId ? "fcycle" : ""}" draggable="true" data-room="${id}" title="Click to open · double-click (or ⌥Enter when highlighted) to preview & reply">${r.fav ? '<span class="ur-star">★</span>' : ""}<span class="sigil ${r.t}">${sig[r.t]}</span><span class="fnm">${esc(r.name)}</span><span class="fbadge${ru(r) ? "" : " fb-dot"}">${ru(r) || "•"}</span></button>`; }).join("")}</div>`;
   }
   function cycleUnreadBar() { favCycleId = null; renderFavbar(); const list = unreadbarRooms(); if (!list.length) { hint("No unread to cycle."); return; } const i = (list.indexOf(unreadCycleId) + 1) % list.length; unreadCycleId = list[i]; renderUnreadbar(); const chip = unreadbarEl.querySelector(`.favchip[data-room="${unreadCycleId}"]`); if (chip) chip.scrollIntoView({ inline: "nearest", block: "nearest" }); }
   favbarEl.addEventListener("click", e => { const c = e.target.closest(".favchip"); if (c) placeFavourite(c.dataset.room, e.clientX, e.clientY); });
@@ -2875,6 +2892,7 @@
     });
   }
   const RELEASES = [
+    { v: "16", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v16" },
     { v: "15", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v15" },
     { v: "14", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v14" },
     { v: "13", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v13" },
@@ -3013,7 +3031,9 @@
         const r = rooms[sub.rid];
         if (typeof sub.unread === "number") r.unread = sub.unread;      // live unread count from the server
         if (typeof sub.f === "boolean") r.fav = sub.f;
-        if (typeof sub.disableNotifications !== "undefined" || typeof sub.hideUnreadStatus !== "undefined") r.muted = !!(sub.disableNotifications || sub.hideUnreadStatus);
+        if (typeof sub.alert !== "undefined") r.alert = !!sub.alert;
+        if (typeof sub.hideUnreadStatus !== "undefined") r.muted = !!sub.hideUnreadStatus;
+        if (typeof sub.disableNotifications !== "undefined") r.silent = !!sub.disableNotifications;
         if (sub.ls) r.lastSeen = tsToMs(sub.ls);
         let tuChanged = false;
         if (typeof sub.tunread !== "undefined") { const nu = tuIds(sub.tunread); tuChanged = nu.size !== (r.threadUnreadIds ? r.threadUnreadIds.size : 0); r.threadUnread = nu.size; r.threadUnreadIds = nu; }
@@ -3031,7 +3051,7 @@
       const subsArr = await ddp.call("subscriptions/get", []);
       (Array.isArray(subsArr) ? subsArr : (subsArr.update || [])).forEach(s => {
         const tu = Array.isArray(s.tunread) ? s.tunread.length : (s.tunread || 0);
-        if (rooms[s.rid]) { rooms[s.rid].unread = s.unread || 0; rooms[s.rid].threadUnread = tu; rooms[s.rid].threadUnreadIds = tuIds(s.tunread); rooms[s.rid].fav = !!s.f; rooms[s.rid].muted = !!(s.disableNotifications || s.hideUnreadStatus); }
+        if (rooms[s.rid]) { rooms[s.rid].unread = s.unread || 0; rooms[s.rid].threadUnread = tu; rooms[s.rid].threadUnreadIds = tuIds(s.tunread); rooms[s.rid].fav = !!s.f; rooms[s.rid].muted = !!s.hideUnreadStatus; rooms[s.rid].silent = !!s.disableNotifications; rooms[s.rid].alert = !!s.alert; }
         else { const t = typeOf(s); rooms[s.rid] = { t, name: s.fname||s.name||"chat", topic: t==="d"?"direct message":t==="p"?"private group":"channel", fav: !!s.f, unread: s.unread||0, threadUnread: tu, threadUnreadIds: tuIds(s.tunread), msgs: [], _loaded: false }; ddp.sub("stream-room-messages", [s.rid, false]); }
       });
       renderTiles(); refreshTopbar();
@@ -3074,7 +3094,7 @@
     const built = {};
     (Array.isArray(subsArr) ? subsArr : (subsArr.update || [])).forEach(s => {
       const info = roomInfo[s.rid] || {}, t = typeOf(s);
-      built[s.rid] = { t, name: s.fname || s.name || info.fname || info.name || "chat", username: t === "d" ? (s.name || "") : "", topic: info.topic || (t==="d"?"direct message":t==="p"?"private group":"channel"), fav: !!s.f, unread: s.unread || 0, threadUnreadIds: tuIds(s.tunread), threadUnread: (Array.isArray(s.tunread) ? s.tunread.length : (s.tunread || 0)), lastSeen: s.ls ? tsToMs(s.ls) : 0, lm: (info.lm ? tsToMs(info.lm) : (s._updatedAt ? tsToMs(s._updatedAt) : 0)), muted: !!(s.disableNotifications || s.hideUnreadStatus), msgs: [], _loaded: false };
+      built[s.rid] = { t, name: s.fname || s.name || info.fname || info.name || "chat", username: t === "d" ? (s.name || "") : "", topic: info.topic || (t==="d"?"direct message":t==="p"?"private group":"channel"), fav: !!s.f, unread: s.unread || 0, threadUnreadIds: tuIds(s.tunread), threadUnread: (Array.isArray(s.tunread) ? s.tunread.length : (s.tunread || 0)), lastSeen: s.ls ? tsToMs(s.ls) : 0, lm: (info.lm ? tsToMs(info.lm) : (s._updatedAt ? tsToMs(s._updatedAt) : 0)), muted: !!s.hideUnreadStatus, silent: !!s.disableNotifications, alert: !!s.alert, msgs: [], _loaded: false };
     });
     rooms = built;
     const ids = Object.keys(rooms), favIds = ids.filter(id => rooms[id].fav);
