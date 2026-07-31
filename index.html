@@ -943,6 +943,10 @@
       const url = el.dataset.src; el.removeAttribute("data-src");
       const drop = () => { const w = el.closest(".att-imgwrap"); if (w) w.remove(); else el.remove(); };   // failed image -> no empty box left behind
       el.addEventListener("error", drop, { once: true });
+      // decide BEFORE the image loads: if the stream sits at the bottom now, keep it there once the image grows the content
+      const st0 = el.closest('[data-role="stream"]');
+      const stick = st0 && st0.scrollHeight - st0.scrollTop - st0.clientHeight < 80;
+      el.addEventListener("load", () => { if (stick && st0) st0.scrollTop = st0.scrollHeight; }, { once: true });
       const ours = isOurUrl(url);
       if (!ours) { el.src = url; continue; }   // external link previews: plain <img> load (an authed fetch would just CORS-fail)
       const u = await cachedBlobUrl(url);
@@ -1653,9 +1657,10 @@
   function cancelPendingFile(id, idx) { const st = roomState[id]; if (!st || !st.pendingFiles) return; const p = st.pendingFiles[idx]; if (p) { try { URL.revokeObjectURL(p.url); } catch (_) {} st.pendingFiles.splice(idx, 1); } if (!st.pendingFiles.length) delete st.pendingFiles; renderComposerAcc(id); }
   function renderVisibleStream(id) {
     const html = renderMsgs(rooms[id].msgs, rooms[id]);
+    const upd = s => { if (!s) return; const atBottom = s.scrollHeight - s.scrollTop - s.clientHeight < 80; s.innerHTML = html; if (atBottom) s.scrollTop = s.scrollHeight; };
     const slot = visibleSlots().indexOf(id);
-    if (slot >= 0) { const s = ws.querySelector(`.tile[data-slot="${slot}"] [data-role="stream"]`); if (s) s.innerHTML = html; }
-    if (expandRoomId === id) { const s = modal.querySelector('[data-role="stream"]'); if (s) s.innerHTML = html; }
+    if (slot >= 0) upd(ws.querySelector(`.tile[data-slot="${slot}"] [data-role="stream"]`));
+    if (expandRoomId === id) upd(modal.querySelector('[data-role="stream"]'));
   }
   function markUnread(id) { const r = rooms[id]; if (!r) return; r.manualUnread = true; r.unread = Math.max(1, r.unread || 0); r.lastSeen = 0; const s = state.slots.indexOf(id); if (s >= 0) state.slots[s] = null; state.active = -1; renderTiles(); persist(); rc("unreadMessages", [null, id], "mark unread"); }
   function nextPopulated(from) { const cnt = n(); for (let k = 1; k <= cnt; k++) { const i = (from + k) % cnt; if (state.slots[i]) return i; } return -1; }
