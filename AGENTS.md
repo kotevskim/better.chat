@@ -3,15 +3,32 @@
 Single-file web client for Rocket.Chat (`index.html`) + local proxy (`proxy.py`) +
 installer (`setup.sh`). No build step; `index.html` is both source and artifact.
 
+## Commit messages (every commit)
+
+- First line: a short summary of the change.
+- Then a blank line and bullets with the details.
+- If the change affects what users see or do (UI/UX), describe that effect in the
+  bullets too — client-perspective wording, not implementation-speak.
+- Keep commits small and focused: one feature/fix per commit. The `/release` skill
+  refuses to run with uncommitted changes, so work must land as proper commits first.
+
 ## "Commit and bump a version"
+
+> Automated: the `/release` skill (`.claude/skills/release/SKILL.md`) runs this whole
+> flow — including push, release notes, and the GitHub release — from a clean tree.
+> The steps below remain the reference for what it does.
 
 When the user asks to *commit and bump a version* (in any wording), do all three:
 
 1. **Bump the version** — edit the single constant in `index.html`:
    ```js
-   const APP_VERSION = "<N>";   // bump manually per release
+   const APP_VERSION = "<N>";
    ```
    It feeds both the footer label and the login-page label; touch nothing else.
+   Between releases the constant is `"edge"` (non-numeric values display without
+   the `v` prefix) — so untagged `main` builds (fresh installs, `bc-update edge`)
+   show `edge` in the footer. After tagging (step 4), set it back to `"edge"` in a
+   follow-up commit.
 
 2. **Add a releases entry** — prepend the new version to the `RELEASES` array in
    `index.html` (newest first):
