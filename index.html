@@ -690,6 +690,7 @@
   /* help popup: 2×2 sections */
   .modal.help { width:min(80vw,1500px); height:80vh; max-height:80vh; }
   .kbgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:12px 14px; align-items:start; }
+  .kbgrid .kbtile:first-child { grid-row:1 / 3; }   /* Chats fills the left column; the other two stack on the right */
   @media (max-width: 900px){ .kbgrid { grid-template-columns:1fr; } }
   .kbtile { background:var(--bg); border:1px solid var(--border-soft); border-radius:12px; padding:11px 14px 8px; }
   .kbtile h4 { font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-faint); margin:0 0 6px; font-weight:600; }
@@ -2741,43 +2742,25 @@
         ["⌥ X", "Close the focused chat (the tile stays focused, now empty)"],
         ["⌥ Z", "Mark the focused chat unread (adds it to the unread bar)"],
         ["⌥ ← → ↑ ↓", "Swap the focused chat with the neighbouring tile (either may be empty)"],
-        ["⌥ S · header 🔍", "Search this chat’s messages; click a hit to jump to it"],
+        ["⌥ S", "Search this chat’s messages; click a hit to jump to it"],
         ["⌥ G · 📷 in the layout switch", "Apply your snapshot grid (take one via the avatar menu → Snapshot Current Grid)"],
-        ["Header ☆ · 📎", "Open this chat’s starred messages / files (files: filter by type, preview, download)"],
-        ["esc", "Close any open popup, else defocus the current chat / message"],
       ]],
       ["Messages", [
-        ["Hover a message", "Shows the action toolbar (react, reply, copy, star, forward, edit, delete) — no focus"],
-        ["Click a message · ↑ ↓", "Focus it (shows date + time; input focus and message focus are exclusive)"],
-        ["Hover the toolbar’s emoji", "Swaps it for the quick reactions (⊕ opens the full emoji explorer)"],
         ["Tab · Enter (on a focused message)", "Select the emoji action; Tab / ← → cycle actions, Enter runs the selected one"],
         ["↑ from the input", "Jump up from the composer into the messages"],
         ["↑ ↓ (on a message)", "Move between messages; ↓ past the last returns to the composer"],
         ["Enter (on a chat)", "Mark read and drop into its message input"],
-        ["↓ (on a message with replies)", "Focus the “N replies” badge; Enter opens the thread"],
-        ["Click “N replies” · Threads icon", "Open the thread / threads list and reply there"],
         ["Click the counter", "Jump to the next unread message and mark it read (threads jump to their start)"],
-        ["Type @ · :", "@ mentions a person · : brings up emoji (7 common, then filtered)"],
         ["Shift+Enter (in the input)", "Add a line — the input grows; 👁 previews the formatting, ⤢ opens the big writer"],
-        ["Paste an image", "Stages it in the input; edit the caption, then Send"],
-        ["Click a reaction", "Toggle your reaction (adds, or removes if you already reacted)"],
-        ["Scroll up", "Loads older messages automatically"],
       ]],
-      ["Bars & focus", [
+      ["Bars, search & favourites", [
         ["Click a favourite · an unread chip", "Open it in the first free window (else drag onto a window)"],
         ["Hover an unread chip", "Preview its messages and quick-reply from the popup"],
-        ["Favourite pinned to a window", "Stays in the bar — click it to jump to that window"],
-        ["Drag a chip → a window", "Place it (empty) or replace the chat there"],
         ["Focus button", "Cover all chats; hover a cover then click to reveal one"],
-      ]],
-      ["Find & favourites", [
         ["⌥ K", "Open a chat — into the focused tile, or the first empty one if nothing's focused"],
         ["⌥ F", "Cycle the favourites bar; Enter opens the highlighted one in the first free window"],
         ["⌥ U", "Cycle the unread bar; Enter opens the highlighted one, ⌥Enter previews & quick-replies"],
         ["⌥ number", "Open favourite N (double-digits ok, e.g. ⌥12) — or the numbered popup item"],
-        ["↑ ↓ · Tab", "Move through popup results"],
-        ["↵", "Open selected"],
-        ["esc", "Close"],
       ]],
     ];
     const rowH = ([k, d]) => `<div class="kbrow"><span class="kbkeys">${k.split(/\s·\s|\s\/\s/).map(p => `<kbd>${helpKeys(p)}</kbd>`).join("")}</span><div class="kbd-desc">${helpKeys(d)}</div></div>`;
