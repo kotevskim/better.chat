@@ -2364,7 +2364,7 @@
     modal.innerHTML =
       `<div class="mhead"><div class="mtitle">Open a chat in <span class="mfocus">${tname}</span><span style="color:var(--text-faint);font-weight:400"> &middot; now ${esc(focusName)}</span></div><span class="mkbd">⌥K</span><button class="mclose" data-role="close">✕</button></div>` +
       `<div class="mchips"><span class="clabel label">★ Favorites</span>${favs.map((id)=>`<button class="chip" data-room="${id}"><span class="sigil ${rooms[id].t}">${sig[rooms[id].t]}</span>${esc(rooms[id].name)}</button>`).join("")}</div>` +
-      searchBar("Search name or initials (try &ldquo;js&rdquo; for john.smith or &ldquo;jb&rdquo; for john.black)") +
+      searchBar("Search name or initials (try &ldquo;js&rdquo; for john.smith or &ldquo;pt&rdquo; for pinga-team)") +
       `<div class="mbody" data-role="results">${modalResults.map((id,i)=>roomRow(id,null,i===0)).join("")}</div>` +
       foot(`Opens in <b>${tname}</b>`, true);
     backdrop.hidden = false;
