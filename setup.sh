@@ -2,7 +2,7 @@
 # Better.Chat setup — installs the app + always-on local proxy and bc-* shell commands.
 #
 # One-liner install:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/kotevskim/better.chat/main/setup.sh)"
+#   bash -c "$(curl -fsSL "https://raw.githubusercontent.com/kotevskim/better.chat/main/setup.sh?ts=$(date +%s)")"
 #
 # After install:  open http://chat.localhost:9000  (Chrome/Firefox — no /etc/hosts needed)
 set -euo pipefail

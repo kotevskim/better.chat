@@ -9,7 +9,7 @@ the server).
 ## Install (one command)
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/kotevskim/better.chat/main/setup.sh)"
+bash -c "$(curl -fsSL "https://raw.githubusercontent.com/kotevskim/better.chat/main/setup.sh?ts=$(date +%s)")"
 ```
 
 The script asks for your Rocket.Chat server hostname once (stored only in
