@@ -1657,7 +1657,7 @@
   function cancelPendingFile(id, idx) { const st = roomState[id]; if (!st || !st.pendingFiles) return; const p = st.pendingFiles[idx]; if (p) { try { URL.revokeObjectURL(p.url); } catch (_) {} st.pendingFiles.splice(idx, 1); } if (!st.pendingFiles.length) delete st.pendingFiles; renderComposerAcc(id); }
   function renderVisibleStream(id) {
     const html = renderMsgs(rooms[id].msgs, rooms[id]);
-    const upd = s => { if (!s) return; const atBottom = s.scrollHeight - s.scrollTop - s.clientHeight < 80; s.innerHTML = html; if (atBottom) s.scrollTop = s.scrollHeight; };
+    const upd = s => { if (!s) return; const atBottom = s.scrollHeight - s.scrollTop - s.clientHeight < 80; const top = s.scrollTop; s.innerHTML = html; s.scrollTop = atBottom ? s.scrollHeight : top; };   // keep the exact position (innerHTML swap would clamp it), pin only if already at the bottom
     const slot = visibleSlots().indexOf(id);
     if (slot >= 0) upd(ws.querySelector(`.tile[data-slot="${slot}"] [data-role="stream"]`));
     if (expandRoomId === id) upd(modal.querySelector('[data-role="stream"]'));
