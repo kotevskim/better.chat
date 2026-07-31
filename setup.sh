@@ -7,7 +7,10 @@
 # After install:  open http://chat.localhost:9000  (Chrome/Firefox — no /etc/hosts needed)
 set -euo pipefail
 
-REPO_RAW="https://raw.githubusercontent.com/kotevskim/better.chat/main"
+REPO="kotevskim/better.chat"
+REPO_RAW_BASE="https://raw.githubusercontent.com/$REPO"
+REPO_RAW="$REPO_RAW_BASE/main"          # installer itself always pulls from main
+EDGE_BRANCH="main"                       # what `bc-update edge` tracks (latest pushed code, not a release)
 DIR="$HOME/.better-chat"
 PORT=9000
 URL="http://chat.localhost:$PORT"
@@ -58,6 +61,7 @@ TS=$(date +%s)   # cache-bust the raw CDN (~5 min TTL) so a fresh push installs 
 curl -fsSL "$REPO_RAW/index.html?ts=$TS" -o "$DIR/index.html" || fail "Couldn't download index.html"
 curl -fsSL "$REPO_RAW/proxy.py?ts=$TS"   -o "$DIR/proxy.py"   || fail "Couldn't download proxy.py"
 printf '%s\n' "$RC_SERVER" > "$DIR/server"   # the proxy reads its target from here (kept out of the public repo)
+printf '%s\n' "main" > "$DIR/ref"          # which git ref the installed files came from
 
 PY="$(command -v python3)"
 
@@ -129,10 +133,24 @@ $MARK_BEGIN
 bc-start()   { launchctl list 2>/dev/null | grep -q "$LABEL" && echo "better.chat: already running" || launchctl bootstrap "gui/\$(id -u)" "$PLIST"; }
 bc-stop()    { launchctl bootout "gui/\$(id -u)/$LABEL" 2>/dev/null && echo "better.chat: stopped" || echo "better.chat: not running"; }
 bc-restart() { launchctl bootout "gui/\$(id -u)/$LABEL" 2>/dev/null; launchctl bootstrap "gui/\$(id -u)" "$PLIST"; }
-bc-status()  { launchctl list | grep -q $LABEL && echo "better.chat: running ($URL)" || echo "better.chat: stopped"; }
+bc-status()  { launchctl list | grep -q $LABEL && echo "better.chat: running \$(bc-version) ($URL)" || echo "better.chat: stopped (\$(bc-version))"; }
 bc-logs()    { tail -f "$DIR/proxy.log"; }
 bc-open()    { open "$URL"; }
-bc-update()  { local ts=\$(date +%s); curl -fsSL "$REPO_RAW/index.html?ts=\$ts" -o "$DIR/index.html" && curl -fsSL "$REPO_RAW/proxy.py?ts=\$ts" -o "$DIR/proxy.py" && bc-restart && echo "better.chat updated"; }   # ?ts busts the raw CDN cache (~5 min TTL)
+bc-version() { cat "$DIR/ref" 2>/dev/null || echo "unknown"; }
+bc-update()  {
+  local want="\$1" ref ts=\$(date +%s)
+  if [ -z "\$want" ]; then                                   # newest published tag, with graceful fallbacks
+    ref=\$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null | sed -n 's/.*"tag_name": *"\\([^"]*\\)".*/\\1/p' | head -1)
+    [ -z "\$ref" ] && ref=\$(curl -fsSL "https://api.github.com/repos/$REPO/tags" 2>/dev/null | sed -n 's/.*"name": *"\\([^"]*\\)".*/\\1/p' | head -1)
+    [ -z "\$ref" ] && { ref="main"; echo "better.chat: couldn't resolve the latest tag — falling back to main"; }
+  elif [ "\$want" = "edge" ]; then ref="$EDGE_BRANCH"        # latest development build, may break
+  else ref="\$want"; fi                                      # a tag, branch or commit SHA
+  curl -fsSL "$REPO_RAW_BASE/\$ref/index.html?ts=\$ts" -o "$DIR/index.html.new" &&
+  curl -fsSL "$REPO_RAW_BASE/\$ref/proxy.py?ts=\$ts"   -o "$DIR/proxy.py.new"  || { rm -f "$DIR"/*.new; echo "better.chat: couldn't fetch '\$ref' — no such tag or branch (nothing changed)"; return 1; }
+  mv "$DIR/index.html.new" "$DIR/index.html"; mv "$DIR/proxy.py.new" "$DIR/proxy.py"
+  printf '%s\\n' "\$ref" > "$DIR/ref"
+  bc-restart && echo "better.chat updated → \$ref"
+}   # ?ts busts the raw CDN cache (~5 min TTL)
 $MARK_END
 EOF
   else
@@ -141,10 +159,24 @@ $MARK_BEGIN
 bc-start()   { systemctl --user start better-chat; }
 bc-stop()    { systemctl --user stop better-chat; }
 bc-restart() { systemctl --user restart better-chat; }
-bc-status()  { systemctl --user is-active better-chat >/dev/null && echo "better.chat: running ($URL)" || echo "better.chat: stopped"; }
+bc-status()  { systemctl --user is-active better-chat >/dev/null && echo "better.chat: running \$(bc-version) ($URL)" || echo "better.chat: stopped (\$(bc-version))"; }
 bc-logs()    { tail -f "$DIR/proxy.log"; }
 bc-open()    { xdg-open "$URL" >/dev/null 2>&1 & }
-bc-update()  { local ts=\$(date +%s); curl -fsSL "$REPO_RAW/index.html?ts=\$ts" -o "$DIR/index.html" && curl -fsSL "$REPO_RAW/proxy.py?ts=\$ts" -o "$DIR/proxy.py" && bc-restart && echo "better.chat updated"; }   # ?ts busts the raw CDN cache (~5 min TTL)
+bc-version() { cat "$DIR/ref" 2>/dev/null || echo "unknown"; }
+bc-update()  {
+  local want="\$1" ref ts=\$(date +%s)
+  if [ -z "\$want" ]; then                                   # newest published tag, with graceful fallbacks
+    ref=\$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null | sed -n 's/.*"tag_name": *"\\([^"]*\\)".*/\\1/p' | head -1)
+    [ -z "\$ref" ] && ref=\$(curl -fsSL "https://api.github.com/repos/$REPO/tags" 2>/dev/null | sed -n 's/.*"name": *"\\([^"]*\\)".*/\\1/p' | head -1)
+    [ -z "\$ref" ] && { ref="main"; echo "better.chat: couldn't resolve the latest tag — falling back to main"; }
+  elif [ "\$want" = "edge" ]; then ref="$EDGE_BRANCH"        # latest development build, may break
+  else ref="\$want"; fi                                      # a tag, branch or commit SHA
+  curl -fsSL "$REPO_RAW_BASE/\$ref/index.html?ts=\$ts" -o "$DIR/index.html.new" &&
+  curl -fsSL "$REPO_RAW_BASE/\$ref/proxy.py?ts=\$ts"   -o "$DIR/proxy.py.new"  || { rm -f "$DIR"/*.new; echo "better.chat: couldn't fetch '\$ref' — no such tag or branch (nothing changed)"; return 1; }
+  mv "$DIR/index.html.new" "$DIR/index.html"; mv "$DIR/proxy.py.new" "$DIR/proxy.py"
+  printf '%s\\n' "\$ref" > "$DIR/ref"
+  bc-restart && echo "better.chat updated → \$ref"
+}   # ?ts busts the raw CDN cache (~5 min TTL)
 $MARK_END
 EOF
   fi
@@ -157,7 +189,7 @@ sleep 1
 if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/"; then
   say "Better.Chat is running → $URL"
   if [ "$OS" = "Darwin" ]; then open "$URL"; else xdg-open "$URL" >/dev/null 2>&1 || true; fi
-  say "Open a NEW terminal (or 'source $RC_FILE') to use: bc-start bc-stop bc-restart bc-status bc-logs bc-open bc-update"
+  say "Open a NEW terminal (or 'source $RC_FILE') to use: bc-start bc-stop bc-restart bc-status bc-version bc-logs bc-open bc-update [v16|edge]"
 else
   fail "Proxy didn't answer on port $PORT — check $DIR/proxy.log"
 fi

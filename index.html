@@ -46,12 +46,21 @@
   .meBtn { border:none; background:none; padding:0; cursor:pointer; border-radius:8px; line-height:0; }
   .meBtn .avatar { width:30px; height:30px; border-radius:8px; }
   .meBtn:hover .avatar { box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent); }
-  .usermenu { position:absolute; top:47px; left:12px; z-index:120; width:220px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); overflow:hidden; }
+  .usermenu { position:absolute; top:47px; left:12px; z-index:120; width:220px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); }
+  .usermenu .um-head { border-radius:10px 10px 0 0; }
+  .um-sub-wrap { position:relative; }
+  .um-caret { margin-left:auto; color:var(--text-faint); font-size:14px; line-height:1; }
+  .um-sub { display:none; position:absolute; left:100%; top:-6px; margin-left:2px; min-width:200px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:5px; z-index:121; }
+  .um-sub-wrap:hover .um-sub, .um-sub:hover { display:block; }
+  .um-sub .rel-row { display:flex; align-items:baseline; gap:8px; padding:8px 10px; border-radius:7px; text-decoration:none; color:var(--text); font-size:12.5px; }
+  .um-sub .rel-row:hover { background:color-mix(in srgb,var(--accent) 12%,transparent); }
+  .um-sub .rel-row b { font-weight:600; } .um-sub .rel-row span { color:var(--accent); font-size:11px; margin-left:auto; }
   .usermenu[hidden] { display:none; }
   .usermenu .um-head { padding:11px 13px; border-bottom:1px solid var(--border-soft); display:flex; flex-direction:column; gap:1px; }
   .usermenu .um-head b { font-weight:650; letter-spacing:-.01em; } .usermenu .um-head span { color:var(--text-faint); font-size:11.5px; font-family:ui-monospace,monospace; }
   .usermenu .um-item { width:100%; display:flex; align-items:center; gap:9px; padding:10px 13px; border:none; background:none; color:var(--text); font:inherit; cursor:pointer; text-align:left; }
   .usermenu .um-item:hover { background:color-mix(in srgb,var(--accent) 12%,transparent); color:var(--accent); }
+  .um-aa { font-family:Georgia,serif; font-weight:600; font-size:13px; width:15px; text-align:center; letter-spacing:-.02em; }
   .status { display:flex; align-items:center; gap:6px; color:var(--text-dim); }
   .dot { width:7px; height:7px; border-radius:50%; background:var(--live); box-shadow:0 0 0 3px color-mix(in srgb,var(--live) 22%,transparent); }
   .dot.demo { background:var(--t-private); box-shadow:0 0 0 3px color-mix(in srgb,var(--t-private) 22%,transparent); }
@@ -79,6 +88,7 @@
   .segmented button[aria-pressed="true"] .glyph i { background:currentColor; }
   .glyph { display:grid; gap:1.5px; width:16px; }
   .glyph.solo{grid-template-columns:1fr;height:12px;} .glyph.duo{grid-template-columns:1fr 1fr;height:12px;}
+  .glyph.tri{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.tri i:last-child{grid-column:1 / -1;}
   .glyph.quad{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.six{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;height:12px;}
   .glyph i { display:block; background:var(--text-dim); border-radius:1px; }
   .iconbtn { border:1px solid var(--border); background:var(--tile); color:var(--text-dim); width:30px; height:30px; border-radius:6px; cursor:pointer; display:grid; place-items:center; }
@@ -101,6 +111,8 @@
   .workspace { padding:12px; overflow:hidden; display:grid; gap:12px; }
   .workspace[data-layout="solo"]{grid-template-columns:1fr;grid-template-rows:1fr;}
   .workspace[data-layout="duo"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr;}
+  .workspace[data-layout="tri"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+  .workspace[data-layout="tri"] .tile[data-slot="2"]{grid-column:1 / -1;}
   .workspace[data-layout="quad"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
   .workspace[data-layout="six"]{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;}
 
@@ -165,7 +177,7 @@
   .att-btn { width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--tile); color:var(--text-dim); cursor:pointer; display:grid; place-items:center; }
   .att-imgwrap .att-btn { background:var(--tile); }
   .att-btn:hover { color:var(--accent); border-color:var(--accent); }
-  .reacts { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+  .reacts { display:flex; flex-wrap:wrap; gap:5px; margin-top:-5px; position:relative; z-index:2; padding:0 6px; }
   .react { display:inline-flex; align-items:center; gap:4px; font:inherit; font-size:13px; line-height:1; padding:3px 8px; border-radius:20px; border:1px solid var(--border); background:var(--tile-head); color:var(--text-dim); cursor:pointer; transition:border-color .12s,background .12s; }
   .react:hover { border-color:var(--text-faint); }
   .react b { font-weight:700; color:var(--text); font-family:ui-monospace,monospace; font-size:11px; }
@@ -191,8 +203,13 @@
   .cimg-nm { font-size:12px; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cinput-wrap { position:relative; flex:1; display:flex; }
   .cinput-wrap input, .cinput-wrap .cinput { flex:1; padding-right:60px; }
+  [data-role="composer"] .cinput-wrap input, [data-role="composer"] .cinput-wrap .cinput { padding-right:86px; }
+  .cpreview-btn { position:absolute; right:31px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--text-faint); cursor:pointer; width:24px; height:24px; border-radius:5px; display:grid; place-items:center; }
+  .cpreview-btn:hover, .cpreview-btn.on { color:var(--text-dim); background:color-mix(in srgb,var(--text) 8%,transparent); }
+  .cpreview { flex:1; min-height:34px; max-height:150px; overflow-y:auto; background:var(--bg); border:1px solid color-mix(in srgb,var(--accent) 45%,var(--border)); border-radius:8px; padding:7px 88px 7px 11px; font:inherit; line-height:1.4; }
+  .cpreview .cpv-empty { color:var(--text-faint); font-style:italic; }
   .cexpand { position:absolute; right:5px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--text-faint); cursor:pointer; width:24px; height:24px; border-radius:5px; display:grid; place-items:center; }
-  .cattach { position:absolute; right:31px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--text-faint); cursor:pointer; width:24px; height:24px; border-radius:5px; display:grid; place-items:center; }
+  .cattach { position:absolute; right:57px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--text-faint); cursor:pointer; width:24px; height:24px; border-radius:5px; display:grid; place-items:center; }
   .cattach:hover { color:var(--text-dim); background:color-mix(in srgb,var(--text) 8%,transparent); }
   .composer.droptarget .crow input, .composer.droptarget .crow .cinput { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
   .lver { text-align:center; color:var(--text-faint); font-size:10px; font-family:ui-monospace,monospace; padding:0 0 12px; }
@@ -226,6 +243,9 @@
   .be-send { display:inline-flex; align-items:center; gap:4px; }
   .tile.empty { border-style:dashed; background:transparent; opacity:1; }
   .tile.empty .stream { align-items:center; justify-content:center; text-align:center; color:var(--text-faint); gap:8px; }
+  .pin-hint { display:flex; flex-direction:column; gap:5px; font-size:12.5px; opacity:0; transition:opacity .18s; }
+  .pin-hint b { color:var(--text-dim); font-weight:600; margin-bottom:2px; }
+  .tile.empty:hover .pin-hint { opacity:1; }
 
   .backdrop { position:fixed; inset:0; z-index:100; display:grid; place-items:start center; padding-top:10vh; background:color-mix(in srgb,#05080c 62%,transparent); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
   .backdrop[hidden] { display:none; }
@@ -335,6 +355,47 @@
   .mm-act:hover, .mm-act.mmsel { color:var(--accent); border-color:var(--accent); }
   .actbar { flex-direction:row; align-items:center; gap:5px; }
   .actbar .mm-reactions { padding:3px 5px; }
+  .mm-inline-reacts { display:flex; align-items:center; gap:2px; background:var(--tile); border:1px solid var(--border); border-radius:22px; padding:2px 5px; box-shadow:var(--shadow); }
+  .mm-inline-reacts .mm-react { width:28px; height:28px; font-size:18px; }
+  .mm-act.mm-del { color:#e5555f; }
+  .mm-act.mm-del:hover, .mm-act.mm-del.mmsel { color:#e5555f; border-color:#e5555f; }
+  .mm-confirm { align-items:center; background:var(--tile); border:1px solid var(--border); border-radius:22px; padding:3px 5px 3px 12px; box-shadow:var(--shadow); }
+  .mm-q { font-size:12px; color:var(--text-dim); margin-right:8px; white-space:nowrap; }
+  .mm-react.mm-more { font-size:17px; color:var(--text-dim); margin-left:3px; padding-left:6px; border-left:1px solid var(--border-soft); border-radius:4px; }
+  .mm-react.mm-more.rev { margin-left:0; padding-left:0; border-left:none; margin-right:3px; padding-right:6px; border-right:1px solid var(--border-soft); }
+  .mm-react.mm-more:hover { color:var(--accent); }
+  .panelpop.fwdpop { height:auto; max-height:70vh; width:min(440px,92vw); }
+  .panelpop.fwdpop .pn-results { flex:0 1 auto; padding:6px; }
+  .fw-row { display:flex; align-items:center; gap:9px; width:100%; padding:8px 10px; border:none; background:none; color:var(--text); font:inherit; cursor:pointer; border-radius:8px; text-align:left; }
+  .fw-row:hover { background:color-mix(in srgb,var(--accent) 12%,transparent); }
+  .fw-row b { font-weight:600; } .fw-row .fw-fav { margin-left:auto; color:#e7b416; font-size:12px; }
+  /* "See messages for day" calendar */
+  .panelpop.calpop { height:auto; max-height:84vh; width:min(560px,94vw); }
+  .calpop .pn-results { flex:0 1 auto; padding:10px 12px; }
+  .cal-head { display:flex; align-items:center; justify-content:center; gap:14px; padding:2px 0 10px; }
+  .cal-head b { min-width:160px; text-align:center; }
+  .cal-nav { border:1px solid var(--border); background:var(--tile); color:var(--text); width:26px; height:26px; border-radius:7px; cursor:pointer; font-size:15px; line-height:1; display:grid; place-items:center; flex:none; }
+  .cal-nav:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+  .cal-nav:disabled { opacity:.35; cursor:default; }
+  .cal-dow, .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .cal-dow span { text-align:center; font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; padding:2px 0 6px; }
+  .cal-day { border:1px solid transparent; background:none; color:var(--text); font:inherit; font-size:12.5px; height:34px; border-radius:8px; cursor:pointer; }
+  .cal-day:hover:not(:disabled) { background:color-mix(in srgb,var(--accent) 14%,transparent); }
+  .cal-day.today { border-color:var(--accent); color:var(--accent); font-weight:650; }
+  .cal-day:disabled { color:var(--text-faint); opacity:.4; cursor:default; }
+  .cal-daybar { display:flex; align-items:center; gap:8px; padding-bottom:9px; border-bottom:1px solid var(--border-soft); margin-bottom:9px; flex-wrap:wrap; }
+  .cal-daybar b { font-size:13px; }
+  .cal-daybar .btn { flex:0 0 auto; padding:7px 12px; font-size:12px; }
+  .cal-daybar .cal-back { margin-left:auto; }
+  .cal-msgs { max-height:56vh; overflow-y:auto; display:flex; flex-direction:column; gap:9px; }
+  .panelpop.emojipop { height:auto; max-height:80vh; width:min(560px,94vw); }
+  .panelpop.emojipop .pn-results { flex:0 1 auto; min-height:120px; }
+  .exfilters { max-height:none; overflow:visible; }
+  .ex-cat-h { font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; padding:8px 10px 4px; position:sticky; top:0; background:var(--tile); }
+  .ex-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(38px,1fr)); gap:2px; padding:0 6px 8px; }
+  .ex-em { border:none; background:none; font-size:21px; line-height:1; height:38px; border-radius:8px; cursor:pointer; display:grid; place-items:center; }
+  .ex-em:hover { background:color-mix(in srgb,var(--accent) 14%,transparent); transform:scale(1.15); }
+  .ex-em img.rem { height:22px; width:22px; }
   /* @mention autocomplete */
   .mentionbox { position:fixed; z-index:365; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); overflow-y:auto; max-height:240px; }
   .mn-item { display:flex; align-items:center; gap:9px; padding:7px 10px; cursor:pointer; }
@@ -374,7 +435,7 @@
   .tile-name:hover ~ .head-hint { opacity:0; }
   /* font button + menu */
   .fontbtn { font-family:Georgia,serif; font-size:14px; font-weight:600; letter-spacing:-.02em; }
-  .fontmenu { position:absolute; top:47px; right:12px; z-index:120; width:210px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); overflow:hidden; padding:6px; }
+  .fontmenu { width:230px; padding:6px; max-height:72vh; overflow-y:auto; }
   .fontmenu[hidden] { display:none; }
   .fontmenu .fm-sec { font-family:ui-monospace,monospace; font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-faint); padding:6px 6px 3px; }
   .fontmenu .fm-row { display:flex; gap:4px; padding:0 4px 4px; }
@@ -404,6 +465,9 @@
   .favchip.is-unread { border-color:color-mix(in srgb,var(--accent) 55%,var(--border)); }
   .favchip.fcycle { outline:2px solid var(--accent); outline-offset:1px; background:color-mix(in srgb,var(--accent) 18%,var(--tile)); }
   .ur-star { color:#f4c430; font-size:11px; }
+  .ur-peek { display:inline-flex; align-items:center; color:var(--accent); margin-left:1px; opacity:.75; }
+  .ur-peek svg { display:block; }
+  .ur-peek:hover { color:var(--text); opacity:1; }
   /* image lightbox */
   .lightbox { position:fixed; inset:0; z-index:360; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb,#05080c 82%,transparent); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
   .lightbox .lb-img { max-width:90vw; max-height:90vh; border-radius:8px; box-shadow:var(--shadow); background:var(--tile); }
@@ -445,9 +509,11 @@
   .infopop { position:fixed; z-index:340; background:var(--accent); color:var(--accent-ink); border:none; border-radius:10px; box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 45%,transparent); padding:10px 14px; max-width:280px; font-size:13px; font-weight:600; }
   @media (prefers-reduced-motion: no-preference){ .infopop { animation:pop .16s ease; } }
   /* unread preview popup (double-click an unread person) */
-  .urpop { position:fixed; z-index:340; width:min(420px,92vw); background:var(--tile); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
+  .urpop { position:fixed; z-index:340; width:min(520px,94vw); background:var(--tile); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
   .urpop .up-head { display:flex; align-items:center; gap:8px; padding:10px 13px; border-bottom:1px solid var(--border-soft); font-weight:650; }
-  .urpop .up-body { max-height:230px; overflow-y:auto; padding:10px 13px; display:flex; flex-direction:column; gap:8px; }
+  .urpop .up-body { max-height:330px; overflow-y:auto; padding:10px 13px; display:flex; flex-direction:column; gap:8px; }
+  .urpop .up-msg .up-txt { display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; overflow:hidden; }
+  .urpop .up-msg .up-txt pre.code { max-height:90px; overflow:hidden; }
   .urpop .up-msg b { font-weight:600; margin-right:6px; } .urpop .up-msg time { color:var(--text-faint); font-family:ui-monospace,monospace; font-size:10px; } .urpop .up-msg div { color:var(--text-dim); margin-top:1px; }
   .urpop .up-reply { display:flex; gap:8px; padding:10px 13px; border-top:1px solid var(--border-soft); }
   .urpop .up-reply input { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font:inherit; outline:none; }
@@ -508,8 +574,15 @@
   .threadpop .up-reply .crow input { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font:inherit; outline:none; }
   .reply-ref { display:flex; align-items:center; gap:5px; width:fit-content; max-width:100%; margin:0 0 3px; padding:3px 9px; border:none; background:color-mix(in srgb,var(--text) 7%,transparent); border-radius:12px; color:var(--text-faint); font:inherit; font-size:11px; cursor:pointer; text-align:left; }
   .reply-ref:hover { background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--text-dim); }
-  .reply-ref b { color:var(--text-dim); font-weight:600; } .reply-ref span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px; }
+  .reply-ref b { color:var(--text-dim); font-weight:600; } .reply-ref span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:min(520px,60vw); }
   .msg.mine .reply-ref { margin-left:auto; }
+  /* quoted message (RC "[ ](link)" quotes / forwards) */
+  .mquote { display:block; width:fit-content; max-width:min(520px,60vw); margin:0 0 4px; padding:5px 10px 6px; border-left:3px solid color-mix(in srgb,var(--accent) 55%,transparent); background:color-mix(in srgb,var(--text) 6%,transparent); border-radius:4px 8px 8px 4px; font-size:12px; color:var(--text-dim); cursor:pointer; text-align:left; }
+  .mquote:hover { background:color-mix(in srgb,var(--accent) 12%,transparent); }
+  .mquote .mq-user { display:block; font-weight:650; font-size:11px; color:var(--text-dim); margin-bottom:1px; }
+  .mquote .mq-text { display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+  .mquote .mq-missing { font-style:italic; color:var(--text-faint); }
+  .msg.mine .mquote { margin-left:auto; }
   .threads-back { display:flex !important; align-items:center; justify-content:center; gap:16px; }
   .threadslist { position:static !important; width:min(600px,94vw); height:82vh; max-height:86vh; display:flex; flex-direction:column; }
   .threadslist .ti-main { white-space:normal; }
@@ -608,11 +681,17 @@
   .tsend { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-dim); margin-bottom:7px; cursor:pointer; }
   .tsend input { width:14px; height:14px; accent-color:var(--accent); }
   /* help popup: 2×2 sections */
-  .modal.help { width:min(880px,95vw); }
-  .kbgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px 26px; padding:16px; }
-  .kbsection .kbtable2 { display:grid; grid-template-columns:auto 1fr; gap:7px 14px; margin-top:4px; }
-  .kbsection kbd { font-family:ui-monospace,monospace; font-size:11px; background:var(--tile-head); border:1px solid var(--border); border-radius:4px; padding:2px 6px; white-space:nowrap; justify-self:start; }
-  .kbsection .kbd-desc { color:var(--text-dim); align-self:center; font-size:12.5px; }
+  .modal.help { width:min(80vw,1500px); height:80vh; max-height:80vh; }
+  .kbgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:12px 14px; align-items:start; }
+  @media (max-width: 900px){ .kbgrid { grid-template-columns:1fr; } }
+  .kbtile { background:var(--bg); border:1px solid var(--border-soft); border-radius:12px; padding:11px 14px 8px; }
+  .kbtile h4 { font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-faint); margin:0 0 6px; font-weight:600; }
+  .kbrow { display:flex; gap:10px; align-items:baseline; padding:6px 0; border-top:1px solid var(--border-soft); }
+  .kbrow:nth-of-type(1) { border-top:none; }
+  .kbkeys { display:flex; flex-wrap:wrap; gap:4px; flex:0 0 42%; }
+  .kbgrid kbd { font-family:ui-monospace,monospace; font-size:11px; background:var(--tile-head); border:1px solid var(--border); border-radius:4px; padding:2px 6px; white-space:nowrap; }
+  .kbrow .kbd-desc { flex:1; font-size:12.5px; color:var(--text-dim); }
+  .tour-card .kbgrid { padding:0; grid-template-columns:1fr; }
   .mm-react.mmsel, .mm-act.mmsel { outline:2px solid var(--accent); outline-offset:1px; }
   .explore-kbd { font-size:11px; color:var(--text-faint); } .explore-kbd b { font-family:ui-monospace,monospace; font-weight:600; }
   .thread-ind { display:inline-flex; align-items:center; gap:4px; margin-top:5px; border:1px solid var(--border); background:var(--tile-head); color:var(--t-channel); border-radius:14px; padding:2px 9px; font:inherit; font-size:11.5px; font-weight:600; cursor:pointer; }
@@ -667,41 +746,48 @@
       <div class="segmented" role="group" aria-label="Grid layout — ⌥L cycles">
         <button data-layout="solo" title="1-up (⌥L cycles layouts)" aria-pressed="false"><span class="glyph solo"><i></i></span></button>
         <button data-layout="duo" title="2-up (⌥L cycles layouts)" aria-pressed="false"><span class="glyph duo"><i></i><i></i></span></button>
+        <button data-layout="tri" title="2+1 (⌥L cycles layouts)" aria-pressed="false"><span class="glyph tri"><i></i><i></i><i></i></span></button>
         <button data-layout="quad" title="2×2 (⌥L cycles layouts)" aria-pressed="true"><span class="glyph quad"><i></i><i></i><i></i><i></i></span></button>
         <button data-layout="six" title="3×2 (⌥L cycles layouts)" aria-pressed="false"><span class="glyph six"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
-        <button id="homeGridBtn" title="Home grid (⌥H)" aria-label="Apply home grid" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></button>
+        <button id="snapGridBtn" title="Snapshot grid (⌥G)" aria-label="Apply snapshot grid" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5a2 2 0 0 1 2-2h2.2l1.3-2h6l1.3 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.4"/></svg></button>
       </div>
       <button class="iconbtn" id="focusBtn" title="Focus mode — cover all chats but one or two" aria-label="Focus mode" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button>
-      <button class="iconbtn fontbtn" id="fontBtn" title="Chat font & size" aria-label="Chat font and size">Aa</button>
       <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts — ?" aria-label="Keyboard shortcuts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.2a2.6 2.6 0 1 1 3.7 2.4c-.8.4-1.1.9-1.1 1.7"/><path d="M12 17.2h.01"/></svg></button>
       <button class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </div>
     <div class="usermenu" id="userMenu" hidden>
       <div class="um-head"><b id="umName">You</b><span id="umSub">demo mode</span></div>
-      <button class="um-item" id="statusBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg> Change status</button>
-      <button class="um-item" id="mutedBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.7 21a2 2 0 0 1-3.4 0M18 8a6 6 0 0 0-9.3-5M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14M21 17h-2M3 3l18 18"/></svg> Muted chats</button>
-      <button class="um-item" id="saveGridBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Save grid as Home</button>
-      <button class="um-item" id="bcConfigBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.12-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.12 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01A1.7 1.7 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01c.26.63.87 1.04 1.56 1.04H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51.94z"/></svg> Better.Chat config</button>
-      <button class="um-item" id="releasesBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.6 13.4 12 22l-8.6-8.6a2 2 0 0 1 0-2.8L11 3h7a3 3 0 0 1 3 3v7z" transform="rotate(180 12 12.5) translate(0,1)"/><circle cx="16.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg> Releases</button>
-      <button class="um-item" id="signOutBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg> Sign out</button>
-    </div>
-    <div class="fontmenu" id="fontMenu" hidden>
-      <div class="fm-sec">Size</div>
-      <div class="fm-row" data-fontsize>
-        <button data-size="xsmall">XS</button><button data-size="small">S</button><button data-size="medium">M</button><button data-size="large">L</button>
+      <button class="um-item" id="statusBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg> Change Status</button>
+      <button class="um-item" id="saveGridBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5a2 2 0 0 1 2-2h2.2l1.3-2h6l1.3 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.4"/></svg> Snapshot Current Grid</button>
+      <button class="um-item" id="bcConfigBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.12-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.12 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01A1.7 1.7 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01c.26.63.87 1.04 1.56 1.04H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51.94z"/></svg> Better.Chat Config</button>
+      <div class="um-sub-wrap">
+        <button class="um-item" id="fontBtn"><span class="um-aa">Aa</span> Fonts &amp; Size<span class="um-caret">›</span></button>
+        <div class="fontmenu um-sub" id="fontMenu">
+          <div class="fm-sec">Size</div>
+          <div class="fm-row" data-fontsize>
+            <button data-size="xsmall">XS</button><button data-size="small">S</button><button data-size="medium">M</button><button data-size="large">L</button>
+          </div>
+          <div class="fm-sec">Font</div>
+          <div class="fm-list" data-fontfamily>
+            <button data-font="system">Default (system)</button>
+            <button data-font="serif" style="font-family:Georgia,'Times New Roman',serif">Georgia serif</button>
+            <button data-font="grotesk" style="font-family:'Trebuchet MS','Segoe UI',sans-serif">Trebuchet</button>
+            <button data-font="verdana" style="font-family:'Verdana','Geneva',sans-serif">Verdana</button>
+            <button data-font="mono" style="font-family:ui-monospace,Menlo,monospace">System mono</button>
+            <button data-font="jetbrains" style="font-family:'JetBrains Mono','Fira Code',ui-monospace,monospace">JetBrains Mono</button>
+            <button data-font="cascadia" style="font-family:'Cascadia Code','SF Mono',Menlo,monospace">Cascadia Code</button>
+            <button data-font="ibm" style="font-family:'IBM Plex Mono','Menlo',monospace">IBM Plex Mono</button>
+            <button data-font="courier" style="font-family:'Courier New',Courier,monospace">Courier</button>
+          </div>
+        </div>
       </div>
-      <div class="fm-sec">Font</div>
-      <div class="fm-list" data-fontfamily>
-        <button data-font="system">Default (system)</button>
-        <button data-font="serif" style="font-family:Georgia,'Times New Roman',serif">Georgia serif</button>
-        <button data-font="grotesk" style="font-family:'Trebuchet MS','Segoe UI',sans-serif">Trebuchet</button>
-        <button data-font="verdana" style="font-family:'Verdana','Geneva',sans-serif">Verdana</button>
-        <button data-font="mono" style="font-family:ui-monospace,Menlo,monospace">System mono</button>
-        <button data-font="jetbrains" style="font-family:'JetBrains Mono','Fira Code',ui-monospace,monospace">JetBrains Mono</button>
-        <button data-font="cascadia" style="font-family:'Cascadia Code','SF Mono',Menlo,monospace">Cascadia Code</button>
-        <button data-font="ibm" style="font-family:'IBM Plex Mono','Menlo',monospace">IBM Plex Mono</button>
-        <button data-font="courier" style="font-family:'Courier New',Courier,monospace">Courier</button>
+      <button class="um-item" id="mutedBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.7 21a2 2 0 0 1-3.4 0M18 8a6 6 0 0 0-9.3-5M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14M21 17h-2M3 3l18 18"/></svg> Muted Chats</button>
+      <button class="um-item" id="tourBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.1.9-1.1 1.7"/><path d="M12 17.1h.01"/></svg> Welcome Tour</button>
+      <div class="um-sub-wrap" id="releasesWrap">
+        <button class="um-item" id="releasesBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.6 13.4 12 22l-8.6-8.6a2 2 0 0 1 0-2.8L11 3h7a3 3 0 0 1 3 3v7z" transform="rotate(180 12 12.5) translate(0,1)"/><circle cx="16.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg> Releases<span class="um-caret">›</span></button>
+        <div class="um-sub" id="releasesSub"></div>
       </div>
+      <button class="um-item" id="signOutBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg> Sign Out</button>
     </div>
   </header>
   <div class="favbar" id="favbar"></div>
@@ -719,6 +805,8 @@
   "use strict";
 
   const ICON = {
+    calendar:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>',
+    dayStart:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14"/><path d="M12 20V9"/><path d="m7.5 13.5 4.5-4.5 4.5 4.5"/></svg>',
     pinOff:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 17v5"/><path d="M9 3h6l-1 6 3 3H7l3-3-1-6z"/></svg>',
     pinOn:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2"><path d="M12 17v5"/><path d="M9 3h6l-1 6 3 3H7l3-3-1-6z"/></svg>',
     expand:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg>',
@@ -767,11 +855,22 @@
   const customEmoji = {};   // populated from the server: name -> image url
 
 
-  const APP_VERSION = "16";   // bump manually per release
+  const APP_VERSION = "17";   // bump manually per release
   const sig = { c:"#", p:"🔒", d:"@", s:"⤷" };
   const stripe = { c:"var(--t-channel)", p:"var(--t-private)", d:"var(--t-direct)", s:"var(--t-discuss)" };
-  const layoutCount = { solo:1, duo:2, quad:4, six:6 };
-  const layoutCols = { solo:1, duo:2, quad:2, six:3 };
+  const layoutCount = { solo:1, duo:2, tri:3, quad:4, six:6 };
+  const layoutCols = { solo:1, duo:2, tri:2, quad:2, six:3 };
+  // ---- ⌥/Opt on macOS, Alt everywhere else ----
+  const IS_MAC = /Mac|iPhone|iPad|iPod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent);
+  const MODK = IS_MAC ? "Opt" : "Alt";
+  const osKeys = v => IS_MAC ? String(v) : String(v).replace(/⌥\s?/g, "Alt + ").replace(/\bOpt\b/g, "Alt");
+  const helpKeys = v => IS_MAC ? String(v).replace(/⌥\s?/g, "Opt + ") : osKeys(v);
+  if (!IS_MAC) {   // static markup is authored mac-first; rewrite it once for Alt keyboards
+    document.querySelectorAll("[title],[placeholder],[aria-label]").forEach(el => {
+      for (const a of ["title", "placeholder", "aria-label"]) { const v = el.getAttribute(a); if (v && (v.includes("⌥") || /\bOpt\b/.test(v))) el.setAttribute(a, osKeys(v)); }
+    });
+    document.querySelectorAll(".tb-search span").forEach(el => { el.textContent = osKeys(el.textContent); });
+  }
   const palette = ["#5b7cff","#ff7a59","#3fd08a","#a98bff","#e0a44c","#ff5c8a","#42c2d6","#7bd15b"];
 
   let rooms = {}, ME = "You", myUsername = "", myUserId = "", serverHost = "", myStatusText = "", myStatusName = "online";
@@ -878,6 +977,20 @@
     out = out.replace(/\x04(\d+)\x04/g, (m, i) => links[+i]);
     out = out.replace(/\x02(\d+)\x02/g, (m, i) => blocks[+i]);
     return out;
+  }
+  // ---- Rocket.Chat quotes: "[ ](https://server/room?msg=id)" markers + quote attachments ----
+  const QUOTE_LINK_SRC = "\\[[^\\]\\n]*?\\]\\(\\s*(https?:\\/\\/[^\\s)]*\\?msg=([A-Za-z0-9_-]+))\\s*\\)";
+  const stripQuoteLinks = t => String(t || "").replace(new RegExp(QUOTE_LINK_SRC, "g"), "").trim();
+  const displayText = m => stripQuoteLinks(m.text);
+  function msgQuotes(m) {
+    if (m.quotes && m.quotes.length) return m.quotes;
+    const out = [], re = new RegExp(QUOTE_LINK_SRC, "g"); let mt;
+    while ((mt = re.exec(m.text || ""))) out.push({ user: "", text: "", link: mt[1], mid: mt[2] });   // marker only — no attachment data came with it
+    return out;
+  }
+  function quotesHtml(m) {
+    const qs = msgQuotes(m); if (!qs.length) return "";
+    return qs.map(q => `<div class="mquote"${q.link ? ` data-role="mquote" data-link="${esc(q.link)}"` : ""}>${q.user ? `<b class="mq-user">${esc(q.user)}</b>` : ""}<span class="mq-text">${q.text ? renderText(stripQuoteLinks(q.text)) : `<span class="mq-missing">quoted message</span>`}</span></div>`).join("");
   }
   function reactionsHtml(m) { if (!m.reactions || !m.reactions.length) return ""; return `<div class="reacts">${m.reactions.map((r, i) => `<button type="button" class="react${r.me ? " me" : ""}" data-role="react" data-ri="${i}"><span class="reglyph">${r.emoji}</span> <b>${r.count}</b></button>`).join("")}</div>`; }
   // hover a reaction -> floating popover of who reacted (avatars + names, inline)
@@ -1036,13 +1149,15 @@
   function msgAttrs(m) { if (!m._uid) m._uid = ++_uid; return `data-user="${esc(m.user)}" data-uid="${m._uid}" data-day="${dayKey(m)}"`; }
   function fullRow(m, mine, unread) {
     const cls = "msg" + (mine ? " mine" : "") + (unread ? " unread" : "") + (m.starred ? " starred" : "");
-    if (mine) return `<div class="${cls}" ${msgAttrs(m)}><div class="body"><div class="head"><time>${m.time}</time></div>${replyTagHtml(m)}${m.text ? `<div class="bubble">${renderText(m.text)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
-    return `<div class="${cls}" ${msgAttrs(m)}>${avatarHtml(m)}<div class="body"><div class="head"><b>${esc(m.user)}</b><time>${m.time}</time></div>${replyTagHtml(m)}${m.text ? `<div class="text">${renderText(m.text)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
+    const dt = displayText(m), qh = quotesHtml(m);
+    if (mine) return `<div class="${cls}" ${msgAttrs(m)}><div class="body"><div class="head"><time>${m.time}</time></div>${replyTagHtml(m)}${qh}${dt ? `<div class="bubble">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
+    return `<div class="${cls}" ${msgAttrs(m)}>${avatarHtml(m)}<div class="body"><div class="head"><b>${esc(m.user)}</b><time>${m.time}</time></div>${replyTagHtml(m)}${qh}${dt ? `<div class="text">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
   }
   function contRow(m, mine, unread) {
     const cls = "msg cont" + (mine ? " mine" : "") + (unread ? " unread" : "") + (m.starred ? " starred" : "");
-    if (mine) return `<div class="${cls}" ${msgAttrs(m)}><div class="body">${replyTagHtml(m)}${m.text ? `<div class="bubble">${renderText(m.text)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
-    return `<div class="${cls}" ${msgAttrs(m)}><span class="ts">${m.time}</span><div class="body">${replyTagHtml(m)}${m.text ? `<div class="text">${renderText(m.text)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
+    const dt = displayText(m), qh = quotesHtml(m);
+    if (mine) return `<div class="${cls}" ${msgAttrs(m)}><div class="body">${replyTagHtml(m)}${qh}${dt ? `<div class="bubble">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
+    return `<div class="${cls}" ${msgAttrs(m)}><span class="ts">${m.time}</span><div class="body">${replyTagHtml(m)}${qh}${dt ? `<div class="text">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
   }
   function renderMsgs(msgs, r) {
     let h = "", prev = null, prevDay = null; const start = r ? unreadStartIndex(r) : msgs.length;
@@ -1105,37 +1220,48 @@
       const valid = [...new Set(obj.quickReactions.filter(x => typeof x === "string").map(x => normEmojiKey(x)).filter(k => EMOJI[k]))];
       if (valid.length) eff.quickReactions = valid.slice(0, 10);
     }
-    if (obj.homeGrid && typeof obj.homeGrid === "object" && !Array.isArray(obj.homeGrid)) {
-      const hg = obj.homeGrid;
-      if (layoutCount[hg.layout] && Array.isArray(hg.slots)) {
-        eff.homeGrid = { layout: hg.layout, slots: hg.slots.slice(0, 6).map(x => (typeof x === "string" && x.trim()) ? x.trim() : null) };
+    const sg = obj.snapshotGrid || obj.homeGrid;   // homeGrid = the pre-v17 name, still honoured
+    if (sg && typeof sg === "object" && !Array.isArray(sg)) {
+      if (layoutCount[sg.layout] && Array.isArray(sg.slots)) {
+        eff.snapshotGrid = { layout: sg.layout, slots: sg.slots.slice(0, 6).map(x => (typeof x === "string" && x.trim()) ? x.trim() : null) };
       }
     }
     bcRawConfig = obj; bcConfig = eff;
     QUICK = eff.quickReactions.map(k => [k, EMOJI[k]]);
-    const hb = document.getElementById("homeGridBtn"); if (hb) hb.hidden = !eff.homeGrid;   // 🏠 shows only when a home grid exists
+    const hb = document.getElementById("snapGridBtn"); if (hb) hb.hidden = !eff.snapshotGrid;   // the camera shows only once a snapshot exists
     return { ok: true };
   }
   const SVG_SMILE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>';
   const SVG_REPLY = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 17l-5-5 5-5"/><path d="M4 12h11a5 5 0 0 1 5 5v1"/></svg>';
   const SVG_COPY = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
   const SVG_EDIT = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+  const SVG_FORWARD = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M13.5 5.5 21 12l-7.5 6.5v-3.9C8 14.6 5 16.5 3.2 19.6c.3-6 3.7-10 10.3-10.4z"/></svg>';
   const SVG_STAR = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9.1 9z"/></svg>';
   const SVG_STAR_FILL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="#f4c430" stroke="#f4c430" stroke-width="1.2"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9.1 9z"/></svg>';
   const SVG_TRASH = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>';
   let msgMenu = null, msgMenuCtx = null, menuSel = -1, menuMode = "acts", menuHideT = null;
   function hideMsgMenu() { clearTimeout(menuHideT); if (msgMenu) { msgMenu.remove(); msgMenu = null; msgMenuCtx = null; menuSel = -1; menuMode = "acts"; } }
   function menuItemsHtml(mine) {
-    if (menuMode === "reacts")
-      return `<div class="mm-reactions">${QUICK.map(([sname, ch]) => `<button class="mm-react" data-emoji="${sname}" data-char="${ch}" title=":${sname}:">${ch}</button>`).join("")}</div>`;
-    return `<div class="mm-acts">` +
-      `<button class="mm-act mm-emoji" data-act="emoji" title="React">${SVG_SMILE}</button>` +
-      `<button class="mm-act" data-act="reply" title="Reply">${SVG_REPLY}</button>` +
-      `<button class="mm-act" data-act="copy" title="Copy">${SVG_COPY}</button>` +
-      `<button class="mm-act" data-act="star" title="Star / unstar">${msgMenuCtx && msgMenuCtx.m.starred ? SVG_STAR_FILL : SVG_STAR}</button>` +
-      (mine ? `<button class="mm-act" data-act="edit" title="Edit">${SVG_EDIT}</button>` : "") +
-      (mine ? `<button class="mm-act mm-del" data-act="delete" title="Delete">${SVG_TRASH}</button>` : "") +
-      `</div>`;
+    if (menuMode === "confirmdel")
+      return `<div class="mm-acts mm-confirm"><span class="mm-q">Delete message?</span>` +
+        `<button class="mm-act" data-act="del-no" title="Keep it">✕</button>` +
+        `<button class="mm-act mm-del" data-act="del-yes" title="Delete">${SVG_TRASH}</button></div>`;
+    const reactBtns = QUICK.map(([sname, ch]) => `<button class="mm-react" data-emoji="${sname}" data-char="${ch}" title=":${sname}:">${ch}</button>`);
+    const moreBtn = rev => `<button class="mm-react mm-more${rev ? " rev" : ""}" data-act="emoji-all" title="All emoji…">⊕</button>`;
+    const emojiBit = menuMode === "reacts"
+      ? (mine ? `<span class="mm-inline-reacts">${moreBtn(true)}${reactBtns.reverse().join("")}</span>`
+              : `<span class="mm-inline-reacts">${reactBtns.join("")}${moreBtn(false)}</span>`)   // 👍 sits nearest the other actions on both sides; ⊕ at the outer end
+      : `<button class="mm-act mm-emoji" data-act="emoji" title="React">${SVG_SMILE}</button>`;
+    const btns = [
+      emojiBit,
+      `<button class="mm-act" data-act="reply" title="Reply">${SVG_REPLY}</button>`,
+      `<button class="mm-act" data-act="copy" title="Copy">${SVG_COPY}</button>`,
+      `<button class="mm-act" data-act="star" title="Star / unstar">${msgMenuCtx && msgMenuCtx.m.starred ? SVG_STAR_FILL : SVG_STAR}</button>`,
+      `<button class="mm-act" data-act="forward" title="Forward to another chat">${SVG_FORWARD}</button>`,
+    ];
+    if (mine) btns.push(`<button class="mm-act" data-act="edit" title="Edit">${SVG_EDIT}</button>`, `<button class="mm-act mm-del" data-act="delete" title="Delete">${SVG_TRASH}</button>`);
+    else btns.reverse();   // "other" bars are a mirror image of your own — emoji first from the right
+    return `<div class="mm-acts">` + btns.join("") + `</div>`;
   }
   function applyMenuSel() { if (!msgMenu) return; const items = [...msgMenu.querySelectorAll(".mm-react,.mm-act")]; items.forEach((b, i) => b.classList.toggle("mmsel", i === menuSel)); }
   function renderMenu() { if (!msgMenu || !msgMenuCtx) return; msgMenu.innerHTML = menuItemsHtml(isMine(msgMenuCtx.m)); applyMenuSel(); }
@@ -1155,6 +1281,7 @@
     msgMenu = document.createElement("div"); msgMenu.className = "msgmenu actbar"; document.body.appendChild(msgMenu);
     renderMenu(); positionMenu(el);
     msgMenu.addEventListener("mouseenter", () => clearTimeout(menuHideT));
+    msgMenu.addEventListener("mouseover", e => { if (menuMode === "acts" && e.target.closest('[data-act="emoji"]')) { menuMode = "reacts"; menuSel = -1; renderMenu(); positionMenu(msgMenuCtx.el); } });   // hover swaps to the quick emojis (keyboard still goes via Enter)
     msgMenu.addEventListener("mouseleave", () => { if (!kbMsgFocus) scheduleHideMenu(); });
   }
   // send first, update UI only on success (so a failed reaction never shows optimistically)
@@ -1218,26 +1345,110 @@
     if (btn) { btn.dataset.starred = cur ? "" : "1"; btn.innerHTML = cur ? ICON.starLine : SVG_STAR_FILL; btn.title = cur ? "Star this file's message" : "Unstar"; }
     hint(cur ? "Star removed" : "File's message starred ⭐");
   }
-  function deleteMessage(roomId, m) {
+  async function deleteMessage(roomId, m) {
     if (!isMine(m)) { hint("You can only delete your own messages"); return; }
-    if (!confirm("Delete this message?")) return;
     const r = rooms[roomId]; if (!r) return;
-    if (connection === "real" && m.id) rc("deleteMessage", [{ _id: m.id }], "delete");
+    if (connection === "real") {   // REST chat.delete (the deleteMessage DDP method is gone on newer servers); UI updates only on success
+      if (!m.id) { hint("Can't delete yet — message still syncing."); return; }
+      if (!(await restPost("/api/v1/chat.delete", { msgId: m.id, roomId }))) return;
+    }
     const i = r.msgs.indexOf(m) >= 0 ? r.msgs.indexOf(m) : (m.id ? r.msgs.findIndex(x => x.id === m.id) : -1);
     if (i >= 0) r.msgs.splice(i, 1);
     renderVisibleStream(roomId); refreshTopbar();
   }
+  // ---- forward: RC-style — sends a quote link to the picked chat ----
+  function buildMsgLink(roomId, mid) {
+    const r = rooms[roomId]; if (!r || !serverHost || !mid) return "";
+    const path = r.t === "d" ? "direct/" + roomId : (r.t === "p" ? "group/" : "channel/") + encodeURIComponent(r.slug || r.name);
+    return `https://${serverHost}/${path}?msg=${mid}`;
+  }
+  function forwardMessage(srcRoomId, m, targetId) {
+    const tr = rooms[targetId]; if (!tr) return;
+    if (connection === "real") {
+      if (!m.id) { hint("Can't forward yet — message still syncing."); return; }
+      const link = buildMsgLink(srcRoomId, m.id); if (!link) { hint("Couldn't build a link to this message."); return; }
+      rc("sendMessage", [{ rid: targetId, msg: `[ ](${link})` }], "forward");
+    } else receiveMessage(targetId, { user: ME, time: now(), text: "", tsMs: Date.now(), quotes: [{ user: m.user, text: m.text || "", link: "" }] }, true);
+    hint("Forwarded to " + (tr.name || "chat") + " \u21aa");
+  }
+  function openForwardPicker(ctx) {
+    const ids = Object.keys(rooms).filter(id => rooms[id].name !== bcCfgName()).sort((a, b) => ((rooms[b].fav ? 1 : 0) - (rooms[a].fav ? 1 : 0)) || ((rooms[b].lm || 0) - (rooms[a].lm || 0)));
+    const card = openPanel(`<span>Forward to\u2026</span>`,
+      `<div class="pn-searchrow"><input class="pn-q" data-role="fw-q" placeholder="Search chats\u2026"></div><div class="up-body pn-results" data-role="fw-body"></div>`, "fwdpop");
+    const body = card.querySelector('[data-role="fw-body"]'), qEl = card.querySelector('[data-role="fw-q"]');
+    const render = () => {
+      const q = qEl.value.trim().toLowerCase();
+      const list = ids.filter(id => !q || (rooms[id].name || "").toLowerCase().includes(q)).slice(0, 40);
+      body.innerHTML = list.length ? list.map(id => `<button type="button" class="fw-row" data-rid="${esc(id)}">${roomIcon(id)}<b>${esc(rooms[id].name)}</b>${rooms[id].fav ? '<span class="fw-fav">\u2605</span>' : ""}</button>`).join("") : `<div class="pn-hint">No matching chats.</div>`;
+    };
+    qEl.addEventListener("input", render);
+    body.addEventListener("click", e => { const row = e.target.closest(".fw-row"); if (!row) return; closePanel(); forwardMessage(ctx.roomId, ctx.m, row.dataset.rid); });
+    setTimeout(() => qEl.focus(), 30); render();
+  }
   function doAction(act) {
     if (!msgMenuCtx) return; const { roomId, m, el } = msgMenuCtx;
-    if (act === "emoji") { menuMode = "reacts"; menuSel = kbMsgFocus ? 0 : -1; renderMenu(); positionMenu(el); return; }   // swap to the 7 emojis (keyboard: preselect the first)
+    if (act === "emoji") {   // swap the emoji button for the quick reactions in place (keyboard: preselect the first emoji)
+      menuMode = "reacts"; renderMenu();
+      if (kbMsgFocus && msgMenu) { const items = [...msgMenu.querySelectorAll(".mm-react,.mm-act")]; menuSel = Math.max(0, items.findIndex(b => b.dataset && b.dataset.emoji === QUICK[0][0])); applyMenuSel(); } else menuSel = -1;
+      positionMenu(el); return;
+    }
     if (act === "copy") { copyMessage(m); }
     else if (act === "reply") { setReply(roomId, m); }
     else if (act === "star") { starMessage(m, roomId); }
-    else if (act === "delete") { hideMsgMenu(); deleteMessage(roomId, m); return; }
+    else if (act === "forward") { hideMsgMenu(); openForwardPicker({ roomId, m }); return; }
+    else if (act === "delete") { menuMode = "confirmdel"; menuSel = -1; renderMenu(); positionMenu(el); return; }
+    else if (act === "del-no") { menuMode = "acts"; menuSel = -1; renderMenu(); positionMenu(el); return; }
+    else if (act === "del-yes") { hideMsgMenu(); deleteMessage(roomId, m); return; }
     else if (act === "edit") { hideMsgMenu(); startInlineEdit({ roomId, m, el }); return; }
     hideMsgMenu();
   }
   function menuActOn(el, act) { const ctx = msgCtx(el); if (!ctx) return; msgMenuCtx = ctx; doAction(act); }
+  // ---- emoji explorer: every emoji, searchable, grouped ----
+  const EMOJI_CATS = [
+    ["Smileys", "joy sob smile smiley grinning laughing sweat_smile rofl slightly_smiling_face upside_down_face wink blush yum sunglasses heart_eyes heart_eyes_cat thinking face_with_raised_eyebrow neutral_face expressionless no_mouth smirk unamused roll_eyes grimacing relieved pensive confused worried cry scream cold_sweat open_mouth hushed astonished flushed angry rage triumph sleeping dizzy_face mask facepalm shrug bow salute see_no_evil hear_no_evil speak_no_evil ghost robot alien skull poop"],
+    ["Gestures", "thumbsup thumbsdown pray clap raised_hands muscle ok_hand point_up point_down point_left point_right wave handshake fist punch call_me_hand raised_back_of_hand raised_hand vulcan_salute crossed_fingers v metal pinched_fingers writing_hand nail_care selfie ok_woman raising_hand"],
+    ["Hearts", "heart hearts yellow_heart blue_heart green_heart purple_heart"],
+    ["Celebration", "tada fireworks sparkles confetti_ball rocket birthday cake gift trophy dart checkered_flag white_flower"],
+    ["Symbols", "white_check_mark heavy_check_mark ballot_box_with_check x heavy_multiplication_x warning no_entry no_entry_sign 100 ok new up cool free bell zap fire boom star star2 eyes bulb bug wrench hammer lock unlock key"],
+    ["Objects", "coffee beer beers pizza memo pushpin paperclip calendar alarm_clock hourglass hourglass_flowing_sand chart_with_upwards_trend chart_with_downwards_trend bar_chart"],
+  ];
+  function emojiCatalog() {
+    const seen = new Set(), cats = [];
+    EMOJI_CATS.forEach(([name, keys]) => {
+      const items = keys.split(/\s+/).filter(k => EMOJI[k] && !seen.has(EMOJI[k])).map(k => { seen.add(EMOJI[k]); return { name: k, glyph: EMOJI[k] }; });
+      if (items.length) cats.push({ name, items });
+    });
+    const rest = Object.keys(EMOJI).filter(k => !seen.has(EMOJI[k])).map(k => { seen.add(EMOJI[k]); return { name: k, glyph: EMOJI[k] }; });
+    if (rest.length) cats.push({ name: "Other", items: rest });
+    const custom = Object.keys(customEmoji).map(k => ({ name: k, glyph: `<img class="rem" src="${esc(customEmoji[k])}" alt="">`, custom: true }));
+    if (custom.length) cats.push({ name: "Custom", items: custom });
+    return cats;
+  }
+  function openEmojiExplorer(ctx) {
+    const cats = emojiCatalog();
+    const card = openPanel(`<span>Add reaction</span>`,
+      `<div class="pn-searchrow"><input class="pn-q" data-role="ex-q" placeholder="Search emoji…"></div>` +
+      `<div class="pn-filters exfilters" data-role="ex-cats">${cats.map((c, i) => `<button class="pn-filter starf${i ? "" : " on"}" data-cat="${esc(c.name)}">${esc(c.name)}</button>`).join("")}</div>` +
+      `<div class="up-body pn-results" data-role="ex-body"></div>`, "emojipop");
+    const body = card.querySelector('[data-role="ex-body"]'), qEl = card.querySelector('[data-role="ex-q"]');
+    let cat = cats.length ? cats[0].name : "", q = "";
+    function render() {
+      const shown = q ? cats.map(c => ({ name: c.name, items: c.items.filter(i => i.name.includes(q)) })).filter(c => c.items.length)
+                      : cats.filter(c => c.name === cat);
+      body.innerHTML = shown.length ? shown.map(c => `<div class="ex-cat"><div class="ex-cat-h">${esc(c.name)}</div><div class="ex-grid">` +
+        c.items.map(i => `<button class="ex-em" data-emoji="${esc(i.name)}" data-custom="${i.custom ? 1 : 0}" title=":${esc(i.name)}:">${i.glyph}</button>`).join("") + `</div></div>`).join("")
+        : `<div class="pn-hint">No emoji match “${esc(q)}”.</div>`;
+    }
+    card.querySelector('[data-role="ex-cats"]').addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; cat = b.dataset.cat; q = ""; qEl.value = ""; card.querySelectorAll("[data-cat]").forEach(x => x.classList.toggle("on", x === b)); render(); });
+    qEl.addEventListener("input", () => { q = qEl.value.trim().toLowerCase(); render(); });
+    body.addEventListener("click", e => {
+      const b = e.target.closest(".ex-em"); if (!b) return;
+      const name = b.dataset.emoji, glyph = b.dataset.custom === "1" ? shortToEmoji(name) : EMOJI[name];
+      closePanel(); react(ctx, glyph, name);
+    });
+    setTimeout(() => qEl.focus(), 30);
+    render();
+  }
 
   // focus = keyboard (arrows) or click only; hover just shows the action toolbar
   let focusedMsgEl = null, kbMsgFocus = false, focusedBadgeEl = null;
@@ -1269,39 +1480,54 @@
     if (el) { showActBar(el); applyMenuSel(); if (document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"] .crow')) document.activeElement.blur(); }
     else hideMsgMenu();
   }
-  const MSG_HIT = ".bubble, .text, .atts, .reacts, .thread-ind, .reply-ref, .reply-tag";   // the message itself — not the name/time row, avatar or blank filler
+  const MSG_HIT = ".bubble, .text, .mquote, .thread-ind, .reply-ref, .reply-tag";   // the message itself — not the name/time row, avatar, reactions or blank filler
+  function msgHitEl(t) {   // attachments count only when the message has no text (image-only messages still need a hover target)
+    if (!t || !t.closest) return null;
+    const hit = t.closest(MSG_HIT); if (hit) return hit;
+    const att = t.closest(".atts");
+    if (att) { const body = att.closest(".body"); if (body && !body.querySelector(".bubble, .text")) return att; }
+    return null;
+  }
   let ptrX = 0, ptrY = 0;
-  document.addEventListener("mousemove", e => { ptrX = e.clientX; ptrY = e.clientY; }, { passive: true });
+  document.addEventListener("mousemove", e => {
+    ptrX = e.clientX; ptrY = e.clientY;
+    if (reactPop) { const u = document.elementFromPoint(ptrX, ptrY); if (!u || !u.closest || !u.closest(".react")) hideReactPop(); }   // chip vanished under the cursor (re-render) -> drop the popover
+  }, { passive: true });
   function scheduleHideMenu() {   // decide at fire time from the real cursor position — relatedTarget is unreliable on fast moves
     clearTimeout(menuHideT);
     menuHideT = setTimeout(() => {
       const under = document.elementFromPoint(ptrX, ptrY);
-      if (under && under.closest && (under.closest(MSG_HIT) || under.closest(".actbar"))) return;   // still on the message / toolbar
+      if (under && under.closest && (msgHitEl(under) || under.closest(".actbar"))) return;   // still on the message / toolbar
       hideMsgMenu();
     }, 200);
   }
   function onMsgHover(e) {
     if (kbMsgFocus) return;
-    const hit = e.target.closest(MSG_HIT), m = hit && hit.closest(".msg");
+    const hit = msgHitEl(e.target), m = hit && hit.closest(".msg");
     if (m && (m.closest('[data-role="stream"]') || m.closest(".threadpop"))) { clearTimeout(menuHideT); showActBar(m); }
     else if (msgMenu && !e.target.closest(".actbar")) scheduleHideMenu();   // moved onto blank space / the name row
   }
-  function onMsgOut(e) { const to = e.relatedTarget; if (to && to.closest && (to.closest(MSG_HIT) || to.closest(".actbar"))) return; if (!kbMsgFocus) scheduleHideMenu(); }
+  function onMsgOut(e) { const to = e.relatedTarget; if (to && to.closest && (msgHitEl(to) || to.closest(".actbar"))) return; if (!kbMsgFocus) scheduleHideMenu(); }
   document.addEventListener("mouseover", onMsgHover); document.addEventListener("mouseout", onMsgOut);   // grid, expand AND thread popups
   document.addEventListener("keydown", e => {
     const t = e.target;
+    if (emojiOpen || mentionOpen) return;   // let the @ / : pickers take Enter first
     if (t.classList && t.classList.contains("cinput") && e.key === "Enter" && !e.shiftKey) { e.preventDefault(); const f = t.closest("form"); if (f) (f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))); }
   });
   document.addEventListener("focusin", e => { if (e.target.closest && e.target.closest('[data-role="composer"] .crow') && focusedMsgEl) setFocusedMsg(null); });   // input focus and message focus are exclusive
 
   document.addEventListener("click", e => {
-    const mmR = e.target.closest(".mm-react"); if (mmR) { e.stopPropagation(); doReact(mmR.dataset.emoji, mmR.dataset.char); return; }
+    const mmR = e.target.closest(".mm-react"); if (mmR) {
+      e.stopPropagation();
+      if (mmR.dataset.act === "emoji-all") { const ctx = msgMenuCtx; hideMsgMenu(); if (ctx) openEmojiExplorer(ctx); return; }
+      doReact(mmR.dataset.emoji, mmR.dataset.char); return;
+    }
     const mmA = e.target.closest(".mm-act"); if (mmA) { e.stopPropagation(); doAction(mmA.dataset.act); return; }
-    const chip = e.target.closest('[data-role="react"]'); if (chip) { e.stopPropagation(); const ctx = msgCtx(chip.closest(".msg")); if (ctx) toggleReactionAt(ctx, +chip.dataset.ri); return; }
+    const chip = e.target.closest('[data-role="react"]'); if (chip) { e.stopPropagation(); hideReactPop(); const ctx = msgCtx(chip.closest(".msg")); if (ctx) toggleReactionAt(ctx, +chip.dataset.ri); return; }
     if (msgMenu && !e.target.closest(".msgmenu")) hideMsgMenu();
     // clicking the message itself (bubble/text/header/attachments) toggles its focus; blank space — even in the same row — unfocuses
     if (e.target.closest('button, a, img, .inline-edit, [data-role="lightbox"]')) return;
-    const hit = e.target.closest(MSG_HIT);
+    const hit = msgHitEl(e.target);
     const m = hit && hit.closest(".msg");
     if (m && m.closest('[data-role="stream"]')) { if (focusedMsgEl === m && kbMsgFocus) setFocusedMsg(null); else setFocusedMsg(m, true); return; }
     if (focusedMsgEl && e.target.closest('[data-role="stream"]')) setFocusedMsg(null);   // blank space inside the chat (incl. beside a message)
@@ -1361,13 +1587,14 @@
     emojiBox.style.top = Math.max(8, r.top - emojiBox.offsetHeight - 6) + "px";
   }
   function chooseEmoji(name) {
-    if (!emojiInput) return; const inp = emojiInput, pos = inp.selectionStart, ins = ":" + name + ": ";
+    if (!emojiInput) return; const inp = emojiInput, pos = inp.selectionStart;
+    const glyph = EMOJI[normEmojiKey(name)], ins = (glyph || ":" + name + ":") + " ";   // unicode inline; server-custom emoji stay as :shortcode:
     inp.value = inp.value.slice(0, emojiStart) + ins + inp.value.slice(pos);
     const np = emojiStart + ins.length; hideEmoji(); inp.focus(); inp.setSelectionRange(np, np);
   }
   document.addEventListener("input", e => {
     const t = e.target;
-    const ok = t.classList.contains("cinput") || (t.tagName === "INPUT" && t.closest('[data-role="composer"]')) || t.classList.contains("be-input");   // tile/expanded-chat composer + expanded writer
+    const ok = t.classList.contains("cinput") || (t.tagName === "INPUT" && (t.closest('[data-role="composer"]') || t.closest(".up-reply"))) || t.classList.contains("be-input");   // tile/expanded composer + thread & quick reply + expanded writer
     if (!ok) return;
     if (t.classList.contains("cinput")) { t.style.height = "auto"; t.style.height = Math.min(150, t.scrollHeight) + "px"; }   // grow with content (Shift+Enter adds lines)
     updateMention(t);
@@ -1408,14 +1635,13 @@
       stageFiles(rid, [file]);
       return;
     }
-    // multi-line text -> open the expanded writer with the merged content
+    // multi-line text: the textarea grows with content, so let the native paste land there.
+    // Only single-line inputs (thread popup) still divert to the expanded writer.
     const text = e.clipboardData ? e.clipboardData.getData("text") : "";
-    if (text && /\r?\n/.test(text.trim())) {
+    if (text && /\r?\n/.test(text.trim()) && ae.tagName === "INPUT" && ae.matches(".crow input")) {
       e.preventDefault();
-      const inp = ae.matches && ae.matches('.crow .cinput, .crow input') ? ae : composerFor(rid);
-      const cur = inp ? inp.value : ""; const pos = inp ? inp.selectionStart : cur.length;
-      const merged = cur.slice(0, pos) + text + cur.slice(inp ? inp.selectionEnd : cur.length);
-      if (inp) inp.value = "";
+      const cur = ae.value, merged = cur.slice(0, ae.selectionStart) + text + cur.slice(ae.selectionEnd);
+      ae.value = "";
       openBigEditor(rid, merged);
     }
   });
@@ -1488,7 +1714,7 @@
       tile.dataset.slot = i;
       if (r) tile.style.setProperty("--stripe", stripe[r.t]);
       if (!r) {
-        tile.innerHTML = `<div class="tile-head" data-role="head"><span class="sigil">&middot;</span><div class="tile-name" data-role="name" title="Pick a chat"><div class="tile-title"><b>Empty tile</b><span class="meta">click to pick a chat</span></div><span class="name-switch">${ICON.swap}</span></div></div><div class="stream"><div>Click the name, drop a favourite, or press &#8997;K.</div></div>`;
+        tile.innerHTML = `<div class="tile-head" data-role="head"><span class="sigil">&middot;</span><div class="tile-name" data-role="name" title="Pick a chat"><div class="tile-title"><b>Pin chat</b><span class="meta">click to pick a chat</span></div></div></div><div class="stream"><div class="pin-hint"><b>Pin a chat by:</b><span>Double-click here</span><span>Click on &ldquo;Pin chat&rdquo; above</span><span>Drop a favourite</span><span>Press ${MODK} + K</span></div></div>`;
       } else {
         const showUnread = ru(r) > 0;
         tile.innerHTML = `
@@ -1646,7 +1872,7 @@
     }
     return h;
   }
-  function composerHtml(id, r) { return `<form class="composer" data-role="composer" data-room="${id}"><div class="cbanner-slot">${bannerHtml(id)}</div><div class="crow"><div class="cinput-wrap"><textarea class="cinput" rows="1" placeholder="Message ${esc(r.name)}" aria-label="Message"></textarea><button type="button" class="cattach" data-role="attach-file" title="Attach files">${ICON.paperclip}</button><button type="button" class="cexpand" data-role="expand-input" title="Expand editor (Shift+Enter)">${ICON.grow}</button></div><button class="send" title="Send">${ICON.send}</button></div></form>`; }
+  function composerHtml(id, r) { return `<form class="composer" data-role="composer" data-room="${id}"><div class="cbanner-slot">${bannerHtml(id)}</div><div class="crow"><div class="cinput-wrap"><textarea class="cinput" rows="1" placeholder="Message ${esc(r.name)}" aria-label="Message"></textarea><button type="button" class="cattach" data-role="attach-file" title="Attach files">${ICON.paperclip}</button><button type="button" class="cpreview-btn" data-role="preview-input" title="Preview formatting">${ICON.eye}</button><button type="button" class="cexpand" data-role="expand-input" title="Expand editor">${ICON.grow}</button></div><button class="send" title="Send">${ICON.send}</button></div></form>`; }
   function renderComposerAcc(id) {
     const slot = visibleSlots().indexOf(id);
     if (slot >= 0) { const el = ws.querySelector(`.tile[data-slot="${slot}"] .cbanner-slot`); if (el) el.innerHTML = bannerHtml(id); }
@@ -1823,6 +2049,95 @@
       if (!older.length) break; r.msgs = older.concat(r.msgs);
     }
   }
+  function streamElFor(roomId) {
+    if (expandRoomId === roomId) return modal.querySelector('[data-role="stream"]');
+    const slot = visibleSlots().indexOf(roomId);
+    return slot >= 0 ? ws.querySelector(`.tile[data-slot="${slot}"] [data-role="stream"]`) : null;
+  }
+  // scroll the chat to the first message of the day containing tsInDay (loads older history if needed)
+  async function scrollToDayStart(roomId, tsInDay) {
+    const r = rooms[roomId]; if (!r || !tsInDay) return;
+    const d = new Date(tsInDay), dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    await loadUntil(roomId, dayStart);
+    const dk = new Date(dayStart).toDateString();
+    const m = r.msgs.find(x => x.tsMs && new Date(x.tsMs).toDateString() === dk);
+    if (!m) { hint("No messages that day — or history couldn't reach it."); return; }
+    renderVisibleStream(roomId);
+    const stream = streamElFor(roomId); if (!stream) return;
+    const el = stream.querySelector(`.msg[data-uid="${m._uid}"]`); if (!el) return;
+    const mark = (el.previousElementSibling && el.previousElementSibling.classList.contains("daymark")) ? el.previousElementSibling : el;
+    mark.scrollIntoView({ block: "start" });
+    el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1600);
+  }
+  function jumpToDayStart(roomId) {   // day = the day of the first message currently visible on screen
+    const stream = streamElFor(roomId); if (!stream) return;
+    const top = stream.getBoundingClientRect().top;
+    const first = [...stream.querySelectorAll(".msg")].find(x => x.getBoundingClientRect().bottom > top + 6);
+    const r = rooms[roomId], m = first && r ? r.msgs.find(x => x._uid === +first.dataset.uid) : null;
+    if (!m || !m.tsMs) { hint("Nothing on screen to anchor a day to."); return; }
+    scrollToDayStart(roomId, m.tsMs);
+  }
+  // ---- "See messages for day": calendar -> that day's messages (bounded fetch), with prev/next + jump ----
+  function openDayCalendar(roomId) {
+    const r = rooms[roomId]; if (!r) return;
+    const today = new Date(); let vy = today.getFullYear(), vm = today.getMonth();
+    const card = openPanel(`${ICON.calendar}<span style="margin-left:6px">Messages for day · <b>${esc(r.name)}</b></span>`,
+      `<div class="up-body pn-results" data-role="cal-body"></div>`, "calpop");
+    const body = card.querySelector('[data-role="cal-body"]');
+    function calHtml() {
+      const firstDow = (new Date(vy, vm, 1).getDay() + 6) % 7;   // Monday-first
+      const days = new Date(vy, vm + 1, 0).getDate();
+      const monthName = new Date(vy, vm, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+      let cells = "";
+      for (let i = 0; i < firstDow; i++) cells += `<span class="cal-pad"></span>`;
+      for (let dd = 1; dd <= days; dd++) {
+        const ts = new Date(vy, vm, dd).getTime();
+        cells += `<button class="cal-day${new Date(ts).toDateString() === today.toDateString() ? " today" : ""}" data-ts="${ts}" ${ts > Date.now() ? "disabled" : ""}>${dd}</button>`;
+      }
+      const atNow = vy === today.getFullYear() && vm === today.getMonth();
+      return `<div class="cal-head"><button class="cal-nav" data-cal="-1">&#8249;</button><b>${esc(monthName)}</b><button class="cal-nav" data-cal="1" ${atNow ? "disabled" : ""}>&#8250;</button></div>` +
+        `<div class="cal-dow">${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(x => `<span>${x}</span>`).join("")}</div>` +
+        `<div class="cal-grid">${cells}</div>`;
+    }
+    async function showDay(ts) {
+      const d = new Date(ts), day0 = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const dayStart = day0.getTime(), dayEnd = dayStart + 86400000;
+      const label = day0.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+      body.dataset.day = dayStart;
+      body.innerHTML = `<div class="cal-daybar"><button class="cal-nav" data-dnav="-1" title="Previous day">&#8249;</button><b>${esc(label)}</b><button class="cal-nav" data-dnav="1" title="Next day" ${dayEnd > Date.now() ? "disabled" : ""}>&#8250;</button>` +
+        `<button type="button" class="btn ghost cal-back" data-role="cal-back">Calendar</button><button type="button" class="btn primary" data-role="cal-jump">Jump to this day in chat</button></div>` +
+        `<div class="cal-msgs"><div class="pn-hint"><span class="spin"></span>Loading…</div></div>`;
+      let msgs = null;
+      if (connection === "real") {
+        const ep = r.t === "c" ? "channels.history" : r.t === "p" ? "groups.history" : "im.history";
+        const res = await apiGet(`/api/v1/${ep}?roomId=${encodeURIComponent(roomId)}&oldest=${day0.toISOString()}&latest=${new Date(dayEnd).toISOString()}&count=100`);
+        if (res && Array.isArray(res.messages)) msgs = res.messages.filter(x => !x.t).map(mkRealMsg).filter(m => !(m.tmid && !m.tshow));   // skip system messages + thread-only replies
+      } else {
+        const dk = day0.toDateString();
+        msgs = r.msgs.filter(m => m.tsMs && new Date(m.tsMs).toDateString() === dk);
+      }
+      if (body.dataset.day !== String(dayStart)) return;   // stale response — the user already moved on
+      const box = body.querySelector(".cal-msgs"); if (!box) return;
+      if (!msgs) { box.innerHTML = `<div class="pn-hint">Couldn't load this day (run via proxy.py, or enable CORS).</div>`; return; }
+      msgs.sort((a, b) => (a.tsMs || 0) - (b.tsMs || 0));
+      let html = "", prev = null;
+      renderBare = true;   // chat-style rows, but no thread badges / reply-refs (they'd lead nowhere from here)
+      try { msgs.forEach(m => { const mine = isMine(m), cont = m.user === prev; html += cont ? contRow(m, mine, false) : fullRow(m, mine, false); prev = m.user; }); }
+      finally { renderBare = false; }
+      box.innerHTML = msgs.length
+        ? html + (msgs.length >= 100 ? `<div class="pn-hint">Showing the first 100 messages of the day.</div>` : "")
+        : `<div class="pn-hint">No messages on this day.</div>`;
+      hydrateAtts();
+    }
+    body.addEventListener("click", e => {
+      const mn = e.target.closest("[data-cal]"); if (mn) { vm += +mn.dataset.cal; if (vm < 0) { vm = 11; vy--; } if (vm > 11) { vm = 0; vy++; } body.innerHTML = calHtml(); return; }
+      const day = e.target.closest(".cal-day"); if (day) { showDay(+day.dataset.ts); return; }
+      const dn = e.target.closest("[data-dnav]"); if (dn) { showDay((+body.dataset.day || Date.now()) + (+dn.dataset.dnav) * 86400000); return; }
+      if (e.target.closest('[data-role="cal-back"]')) { delete body.dataset.day; body.innerHTML = calHtml(); return; }
+      if (e.target.closest('[data-role="cal-jump"]')) { const ts = +body.dataset.day; closePanel(); scrollToDayStart(roomId, ts + 1); return; }
+    });
+    body.innerHTML = calHtml();
+  }
   async function gotoMessage(roomId, msgId, tsMs) {
     closePanel(); const r = rooms[roomId]; if (!r) return;
     let m = msgId && r.msgs.find(x => x.id === msgId);
@@ -1932,7 +2247,9 @@
       `<button class="tmenu-item" data-act="threads">${ICON.threads}<span>Threads</span></button>` +
       `<button class="tmenu-item" data-act="mymsgs">${ICON.person}<span>Messages by user</span></button>` +
       `<button class="tmenu-item" data-act="fav">${ICON.starLine}<span>${rm && rm.fav ? "Remove chat from favourites" : "Add chat to favourites"}</span></button>` +
-      `<button class="tmenu-item" data-act="mute">${rm && rm.muted ? ICON.bellOff : ICON.bell}<span>${rm && rm.muted ? "Unmute chat" : "Mute chat"}</span></button>`;
+      `<button class="tmenu-item" data-act="mute">${rm && rm.muted ? ICON.bellOff : ICON.bell}<span>${rm && rm.muted ? "Unmute chat" : "Mute chat"}</span></button>` +
+      `<button class="tmenu-item" data-act="daystart">${ICON.dayStart}<span>Jump to beginning of day</span></button>` +
+      `<button class="tmenu-item" data-act="daymsgs">${ICON.calendar}<span>See messages for day</span></button>`;
     document.body.appendChild(tileMenu);
     const r = btn.getBoundingClientRect();
     tileMenu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - tileMenu.offsetWidth - 8)) + "px";
@@ -1942,6 +2259,8 @@
       if (act === "files") openFiles(id); else if (act === "threads") openThreadsList(id); else if (act === "mymsgs") openMyMessages(id);
       else if (act === "fav") toggleFav(id);
       else if (act === "mute") setMuted(id, !(rooms[id] && rooms[id].muted));
+      else if (act === "daystart") jumpToDayStart(id);
+      else if (act === "daymsgs") openDayCalendar(id);
     });
   }
   function toggleFav(id) {
@@ -2030,7 +2349,8 @@
     bindStarType(card.querySelector('[data-role="star-types"]'), t => { curType = t; render(); });
     card.querySelector('[data-role="star-q"]').addEventListener("input", e => { curQ = e.target.value.trim().toLowerCase(); render(); });
     if (connection !== "real") { countEl.textContent = ""; body.innerHTML = `<div class="pn-hint">Starred messages load from the live server.</div>`; return; }
-    const ids = order(); let all = [], loading = true, scanned = 0; const active = new Set();   // "u:.." / "r:.." toggles; empty = all
+    const ids = order().sort((a, b) => (rooms[b].lm || 0) - (rooms[a].lm || 0));   // most recently active chats first
+    let all = [], loading = true, scanned = 0; const active = new Set();   // "u:.." / "r:.." toggles; empty = all
     function render() {
       const sorted = all.slice().sort((a, b) => (b.tsMs || 0) - (a.tsMs || 0));
       const list = sorted.filter(m => (!active.size || active.has("u:" + (m.username || m.user)) || active.has("r:" + m._room)) && starMatches(m, curType, curQ));
@@ -2153,6 +2473,7 @@
   }
   document.addEventListener("click", e => {
     if (e.target.closest('[data-role="close-thread"]')) { hideThread(); return; }
+    const mq = e.target.closest('[data-role="mquote"]'); if (mq) { e.stopPropagation(); const mel = mq.closest(".msg"), ctx = mel ? msgCtx(mel) : null; const mm = /\?msg=([A-Za-z0-9_-]+)/.exec(mq.dataset.link || ""), mid = mm && mm[1]; if (ctx && mid && rooms[ctx.roomId].msgs.some(x => x.id === mid)) { gotoMessage(ctx.roomId, mid, 0); return; } if (mq.dataset.link) window.open(mq.dataset.link, "_blank", "noopener"); return; }
     const rref = e.target.closest('[data-role="reply-ref"]'); if (rref) { e.stopPropagation(); const mel = rref.closest(".msg"), ctx = mel ? msgCtx(mel) : null, pid = rref.dataset.pid; if (ctx) { const parent = (pid && rooms[ctx.roomId].msgs.find(x => x.id === pid)) || ctx.m; openThreadFor(ctx.roomId, parent); } return; }
     const ti = e.target.closest('[data-role="thread"]'); if (ti) { e.stopPropagation(); openThread(ti.closest(".msg")); return; }
     if (threadPop && !e.target.closest(".threadpop") && !e.target.closest('[data-role="thread"]') && !e.target.closest(".thread-item") && !e.target.closest(".threadslist") && !e.target.closest(".mymsg-row") && !e.target.closest(".panelpop") && !e.target.closest(".msgmenu")) hideThread();   // the floating actions belong to the popup's messages
@@ -2230,6 +2551,19 @@
     card.querySelector(".be-send").addEventListener("click", doBigSend);
     card.querySelector('[data-role="be-close"]').addEventListener("click", closeBigEditor);
   }
+  document.addEventListener("click", e => {   // 👁 preview the draft's formatting in place; ✎ goes back to writing
+    const b = e.target.closest('[data-role="preview-input"]'); if (!b) return;
+    e.preventDefault();
+    const wrap = b.closest(".cinput-wrap"), inp = wrap.querySelector(".cinput"); if (!inp) return;
+    const pv = wrap.querySelector(".cpreview");
+    if (pv) { pv.remove(); inp.style.display = ""; b.innerHTML = ICON.eye; b.title = "Preview formatting"; b.classList.remove("on"); inp.focus(); }
+    else {
+      const d = document.createElement("div"); d.className = "cpreview";
+      d.innerHTML = renderText(inp.value) || '<span class="cpv-empty">Nothing to preview yet.</span>';
+      inp.style.display = "none"; wrap.insertBefore(d, inp);
+      b.innerHTML = SVG_EDIT; b.title = "Back to writing"; b.classList.add("on");
+    }
+  });
   document.addEventListener("click", e => { const b = e.target.closest('[data-role="expand-input"]'); if (b) { e.preventDefault(); const f = b.closest('[data-role="composer"]'); if (f) { const inp = f.querySelector(".crow .cinput"); openBigEditor(f.dataset.room, inp ? inp.value : ""); } } });
   document.addEventListener("click", e => { const b = e.target.closest('[data-role="expand-thread-input"]'); if (b && threadPop) { e.preventDefault(); const inp = threadPop.querySelector(".crow input"); openBigEditor(threadPop.dataset.room, inp ? inp.value : "", threadPop.dataset.parent); } });
 
@@ -2252,9 +2586,12 @@
   });
   // double-click the blank area of a header expands the chat
   ws.addEventListener("dblclick", e => {
-    const head = e.target.closest('[data-role="head"]'); if (!head) return;
+    const tile = e.target.closest(".tile"); if (!tile) return;
+    const slot = +tile.dataset.slot;
+    if (!state.slots[slot]) { if (!e.target.closest("button")) { setActive(slot); openFinder(slot); } return; }   // empty tile: double-click anywhere picks a chat
+    if (!e.target.closest('[data-role="head"]')) return;
     if (e.target.closest('[data-role="name"]') || e.target.closest("button")) return;   // name/buttons handle themselves
-    const slot = +e.target.closest(".tile").dataset.slot; if (state.slots[slot]) { setActive(slot); openExpand(slot); }
+    setActive(slot); openExpand(slot);
   });
   // drag a favourite onto a tile: empty -> place, occupied -> replace
   ws.addEventListener("dragover", e => { if (e.dataTransfer.types.includes("text/room")) { e.preventDefault(); const t = e.target.closest(".tile"); document.querySelectorAll(".tile.dragover").forEach(x => x.classList.remove("dragover")); if (t) t.classList.add("dragover"); } });
@@ -2273,6 +2610,7 @@
     e.preventDefault();
     const id = form.dataset.room, input = form.querySelector(".crow .cinput"), txt = input.value.trim();
     if (!id) return; if (!txt && !(roomState[id] && roomState[id].pendingFiles && roomState[id].pendingFiles.length)) return;   // allow send when only staged files
+    const pv = form.querySelector(".cpreview"); if (pv) { pv.remove(); input.style.display = ""; const pb = form.querySelector('[data-role="preview-input"]'); if (pb) { pb.innerHTML = ICON.eye; pb.title = "Preview formatting"; pb.classList.remove("on"); } }
     input.value = ""; input.style.height = "auto"; mySend(id, txt);
   });
   function tryOpenSwitch(slot) { openFinder(slot); }
@@ -2288,7 +2626,7 @@
     expandRoomId = id; markRead(id); modalKind = "expand";
     modal.className = "modal lg";
     modal.innerHTML = `
-      <div class="mhead">${headSigil(r)}<div class="mtitle">${esc(r.name)}${r.muted ? '<span class="muted-tag">MUTED</span>' : ""}</div><span class="mono" style="color:var(--text-faint);font-size:11.5px">${esc(r.topic)}</span>${r.muted ? "" : '<span class="mkbd">⌥E</span>'}<button class="mclose" data-role="close">✕</button></div>
+      <div class="mhead">${headSigil(r)}<div class="mtitle">${esc(r.name)}${r.muted ? '<span class="muted-tag">MUTED</span>' : ""}</div><span class="mono" style="color:var(--text-faint);font-size:11.5px">${esc(r.topic)}</span>${r.muted ? "" : `<span class="mkbd">${osKeys("⌥E")}</span>`}<button class="mclose" data-role="close">✕</button></div>
       <div class="mbody chat" data-role="stream">${renderMsgs(r.msgs, r)}</div>
       ${composerHtml(id, r)}`;
     backdrop.hidden = false;
@@ -2308,7 +2646,7 @@
     return `<div class="mrow ${selected?"sel":""}" data-room="${id}"><span class="rnum">${num?num:""}</span>${headSigil(r)}<div class="mnm"><b>${esc(r.name)}</b><span>${esc(r.topic)}</span></div>${r.fav?ICON.star:""}${ru(r)?`<span class="badge">${ru(r)}</span>`:""}</div>`;
   }
   function previewText(t) {
-    t = String(t || "").replace(/```[\s\S]*?```/g, "[code]").replace(/`([^`]+)`/g, "$1").replace(/\s+/g, " ").trim();
+    t = stripQuoteLinks(t).replace(/```[\s\S]*?```/g, "[code]").replace(/`([^`]+)`/g, "$1").replace(/\s+/g, " ").trim();
     return esc(t.length > 80 ? t.slice(0, 80) + "..." : t);
   }
   // unread rows show the LAST unread message (approx = last N msgs) with an expander that reveals all — without marking read
@@ -2362,66 +2700,73 @@
     const favs = order().filter(id => rooms[id].fav);
     modalResults = filterRooms(""); modalNumbered = favs;
     modal.innerHTML =
-      `<div class="mhead"><div class="mtitle">Open a chat in <span class="mfocus">${tname}</span><span style="color:var(--text-faint);font-weight:400"> &middot; now ${esc(focusName)}</span></div><span class="mkbd">⌥K</span><button class="mclose" data-role="close">✕</button></div>` +
+      `<div class="mhead"><div class="mtitle">Open a chat in <span class="mfocus">${tname}</span><span style="color:var(--text-faint);font-weight:400"> &middot; now ${esc(focusName)}</span></div><span class="mkbd">${osKeys("⌥K")}</span><button class="mclose" data-role="close">✕</button></div>` +
       `<div class="mchips"><span class="clabel label">★ Favorites</span>${favs.map((id)=>`<button class="chip" data-room="${id}"><span class="sigil ${rooms[id].t}">${sig[rooms[id].t]}</span>${esc(rooms[id].name)}</button>`).join("")}</div>` +
-      searchBar("Search name or initials (try &ldquo;js&rdquo; for john.smith or &ldquo;pt&rdquo; for pinga-team)") +
+      searchBar("Search name or initials (try &ldquo;js&rdquo; for john.smith or &ldquo;jb&rdquo; for john.black)") +
       `<div class="mbody" data-role="results">${modalResults.map((id,i)=>roomRow(id,null,i===0)).join("")}</div>` +
       foot(`Opens in <b>${tname}</b>`, true);
     backdrop.hidden = false;
     const inp = modal.querySelector("input"); if (inp) setTimeout(() => inp.focus(), 0);
   }
   function openHelp() {
-    modalKind = "help"; modalSel = 0; modalResults = []; modal.className = "modal";
+    modalKind = "help"; modalSel = 0; modalResults = []; modal.className = "modal help";
     modal.innerHTML =
       `<div class="mhead"><div class="mtitle">Keyboard shortcuts &amp; clicks</div><span class="mkbd">?</span><button class="mclose" data-role="close">✕</button></div>` +
       `<div class="mbody">${helpTableHtml()}</div>`;
     backdrop.hidden = false;
   }
   function helpTableHtml() {
-    const row = (k, d) => `<kbd>${k.replace(/⌥\s?/g, "Opt + ").replace(/\s·\s/g, " / ")}</kbd><div class="kbd-desc">${d.replace(/⌥/g, "Opt + ")}</div>`;
-    return `<div class="kbtable">` +
-      `<div class="kbsec">Chats</div>` +
-      row("Tab · ← → ↑ ↓", "Move focus between chat windows (Shift+Tab = previous) — does NOT mark it read") +
-      row("Enter", "Mark the focused chat read (clears its unread)") +
-      row("Click chat name", "Switch that chat (opens Explore / Favourites for that tile)") +
-      row("Double-click header · ⌥ E", "Expand the focused chat to a big window") +
-      row("⌥ L", "Cycle grid layout (1-up → 2-up → 2×2 → 3×2)") +
-      row("⌥ X", "Close the focused chat (the tile stays focused, now empty)") +
-      row("⌥ Z", "Mark the focused chat unread (adds it to the unread bar)") +
-      row("⌥ ← → ↑ ↓", "Swap the focused chat with the neighbouring tile (either may be empty)") +
-      row("⌥ S / header 🔍", "Search this chat’s messages; click a hit to jump to it") +
-      row("⌥ H / 🏠 in the layout switch", "Apply your Home grid (save it via the avatar menu → Save grid as Home)") +
-      row("Header ☆ / 📎", "Open this chat’s starred messages / files (files: filter by type, preview, download)") +
-      row("esc", "Close any open popup, else defocus the current chat / message") +
-      `<div class="kbsec">Messages</div>` +
-      row("Hover a message", "Shows the action toolbar (react, reply, copy, star, edit, delete) — no focus") +
-      row("Click a message / ↑ ↓", "Focus it (shows date + time; input focus and message focus are exclusive)") +
-      row("Click the toolbar’s emoji", "Swaps to the 7 quick reactions") +
-      row("Tab / Enter (on a focused message)", "Select the emoji action; Tab / ← → cycle actions, Enter runs the selected one") +
-      row("↑ from the input", "Jump up from the composer into the messages") +
-      row("↑ ↓ (on a message)", "Move between messages; ↓ past the last returns to the composer") +
-      row("Enter (on a chat)", "Mark read and drop into its message input") +
-      row("↓ (on a message with replies)", "Focus the “N replies” badge; Enter opens the thread") +
-      row("Click “N replies” / Threads icon", "Open the thread / threads list and reply there") +
-      row("Click the counter", "Jump to the next unread message and mark it read (threads jump to their start)") +
-      row("Type @ / :", "@ mentions a person · : brings up emoji (7 common, then filtered)") +
-      row("Shift+Enter (in the input)", "Open the expanded writer — multi-line, with a live Preview") +
-      row("Paste an image", "Stages it in the input; edit the caption, then Send") +
-      row("Click a reaction", "Toggle your reaction (adds, or removes if you already reacted)") +
-      row("Scroll up", "Loads older messages automatically") +
-      `<div class="kbsec">Bars &amp; focus</div>` +
-      row("Click a favourite / unread", "Open it in the first free window (else drag onto a window)") +
-      row("Double-click an unread", "Preview its messages and quick-reply from the popup") +
-      row("Favourite pinned to a window", "Stays in the bar — click it to jump to that window") +
-      row("Drag a chip → a window", "Place it (empty) or replace the chat there") +
-      row("Focus button", "Cover all chats; hover a cover then click to reveal one") +
-      `<div class="kbsec">Find &amp; favourites</div>` +
-      row("⌥ K", "Open a chat — into the focused tile, or the first empty one if nothing's focused") +
-      row("⌥ F", "Cycle the favourites bar; Enter opens the highlighted one in the first free window") +
-      row("⌥ U", "Cycle the unread bar; Enter opens the highlighted one, ⌥Enter previews & quick-replies") +
-      row("⌥ number", "Open favourite N (double-digits ok, e.g. ⌥12) — or the numbered popup item") +
-      row("↑ ↓ / Tab", "Move through popup results") + row("↵", "Open selected") + row("esc", "Close") +
-    `</div>`;
+    const SECTIONS = [
+      ["Chats", [
+        ["Tab · ← → ↑ ↓", "Move focus between chat windows (Shift+Tab = previous) — does NOT mark it read"],
+        ["Enter", "Mark the focused chat read (clears its unread)"],
+        ["Click chat name", "Switch that chat (opens Explore / Favourites for that tile)"],
+        ["Double-click header · ⌥ E", "Expand the focused chat to a big window"],
+        ["⌥ L", "Cycle grid layout (1-up → 2-up → 2+1 → 2×2 → 3×2 → 📷 snapshot, once saved)"],
+        ["⌥ X", "Close the focused chat (the tile stays focused, now empty)"],
+        ["⌥ Z", "Mark the focused chat unread (adds it to the unread bar)"],
+        ["⌥ ← → ↑ ↓", "Swap the focused chat with the neighbouring tile (either may be empty)"],
+        ["⌥ S · header 🔍", "Search this chat’s messages; click a hit to jump to it"],
+        ["⌥ G · 📷 in the layout switch", "Apply your snapshot grid (take one via the avatar menu → Snapshot Current Grid)"],
+        ["Header ☆ · 📎", "Open this chat’s starred messages / files (files: filter by type, preview, download)"],
+        ["esc", "Close any open popup, else defocus the current chat / message"],
+      ]],
+      ["Messages", [
+        ["Hover a message", "Shows the action toolbar (react, reply, copy, star, forward, edit, delete) — no focus"],
+        ["Click a message · ↑ ↓", "Focus it (shows date + time; input focus and message focus are exclusive)"],
+        ["Hover the toolbar’s emoji", "Swaps it for the quick reactions (⊕ opens the full emoji explorer)"],
+        ["Tab · Enter (on a focused message)", "Select the emoji action; Tab / ← → cycle actions, Enter runs the selected one"],
+        ["↑ from the input", "Jump up from the composer into the messages"],
+        ["↑ ↓ (on a message)", "Move between messages; ↓ past the last returns to the composer"],
+        ["Enter (on a chat)", "Mark read and drop into its message input"],
+        ["↓ (on a message with replies)", "Focus the “N replies” badge; Enter opens the thread"],
+        ["Click “N replies” · Threads icon", "Open the thread / threads list and reply there"],
+        ["Click the counter", "Jump to the next unread message and mark it read (threads jump to their start)"],
+        ["Type @ · :", "@ mentions a person · : brings up emoji (7 common, then filtered)"],
+        ["Shift+Enter (in the input)", "Add a line — the input grows; 👁 previews the formatting, ⤢ opens the big writer"],
+        ["Paste an image", "Stages it in the input; edit the caption, then Send"],
+        ["Click a reaction", "Toggle your reaction (adds, or removes if you already reacted)"],
+        ["Scroll up", "Loads older messages automatically"],
+      ]],
+      ["Bars & focus", [
+        ["Click a favourite · an unread chip", "Open it in the first free window (else drag onto a window)"],
+        ["Hover an unread chip", "Preview its messages and quick-reply from the popup"],
+        ["Favourite pinned to a window", "Stays in the bar — click it to jump to that window"],
+        ["Drag a chip → a window", "Place it (empty) or replace the chat there"],
+        ["Focus button", "Cover all chats; hover a cover then click to reveal one"],
+      ]],
+      ["Find & favourites", [
+        ["⌥ K", "Open a chat — into the focused tile, or the first empty one if nothing's focused"],
+        ["⌥ F", "Cycle the favourites bar; Enter opens the highlighted one in the first free window"],
+        ["⌥ U", "Cycle the unread bar; Enter opens the highlighted one, ⌥Enter previews & quick-replies"],
+        ["⌥ number", "Open favourite N (double-digits ok, e.g. ⌥12) — or the numbered popup item"],
+        ["↑ ↓ · Tab", "Move through popup results"],
+        ["↵", "Open selected"],
+        ["esc", "Close"],
+      ]],
+    ];
+    const rowH = ([k, d]) => `<div class="kbrow"><span class="kbkeys">${k.split(/\s·\s|\s\/\s/).map(p => `<kbd>${helpKeys(p)}</kbd>`).join("")}</span><div class="kbd-desc">${helpKeys(d)}</div></div>`;
+    return `<div class="kbgrid">` + SECTIONS.map(([t, rows]) => `<section class="kbtile"><h4>${t}</h4>${rows.map(rowH).join("")}</section>`).join("") + `</div>`;
   }
   function setLayout(name) {
     if (!layoutCount[name]) return;
@@ -2461,8 +2806,13 @@
   backdrop.addEventListener("input", e => { if (!e.target.matches('[data-role="q"]')) return; modalResults = filterRooms(e.target.value); modalSel = 0; renderResults(); });
 
   // ---------- keyboard ----------
-  const LAYOUTS = ["solo", "duo", "quad", "six"];
-  function cycleLayout() { setLayout(LAYOUTS[(LAYOUTS.indexOf(state.layout) + 1) % LAYOUTS.length]); }
+  const LAYOUTS = ["solo", "duo", "tri", "quad", "six"];
+  function cycleLayout() {   // ⌥L — once a snapshot exists it joins the cycle as the last stop
+    const seq = bcConfig.snapshotGrid ? [...LAYOUTS, "snap"] : LAYOUTS;
+    const cur = (bcConfig.snapshotGrid && snapActive) ? seq.length - 1 : LAYOUTS.indexOf(state.layout);
+    const next = seq[(cur + 1) % seq.length];
+    if (next === "snap") applySnapshotGrid(); else setLayout(next);
+  }
   function moveWindow(key) {   // arrow navigation between chat windows — grid-aware, wraps on ← →, jumps by row on ↑ ↓
     const cnt = n(); if (cnt <= 1) { setActive(0); setFocusedMsg(null); return; }
     const cols = layoutCols[state.layout] || 1, cur = state.active >= 0 ? state.active : 0;
@@ -2540,15 +2890,16 @@
     if (focusedBadgeEl && e.key === "Enter") { e.preventDefault(); openThread(focusedMsgEl); return; }   // Enter on a focused "N replies" badge -> open the thread
     if (msgMenu && kbMsgFocus && !focusedBadgeEl) {   // keyboard-focused message: Tab/Enter select the emoji action first; then Tab/←→ cycle, Enter runs
       const items = [...msgMenu.querySelectorAll(".mm-react,.mm-act")];
+      const entrySel = () => { const i = items.findIndex(b => b.dataset && b.dataset.act === "emoji"); return i >= 0 ? i : 0; };   // land on the emoji action first, wherever it sits ("other" bars are reversed)
       if (e.key === "Tab" || ((e.key === "ArrowLeft" || e.key === "ArrowRight") && menuSel >= 0)) {
         e.preventDefault(); if (!items.length) return;
-        if (menuSel < 0) menuSel = 0;
+        if (menuSel < 0) menuSel = entrySel();
         else menuSel = (menuSel + ((e.key === "ArrowLeft" || (e.key === "Tab" && e.shiftKey)) ? -1 : 1) + items.length) % items.length;
         applyMenuSel(); return;
       }
       if (e.key === "Enter") {
         e.preventDefault(); if (!items.length) return;
-        if (menuSel < 0) { menuSel = 0; applyMenuSel(); return; }   // first Enter only highlights the emoji action
+        if (menuSel < 0) { menuSel = entrySel(); applyMenuSel(); return; }   // first Enter only highlights the emoji action
         const b = items[menuSel]; if (b) b.click(); return;
       }
     }
@@ -2576,7 +2927,7 @@
       if (e.code === "KeyL") { e.preventDefault(); cycleLayout(); return; }
       if (e.code === "KeyX") { e.preventDefault(); closeTile(state.active); return; }
       if (e.code === "KeyS") { e.preventDefault(); if (state.slots[state.active]) openSearch(state.slots[state.active]); return; }
-      if (e.code === "KeyH") { e.preventDefault(); applyHomeGrid(); return; }
+      if (e.code === "KeyG") { e.preventDefault(); applySnapshotGrid(); return; }   // ⌥G (G = grid)
     }
     if (e.key === "Tab") {
       if (inPopup) { if (!modalResults.length) return; e.preventDefault(); modalSel = (modalSel + (e.shiftKey ? -1 : 1) + modalResults.length) % modalResults.length; renderResults(); return; }
@@ -2633,9 +2984,9 @@
 
   // ---------- welcome tour (mandatory once) ----------
   function tourSlides() { return [
-    { t: "Many chats, one screen", x: "Watch several conversations at once. Switch the grid layout any time — 1-up, 2-up, 2×2 or 3×2.", keys: ["⌥L cycles layouts", "or the layout buttons"], m: `<div class="tm-grid"><span></span><span></span><span></span><span></span></div>` },
+    { t: "Many chats, one screen", x: "Watch several conversations at once. Switch the grid layout any time — 1-up, 2-up, 2+1, 2×2 or 3×2.", keys: ["⌥L cycles layouts", "or the layout buttons"], m: `<div class="tm-grid"><span></span><span></span><span></span><span></span></div>` },
     { t: "Favourites bar", x: "Your favourites sit in a bar under the top bar. Click one to open it in the first free window, or drag it onto any window to place / replace.", keys: ["click a favourite", "drag → a window", "⌥1 … ⌥12"], m: `<div class="tm-bar"><span class="tm-star">★</span><span class="tm-chip"><b>1</b> general</span><span class="tm-chip"><b>2</b> design</span><span class="tm-chip"><b>3</b> sara</span></div>` },
-    { t: "Unread bar", x: "Everyone who messaged you shows here. Click to open it, or double-click to preview the messages and quick-reply on the spot.", keys: ["click → open", "double-click → preview & reply"], m: `<div class="tm-bar unread"><span class="tm-eye">◉</span><span class="tm-chip">ops-alerts <b>8</b></span><span class="tm-chip">dejan <b>4</b></span></div>` },
+    { t: "Unread bar", x: "Everyone who messaged you shows here. Click to open it, or just hover the chip to preview the messages and quick-reply on the spot.", keys: ["click → open", "hover → preview & reply"], m: `<div class="tm-bar unread"><span class="tm-eye">◉</span><span class="tm-chip">ops-alerts <b>8</b></span><span class="tm-chip">dejan <b>4</b></span></div>` },
     { t: "Explore — search + favourites", x: "One place for search and your favourites together. Type a name, or even initials — “ks” finds Kristina Stolic.", keys: ["⌥K"], m: `<div class="tm-pop"><div class="tm-chips"><span class="tm-chip">general</span><span class="tm-chip">design</span></div><div class="tm-search">🔍 search name or initials…</div></div>` },
     { t: "Quick message actions", x: "Hover a message for the action toolbar. Click or use ↑ ↓ to focus one, then Tab/Enter select and run actions — reactions, reply, copy, star, edit.", keys: ["hover → toolbar", "click / ↑ ↓ to focus", "Tab + Enter"], m: `<div class="tm-msg"><div class="tm-bub">ship it 🚀</div><div class="tm-menu"><div class="tm-react">😃 😄 😅 👍 ❤️ 🚀 👏</div><div class="tm-acts"><span>↩</span><span>⧉</span><span>✎</span></div></div></div>` },
     { t: "Expand & switch", x: "Double-click a chat header (or Opt+E) to expand it into a big window. Click the chat name to switch who's in that window.", keys: ["double-click header / Opt+E", "click the name → switch"], m: `<div class="tm-tile"><div class="tm-head"><b>general</b> <span class="tm-sw">⇄</span> <span class="tm-max">⤢</span></div><div class="tm-lines"><i></i><i></i><i></i></div></div>` },
@@ -2645,7 +2996,7 @@
   function renderTour() {
     const slides = tourSlides(), total = slides.length + 1, card = document.querySelector("#tour .tour-card");
     let body;
-    if (tourI < slides.length) { const sl = slides[tourI]; body = `<div class="tour-mock">${sl.m}</div><h2>${sl.t}</h2><p>${sl.x}</p><div class="tour-keys">${sl.keys.map(k => `<span>${k}</span>`).join("")}</div>`; }
+    if (tourI < slides.length) { const sl = slides[tourI]; body = `<div class="tour-mock">${sl.m}</div><h2>${sl.t}</h2><p>${osKeys(sl.x)}</p><div class="tour-keys">${sl.keys.map(k => `<span>${osKeys(k)}</span>`).join("")}</div>`; }
     else { body = `<h2>All the shortcuts</h2><p style="margin-top:-4px">You're set. Here's the full cheat-sheet — the <b>?</b> icon in the top bar reopens it any time.</p>${helpTableHtml()}`; }
     const dots = Array.from({ length: total }, (_, i) => `<span class="td ${i === tourI ? "on" : ""}"></span>`).join("");
     card.innerHTML = `<div class="tour-body">${body}</div>` +
@@ -2679,21 +3030,33 @@
     if (!list.length) { unreadbarEl.hidden = true; unreadbarEl.innerHTML = ""; return; }
     unreadbarEl.hidden = false;
     unreadbarEl.innerHTML = `<span class="bar-icon" title="Unread — click to open, double-click to preview & reply">${ICON.eye}</span>` +
-      `<div class="ur-chips">${list.map(id => { const r = rooms[id]; return `<button class="favchip is-unread ${id === unreadCycleId ? "fcycle" : ""}" draggable="true" data-room="${id}" title="Click to open · double-click (or ⌥Enter when highlighted) to preview & reply">${r.fav ? '<span class="ur-star">★</span>' : ""}<span class="sigil ${r.t}">${sig[r.t]}</span><span class="fnm">${esc(r.name)}</span><span class="fbadge${ru(r) ? "" : " fb-dot"}">${ru(r) || "•"}</span></button>`; }).join("")}</div>`;
+      `<div class="ur-chips">${list.map(id => { const r = rooms[id]; return `<button class="favchip is-unread ${id === unreadCycleId ? "fcycle" : ""}" draggable="true" data-room="${id}" title="${osKeys("Click to open · hover (or ⌥Enter when highlighted) to preview & reply")}">${r.fav ? '<span class="ur-star">★</span>' : ""}<span class="sigil ${r.t}">${sig[r.t]}</span><span class="fnm">${esc(r.name)}</span><span class="fbadge${ru(r) ? "" : " fb-dot"}">${ru(r) || "•"}</span></button>`; }).join("")}</div>`;
   }
   function cycleUnreadBar() { favCycleId = null; renderFavbar(); const list = unreadbarRooms(); if (!list.length) { hint("No unread to cycle."); return; } const i = (list.indexOf(unreadCycleId) + 1) % list.length; unreadCycleId = list[i]; renderUnreadbar(); const chip = unreadbarEl.querySelector(`.favchip[data-room="${unreadCycleId}"]`); if (chip) chip.scrollIntoView({ inline: "nearest", block: "nearest" }); }
   favbarEl.addEventListener("click", e => { const c = e.target.closest(".favchip"); if (c) placeFavourite(c.dataset.room, e.clientX, e.clientY); });
   function barDragStart(e) { const c = e.target.closest(".favchip"); if (c) { e.dataTransfer.setData("text/room", c.dataset.room); e.dataTransfer.effectAllowed = "copyMove"; } }
   favbarEl.addEventListener("dragstart", barDragStart);
   unreadbarEl.addEventListener("dragstart", barDragStart);
-  let urClickTimer = null;
-  unreadbarEl.addEventListener("click", e => { const c = e.target.closest(".favchip"); if (!c) return; clearTimeout(urClickTimer); const id = c.dataset.room, x = e.clientX, y = e.clientY; urClickTimer = setTimeout(() => placeFavourite(id, x, y), 240); });
-  unreadbarEl.addEventListener("dblclick", e => { const c = e.target.closest(".favchip"); if (!c) return; clearTimeout(urClickTimer); openUnreadPreview(c.dataset.room, e.clientX, e.clientY); });
+  let urHoverT = null;
+  const urScheduleHide = () => { clearTimeout(urHoverT); urHoverT = setTimeout(() => { const u = document.elementFromPoint(ptrX, ptrY); if (u && u.closest && (u.closest(".urpop") || u.closest(".unreadbar .favchip"))) return; hideUrPop(); }, 250); };
+  unreadbarEl.addEventListener("mouseover", e => {   // hovering an unread chip opens its preview & quick-reply popup
+    const c = e.target.closest(".favchip"); if (!c) return;
+    clearTimeout(urHoverT);
+    if (urPop && urPop.dataset.room === c.dataset.room) return;
+    const rct = c.getBoundingClientRect(); openUnreadPreview(c.dataset.room, rct.left, rct.bottom - 6);
+  });
+  unreadbarEl.addEventListener("mouseout", urScheduleHide);
+  unreadbarEl.addEventListener("click", e => {
+    const peek = e.target.closest('[data-role="ur-peek"]');
+    const c = e.target.closest(".favchip"); if (!c) return;
+    if (peek) { e.stopPropagation(); openUnreadPreview(c.dataset.room, e.clientX, e.clientY); return; }   // 👁 -> preview & quick reply
+    placeFavourite(c.dataset.room, e.clientX, e.clientY);                                                  // chip -> open it (no dblclick wait)
+  });
 
   // unread preview + quick reply popup
   let urPop = null;
   function hideUrPop() { if (urPop) { urPop.remove(); urPop = null; } }
-  function urMsgsHtml(un) { return un.length ? un.map(m => `<div class="up-msg"><b>${esc(m.user)}</b><time>${m.time}</time><div>${esc(previewText(m.text))}</div></div>`).join("") : `<div class="tload" style="color:var(--text-faint);font-size:12px">No messages to preview.</div>`; }
+  function urMsgsHtml(un) { return un.length ? un.map(m => `<div class="up-msg"><b>${esc(m.user)}</b><time>${m.time}</time><div class="up-txt">${renderText(displayText(m))}${quotesHtml(m)}</div></div>`).join("") : `<div class="tload" style="color:var(--text-faint);font-size:12px">No messages to preview.</div>`; }
   function placeUrPop(x, y) { if (!urPop) return; const w = urPop.offsetWidth, h = urPop.offsetHeight; urPop.style.left = Math.max(8, Math.min(x, window.innerWidth - w - 10)) + "px"; urPop.style.top = Math.min(y + 12, window.innerHeight - h - 8) + "px"; }
   async function openUnreadPreview(id, x, y) {
     hideUrPop(); const r = rooms[id]; if (!r) return;
@@ -2703,7 +3066,8 @@
       `<div class="up-body" data-role="ur-body">${r.msgs.length ? urMsgsHtml(unreadMsgs(r)) : `<div class="tload" style="color:var(--text-faint);font-size:12px">loading messages…</div>`}</div>` +
       `<form class="up-reply" data-room="${id}"><input placeholder="Quick reply…" aria-label="Quick reply"><button class="send" type="submit">${ICON.send}</button></form>`;
     document.body.appendChild(urPop); placeUrPop(x, y);
-    const inp = urPop.querySelector("input"); if (inp) setTimeout(() => inp.focus(), 0);
+    const ae = document.activeElement, typing = ae && (/^(INPUT|TEXTAREA)$/.test(ae.tagName) || ae.isContentEditable);
+    const inp = urPop.querySelector("input"); if (inp && !typing) setTimeout(() => inp.focus(), 0);   // hover-open must not steal focus mid-typing
     if (!r.msgs.length && connection === "real" && ddp) {          // off-grid chats have no history yet — load it for the preview
       await ensureHistory(id);
       if (urPop && urPop.dataset.room === id) { const body = urPop.querySelector('[data-role="ur-body"]'); if (body) body.innerHTML = urMsgsHtml(unreadMsgs(r)); placeUrPop(x, y); }
@@ -2730,9 +3094,7 @@
     document.querySelectorAll("[data-fontsize] button").forEach(b => b.classList.toggle("on", b.dataset.size === fontPref.size));
     document.querySelectorAll("[data-fontfamily] button").forEach(b => b.classList.toggle("on", b.dataset.font === fontPref.family));
   }
-  const fontMenu = document.getElementById("fontMenu");
-  document.getElementById("fontBtn").addEventListener("click", e => { e.stopPropagation(); userMenu.hidden = true; fontMenu.hidden = !fontMenu.hidden; });
-  document.addEventListener("click", e => { if (!fontMenu.hidden && !e.target.closest("#fontMenu") && !e.target.closest("#fontBtn")) fontMenu.hidden = true; });
+  const fontMenu = document.getElementById("fontMenu");   // lives in the avatar menu, opens on hover like Releases
   fontMenu.addEventListener("click", e => { const sz = e.target.closest("[data-size]"), ff = e.target.closest("[data-font]"); if (sz) fontPref.size = sz.dataset.size; else if (ff) fontPref.family = ff.dataset.font; else return; applyFont(); persist(); });
 
   // Enter in the login form triggers Connect
@@ -2821,7 +3183,7 @@
   document.addEventListener("click", e => { if (!userMenu.hidden && !e.target.closest("#userMenu") && !e.target.closest("#meBtn")) hideUserMenu(); });
   document.getElementById("signOutBtn").addEventListener("click", signOut);
   document.getElementById("mutedBtn").addEventListener("click", () => { document.getElementById("userMenu").hidden = true; openMutedChats(); });
-  document.getElementById("releasesBtn").addEventListener("click", () => { document.getElementById("userMenu").hidden = true; openReleases(); });
+  document.getElementById("tourBtn").addEventListener("click", () => { document.getElementById("userMenu").hidden = true; openTour(); });
   document.getElementById("bcConfigBtn").addEventListener("click", () => { document.getElementById("userMenu").hidden = true; openBcConfig(); });
   const bcCfgName = () => ((myUsername || "") + ".bc.config");
   const bcCfgRoomId = () => order().find(id => rooms[id].name === bcCfgName());
@@ -2850,16 +3212,16 @@
   document.getElementById("saveGridBtn").addEventListener("click", async () => {
     document.getElementById("userMenu").hidden = true;
     const slots = visibleSlots().map(id => id && rooms[id] ? rooms[id].name : null);
-    const merged = { ...bcRawConfig, version: 1, homeGrid: { layout: state.layout, slots } };
+    const merged = { ...bcRawConfig, version: 1, snapshotGrid: { layout: state.layout, slots } }; delete merged.homeGrid;
     const res = applyBcConfig(merged);
     if (!res.ok) { hintLong("Couldn't save grid: " + res.err); return; }
     LS.set("rg.bcconfig", bcRawConfig);
-    if (connection !== "real") { hint("Home grid saved locally (demo) 🏠"); return; }
-    try { await bcPushConfig(JSON.stringify(merged, null, 2)); hint("Home grid saved 🏠"); }
+    if (connection !== "real") { hintLong(osKeys("Grid snapshot saved (demo) 📷 — revert to it any time with the 📷 button in the layout switcher or ⌥G.")); return; }
+    try { await bcPushConfig(JSON.stringify(merged, null, 2)); hintLong(osKeys("Grid snapshot saved 📷 — revert to it any time with the 📷 button in the layout switcher or ⌥G.")); }
     catch (e) { hintLong("Couldn't save grid: " + ((e && (e.reason || e.message)) || "error")); }
   });
-  function applyHomeGrid() {
-    const hg = bcConfig.homeGrid; if (!hg) { hint("No home grid saved yet — use the avatar menu."); return; }
+  function applySnapshotGrid() {
+    const hg = bcConfig.snapshotGrid; if (!hg) { hint("No grid snapshot yet — take one from the avatar menu."); return; }
     const byName = {}; order().forEach(id => byName[(rooms[id].name || "").toLowerCase()] = id);
     const missing = [];
     const resolved = Array.from({ length: 6 }, (_, i) => {
@@ -2869,11 +3231,11 @@
     });
     state.layout = hg.layout; state.slots = resolved; state.active = -1;   // the home grid fully defines the workspace
     renderTiles(); persist();
-    homeActive = true; syncLayoutButtons();   // after persist(), so the 🏠 stays selected
+    snapActive = true; syncLayoutButtons();   // after persist(), so the 📷 stays selected
     visibleSlots().filter(Boolean).forEach(ensureHistory);
-    if (missing.length) hintLong("Home grid: couldn't find " + missing.join(", "));
+    if (missing.length) hintLong("Snapshot grid: couldn't find " + missing.join(", "));
   }
-  document.getElementById("homeGridBtn").addEventListener("click", applyHomeGrid);
+  document.getElementById("snapGridBtn").addEventListener("click", applySnapshotGrid);
   async function joinUpdatesChannel() {   // auto-join the public better.chat.updates channel if it exists (silent)
     if (connection !== "real") return;
     try {
@@ -2885,7 +3247,7 @@
       for (const base of [location.origin, "https://" + serverHost]) { try { const r = await fetch(base + "/api/v1/channels.join", opts); if (r.ok) { await refreshSubscriptions(); hint("Joined #better.chat.updates 📣"); return; } } catch (e) {} }
     } catch (e) {}
   }
-  const BC_EXAMPLE = '{\n  "version": 1,\n  "quickReactions": ["thumbsup", "heart", "tada", "eyes"],\n  "homeGrid": { "layout": "quad", "slots": ["pinga-team", "merge-requests", "john.smith", null] }\n}';
+  const BC_EXAMPLE = '{\n  "version": 1,\n  "quickReactions": ["thumbsup", "heart", "tada", "eyes"],\n  "snapshotGrid": { "layout": "quad", "slots": ["pinga-team", "merge-requests", "john.smith", null] }\n}';
   async function openBcConfig() {
     const card = openPanel(`<span>Better.Chat config</span><button type="button" class="bc-help" data-role="bc-help" title="Show an example config">?</button>`,
       `<pre class="bc-example" data-role="bc-example" hidden>${esc(BC_EXAMPLE)}</pre>` +
@@ -2914,15 +3276,13 @@
     });
   }
   const RELEASES = [
-    { v: "16", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v16" },
-    { v: "15", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v15" },
-    { v: "14", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v14" },
-    { v: "13", url: "https://github.com/kotevskim/better.chat/wiki/Better.Chat-%E2%80%94-v13" },
+    { v: "17", url: "https://github.com/kotevskim/better.chat/releases#release-v17" },
+    { v: "16", url: "https://github.com/kotevskim/better.chat/releases#release-v16" },
+    { v: "15", url: "https://github.com/kotevskim/better.chat/releases#release-v15" },
+    { v: "14", url: "https://github.com/kotevskim/better.chat/releases#release-v14" },
+    { v: "13", url: "https://github.com/kotevskim/better.chat/releases#release-v13" },
   ];
-  function openReleases() {
-    const card = openPanel(`<span>Releases</span>`,
-      `<div class="up-body pn-results">${RELEASES.map(r => `<a class="rel-row" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><b>Version ${esc(r.v)}</b><span>release notes ↗</span></a>`).join("")}</div>`, "releasespop");
-  }
+  document.getElementById("releasesSub").innerHTML = RELEASES.map(r => `<a class="rel-row" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><b>Version ${esc(r.v)}</b><span>notes ↗</span></a>`).join("");
   document.getElementById("statusBtn").addEventListener("click", () => { document.getElementById("userMenu").hidden = true; openStatusPopup(); });
   function openStatusPopup() {
     const STATUSES = [{ k: "online", label: "Online", c: "var(--live)" }, { k: "busy", label: "Busy", c: "#e5555f" }, { k: "offline", label: "Offline", c: "#8a97a6" }];
@@ -3007,6 +3367,15 @@
     for (const k in obj) { const uns = (obj[k] && obj[k].usernames) || []; out.push({ emoji: shortToEmoji(k), short: String(k).replace(/:/g, ""), count: uns.length || 1, me: uns.map(x=>String(x).toLowerCase()).includes(myUsername.toLowerCase()), users: uns }); }
     return out.length ? out : null;
   }
+  function parseQuotes(m) {   // RC quote/forward = attachment with message_link + author_name + text
+    const out = [];
+    (m.attachments || []).forEach(a => {
+      if (!a || a.title_link || a.image_url) return;
+      if (a.message_link || (a.author_name && a.text != null))
+        out.push({ user: a.author_name || "", text: a.text || "", link: a.message_link || "", mid: (/\?msg=([A-Za-z0-9_-]+)/.exec(a.message_link || "") || [])[1] || "" });
+    });
+    return out.length ? out : null;
+  }
   function parseAttachments(m) {
     const out = [];
     (m.attachments || []).forEach(a => {
@@ -3024,7 +3393,7 @@
     return { id: m._id, user: (m.u && (m.u.name || m.u.username)) || "someone", username: uname,
       avatarUrl: uname ? `https://${serverHost}/avatar/${encodeURIComponent(uname)}` : null,
       time: fmtTs(m.ts), tsMs: tsToMs(m.ts), text: m.msg || "", reactions: parseReactions(m.reactions),
-      attachments: parseAttachments(m), tcount: m.tcount || 0, tmid: m.tmid || null, tshow: !!m.tshow,
+      attachments: parseAttachments(m), quotes: parseQuotes(m), tcount: m.tcount || 0, tmid: m.tmid || null, tshow: !!m.tshow,
       starred: Array.isArray(m.starred) && m.starred.some(s => (s && (s._id || s)) === myUserId) };
   }
   async function loadCustomEmoji() {
@@ -3074,7 +3443,7 @@
       (Array.isArray(subsArr) ? subsArr : (subsArr.update || [])).forEach(s => {
         const tu = Array.isArray(s.tunread) ? s.tunread.length : (s.tunread || 0);
         if (rooms[s.rid]) { rooms[s.rid].unread = s.unread || 0; rooms[s.rid].threadUnread = tu; rooms[s.rid].threadUnreadIds = tuIds(s.tunread); rooms[s.rid].fav = !!s.f; rooms[s.rid].muted = !!s.hideUnreadStatus; rooms[s.rid].silent = !!s.disableNotifications; rooms[s.rid].alert = !!s.alert; }
-        else { const t = typeOf(s); rooms[s.rid] = { t, name: s.fname||s.name||"chat", topic: t==="d"?"direct message":t==="p"?"private group":"channel", fav: !!s.f, unread: s.unread||0, threadUnread: tu, threadUnreadIds: tuIds(s.tunread), msgs: [], _loaded: false }; ddp.sub("stream-room-messages", [s.rid, false]); }
+        else { const t = typeOf(s); rooms[s.rid] = { t, name: s.fname||s.name||"chat", slug: s.name||"", topic: t==="d"?"direct message":t==="p"?"private group":"channel", fav: !!s.f, unread: s.unread||0, threadUnread: tu, threadUnreadIds: tuIds(s.tunread), msgs: [], _loaded: false }; ddp.sub("stream-room-messages", [s.rid, false]); }
       });
       renderTiles(); refreshTopbar();
     } catch (_) {}
@@ -3116,7 +3485,7 @@
     const built = {};
     (Array.isArray(subsArr) ? subsArr : (subsArr.update || [])).forEach(s => {
       const info = roomInfo[s.rid] || {}, t = typeOf(s);
-      built[s.rid] = { t, name: s.fname || s.name || info.fname || info.name || "chat", username: t === "d" ? (s.name || "") : "", topic: info.topic || (t==="d"?"direct message":t==="p"?"private group":"channel"), fav: !!s.f, unread: s.unread || 0, threadUnreadIds: tuIds(s.tunread), threadUnread: (Array.isArray(s.tunread) ? s.tunread.length : (s.tunread || 0)), lastSeen: s.ls ? tsToMs(s.ls) : 0, lm: (info.lm ? tsToMs(info.lm) : (s._updatedAt ? tsToMs(s._updatedAt) : 0)), muted: !!s.hideUnreadStatus, silent: !!s.disableNotifications, alert: !!s.alert, msgs: [], _loaded: false };
+      built[s.rid] = { t, name: s.fname || s.name || info.fname || info.name || "chat", slug: s.name || "", username: t === "d" ? (s.name || "") : "", topic: info.topic || (t==="d"?"direct message":t==="p"?"private group":"channel"), fav: !!s.f, unread: s.unread || 0, threadUnreadIds: tuIds(s.tunread), threadUnread: (Array.isArray(s.tunread) ? s.tunread.length : (s.tunread || 0)), lastSeen: s.ls ? tsToMs(s.ls) : 0, lm: (info.lm ? tsToMs(info.lm) : (s._updatedAt ? tsToMs(s._updatedAt) : 0)), muted: !!s.hideUnreadStatus, silent: !!s.disableNotifications, alert: !!s.alert, msgs: [], _loaded: false };
     });
     rooms = built;
     const ids = Object.keys(rooms), favIds = ids.filter(id => rooms[id].fav);
@@ -3166,9 +3535,9 @@
   document.getElementById("verFooter").textContent = "v" + APP_VERSION; document.getElementById("verLogin").textContent = "v" + APP_VERSION;
   { const sv = LS.get("rg.server"); if (sv && !document.getElementById("srv").value) document.getElementById("srv").value = sv; }   // remember the last-used server (no hostname hardcoded)
   const ctxKey = () => connection === "real" ? `real:${serverHost}:${myUsername}` : "demo";
-  let homeActive = false;   // 🏠 stays selected until the grid changes (then the same-size layout takes over)
+  let snapActive = false;   // 📷 stays selected until the grid changes (then the same-size layout takes over)
   function persist() {
-    if (homeActive) { homeActive = false; syncLayoutButtons(); }   // any layout/slot change leaves "home" state
+    if (snapActive) { snapActive = false; syncLayoutButtons(); }   // any layout/slot change leaves snapshot state
     LS.set("rg.prefs", { layout: state.layout, font: fontPref }); LS.set("rg.grid." + ctxKey(), { slots: state.slots });
   }
   function restorePrefs() { const p = LS.get("rg.prefs"); if (p) { if (layoutCount[p.layout]) state.layout = p.layout; if (p.font) fontPref = { size: p.font.size || "medium", family: p.font.family || "system" }; } }
@@ -3176,8 +3545,8 @@
   function saveSession() { if (document.getElementById("remember").checked && rcToken) LS.set("rg.session", { server: serverHost, user: myUsername, token: rcToken }); else LS.del("rg.session"); }
   function clearSession() { LS.del("rg.session"); }
   function syncLayoutButtons() {
-    document.querySelectorAll(".segmented button").forEach(x => x.setAttribute("aria-pressed", (!homeActive && x.dataset.layout === state.layout) ? "true" : "false"));
-    const hb = document.getElementById("homeGridBtn"); if (hb) hb.setAttribute("aria-pressed", homeActive ? "true" : "false");
+    document.querySelectorAll(".segmented button").forEach(x => x.setAttribute("aria-pressed", (!snapActive && x.dataset.layout === state.layout) ? "true" : "false"));
+    const hb = document.getElementById("snapGridBtn"); if (hb) hb.setAttribute("aria-pressed", snapActive ? "true" : "false");
   }
 
   // ---------- login ----------

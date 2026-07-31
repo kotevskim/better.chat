@@ -37,7 +37,13 @@ Requirements: macOS or Linux, `python3` (the script installs it if missing).
 | `bc-start` / `bc-stop` / `bc-restart` | control the service |
 | `bc-open`    | open http://chat.localhost:9000              |
 | `bc-logs`    | tail the proxy log                           |
-| `bc-update`  | pull the latest app + proxy and restart      |
+| `bc-version` | which version is installed                   |
+| `bc-update`  | update to the newest released version         |
+| `bc-update v14` | pin to a specific release (or any branch/commit) |
+| `bc-update edge` | latest development build — may break      |
+
+`bc-update` with no argument always jumps to the newest published release, even if
+you previously pinned an older one.
 
 ## Running locally for development
 
