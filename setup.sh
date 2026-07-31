@@ -137,6 +137,16 @@ bc-status()  { launchctl list | grep -q $LABEL && echo "better.chat: running \$(
 bc-logs()    { tail -f "$DIR/proxy.log"; }
 bc-open()    { open "$URL"; }
 bc-version() { cat "$DIR/ref" 2>/dev/null || echo "unknown"; }
+bc-versions() {   # every released version + its notes, newest first; marks the installed one
+  local cur tags t
+  cur=\$(bc-version)
+  tags=\$(curl -fsSL "https://api.github.com/repos/$REPO/releases?per_page=100" 2>/dev/null | sed -n 's/.*"tag_name": *"\\([^"]*\\)".*/\\1/p')
+  [ -z "\$tags" ] && tags=\$(curl -fsSL "https://api.github.com/repos/$REPO/tags?per_page=100" 2>/dev/null | sed -n 's/.*"name": *"\\([^"]*\\)".*/\\1/p')
+  [ -z "\$tags" ] && { echo "better.chat: couldn't fetch versions from GitHub"; return 1; }
+  echo "\$tags" | while IFS= read -r t; do   # line-by-line: works in zsh (no word-split) and bash alike
+    printf '%-8s %s%s\\n' "\$t" "https://github.com/$REPO/releases/tag/\$t" "\$([ "\$t" = "\$cur" ] && printf '  (installed)')"
+  done
+}
 bc-update()  {
   local want="\$1" ref ts=\$(date +%s)
   if [ -z "\$want" ]; then                                   # newest published tag, with graceful fallbacks
@@ -163,6 +173,16 @@ bc-status()  { systemctl --user is-active better-chat >/dev/null && echo "better
 bc-logs()    { tail -f "$DIR/proxy.log"; }
 bc-open()    { xdg-open "$URL" >/dev/null 2>&1 & }
 bc-version() { cat "$DIR/ref" 2>/dev/null || echo "unknown"; }
+bc-versions() {   # every released version + its notes, newest first; marks the installed one
+  local cur tags t
+  cur=\$(bc-version)
+  tags=\$(curl -fsSL "https://api.github.com/repos/$REPO/releases?per_page=100" 2>/dev/null | sed -n 's/.*"tag_name": *"\\([^"]*\\)".*/\\1/p')
+  [ -z "\$tags" ] && tags=\$(curl -fsSL "https://api.github.com/repos/$REPO/tags?per_page=100" 2>/dev/null | sed -n 's/.*"name": *"\\([^"]*\\)".*/\\1/p')
+  [ -z "\$tags" ] && { echo "better.chat: couldn't fetch versions from GitHub"; return 1; }
+  echo "\$tags" | while IFS= read -r t; do   # line-by-line: works in zsh (no word-split) and bash alike
+    printf '%-8s %s%s\\n' "\$t" "https://github.com/$REPO/releases/tag/\$t" "\$([ "\$t" = "\$cur" ] && printf '  (installed)')"
+  done
+}
 bc-update()  {
   local want="\$1" ref ts=\$(date +%s)
   if [ -z "\$want" ]; then                                   # newest published tag, with graceful fallbacks
@@ -189,7 +209,7 @@ sleep 1
 if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/"; then
   say "Better.Chat is running → $URL"
   if [ "$OS" = "Darwin" ]; then open "$URL"; else xdg-open "$URL" >/dev/null 2>&1 || true; fi
-  say "Open a NEW terminal (or 'source $RC_FILE') to use: bc-start bc-stop bc-restart bc-status bc-version bc-logs bc-open bc-update [v16|edge]"
+  say "Open a NEW terminal (or 'source $RC_FILE') to use: bc-start bc-stop bc-restart bc-status bc-version bc-versions bc-logs bc-open bc-update [v17|edge]"
 else
   fail "Proxy didn't answer on port $PORT — check $DIR/proxy.log"
 fi

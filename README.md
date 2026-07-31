@@ -38,6 +38,7 @@ Requirements: macOS or Linux, `python3` (the script installs it if missing).
 | `bc-open`    | open http://chat.localhost:9000              |
 | `bc-logs`    | tail the proxy log                           |
 | `bc-version` | which version is installed                   |
+| `bc-versions` | list all released versions with their notes links, marking the installed one |
 | `bc-update`  | update to the newest released version         |
 | `bc-update v14` | pin to a specific release (or any branch/commit) |
 | `bc-update edge` | latest development build — may break      |
