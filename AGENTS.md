@@ -28,13 +28,17 @@ When the user asks to *commit and bump a version* (in any wording), do all three
    followed by a blank line and a bullet list of the changes included in the commit
    (client-perspective wording, one line per change).
 
-4. **Tag** the commit:
+4. **Tag** the commit — annotated, with the plain version as its message:
    ```
-   git tag v<N>
+   git tag -a v<N> -m "v<N>"
    ```
+   Annotated, because a lightweight tag has no message of its own: GitHub then
+   titles the release after the commit headline (the long `version <N> https://…`
+   line). The release title should be typed as `v<N>` in the form regardless.
    `bc-update` (with no argument) resolves the newest tag via the GitHub API, so
    the release isn't visible to users until the tag is pushed — remind the user to
    push with `git push --follow-tags` (or `git push && git push --tags`).
 
-Also generate release-notes markdown for the GitHub release when asked (heading
-`## Better.Chat — v<N>`, grouped New / Improved / Fixed where it helps).
+5. **Generate release-notes markdown** for the GitHub release — always, in the
+   same reply as the commit (don't wait to be asked): heading `## Better.Chat — v<N>`,
+   grouped New / Improved / Fixed where it helps.
