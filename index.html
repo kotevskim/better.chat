@@ -2735,8 +2735,7 @@
     const SECTIONS = [
       ["Chats", [
         ["Tab · ← → ↑ ↓", "Move focus between chat windows (Shift+Tab = previous) — does NOT mark it read"],
-        ["Enter", "Mark the focused chat read (clears its unread)"],
-        ["Click chat name", "Switch that chat (opens Explore / Favourites for that tile)"],
+        ["Enter", "Mark the focused chat read (clears its unread) and focus its message input"],
         ["Double-click header · ⌥ E", "Expand the focused chat to a big window"],
         ["⌥ L", "Cycle grid layout (1-up → 2-up → 2+1 → 2×2 → 3×2 → 📷 snapshot, once saved)"],
         ["⌥ X", "Close the focused chat (the tile stays focused, now empty)"],
@@ -2749,14 +2748,11 @@
         ["Tab · Enter (on a focused message)", "Select the emoji action; Tab / ← → cycle actions, Enter runs the selected one"],
         ["↑ from the input", "Jump up from the composer into the messages"],
         ["↑ ↓ (on a message)", "Move between messages; ↓ past the last returns to the composer"],
-        ["Enter (on a chat)", "Mark read and drop into its message input"],
         ["Click the counter", "Jump to the next unread message and mark it read (threads jump to their start)"],
         ["Shift+Enter (in the input)", "Add a line — the input grows; 👁 previews the formatting, ⤢ opens the big writer"],
       ]],
       ["Bars, search & favourites", [
-        ["Click a favourite · an unread chip", "Open it in the first free window (else drag onto a window)"],
         ["Hover an unread chip", "Preview its messages and quick-reply from the popup"],
-        ["Focus button", "Cover all chats; hover a cover then click to reveal one"],
         ["⌥ K", "Open a chat — into the focused tile, or the first empty one if nothing's focused"],
         ["⌥ F", "Cycle the favourites bar; Enter opens the highlighted one in the first free window"],
         ["⌥ U", "Cycle the unread bar; Enter opens the highlighted one, ⌥Enter previews & quick-replies"],
