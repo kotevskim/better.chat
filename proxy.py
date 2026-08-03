@@ -51,7 +51,8 @@ def _ssl_ctx():
 CTX = _ssl_ctx()
 HTML_FILE = "index.html"
 PROXIED_PREFIXES = ("/api/", "/avatar/", "/emoji-custom/", "/file-upload/", "/file/")
-FORWARD_HEADERS = ("Content-Type", "X-Auth-Token", "X-User-Id", "Authorization", "Accept")
+# User-Agent is forwarded so WAFs (e.g. Cloudflare) see the real browser, not "Python-urllib" — which they block with 403
+FORWARD_HEADERS = ("Content-Type", "X-Auth-Token", "X-User-Id", "Authorization", "Accept", "User-Agent")
 
 
 class Handler(SimpleHTTPRequestHandler):
