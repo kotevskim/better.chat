@@ -6,13 +6,13 @@
     --border:#22303f; --border-soft:#1a2733; --text:#e6edf3; --text-dim:#8a97a6;
     --text-faint:#586674; --accent:#3d8bff; --accent-ink:#ffffff; --live:#3fd08a;
     --t-channel:#5aa0ff; --t-private:#e0a44c; --t-direct:#3fd08a; --t-discuss:#a98bff;
-    --shadow:0 8px 30px rgba(0,0,0,.35); --r:7px;
+    --shadow:0 8px 30px rgba(0,0,0,.35); --r:7px; --nav-hint:#f4c430;
   }
   @media (prefers-color-scheme: light) {
-    :root { --bg:#eef1f5; --bg-rail:#e6eaf0; --tile:#ffffff; --tile-head:#f6f8fb; --border:#d7dee7; --border-soft:#e4e9ef; --text:#182029; --text-dim:#5b6875; --text-faint:#8a97a6; --accent:#2563eb; --live:#1aa06a; --t-channel:#2f74d0; --t-private:#b57a1f; --t-direct:#1aa06a; --t-discuss:#7b5ce0; --shadow:0 6px 22px rgba(30,45,65,.12); }
+    :root { --bg:#eef1f5; --bg-rail:#e6eaf0; --tile:#ffffff; --tile-head:#f6f8fb; --border:#d7dee7; --border-soft:#e4e9ef; --text:#182029; --text-dim:#5b6875; --text-faint:#8a97a6; --accent:#2563eb; --live:#1aa06a; --t-channel:#2f74d0; --t-private:#b57a1f; --t-direct:#1aa06a; --t-discuss:#7b5ce0; --shadow:0 6px 22px rgba(30,45,65,.12); --nav-hint:#8a5f00; }
   }
-  :root[data-theme="dark"] { --bg:#0e141b; --bg-rail:#0a0f15; --tile:#131c26; --tile-head:#17222e; --border:#22303f; --border-soft:#1a2733; --text:#e6edf3; --text-dim:#8a97a6; --text-faint:#586674; --accent:#3d8bff; --live:#3fd08a; --t-channel:#5aa0ff; --t-private:#e0a44c; --t-direct:#3fd08a; --t-discuss:#a98bff; --shadow:0 8px 30px rgba(0,0,0,.35); }
-  :root[data-theme="light"] { --bg:#eef1f5; --bg-rail:#e6eaf0; --tile:#ffffff; --tile-head:#f6f8fb; --border:#d7dee7; --border-soft:#e4e9ef; --text:#182029; --text-dim:#5b6875; --text-faint:#8a97a6; --accent:#2563eb; --live:#1aa06a; --t-channel:#2f74d0; --t-private:#b57a1f; --t-direct:#1aa06a; --t-discuss:#7b5ce0; --shadow:0 6px 22px rgba(30,45,65,.12); }
+  :root[data-theme="dark"] { --bg:#0e141b; --bg-rail:#0a0f15; --tile:#131c26; --tile-head:#17222e; --border:#22303f; --border-soft:#1a2733; --text:#e6edf3; --text-dim:#8a97a6; --text-faint:#586674; --accent:#3d8bff; --live:#3fd08a; --t-channel:#5aa0ff; --t-private:#e0a44c; --t-direct:#3fd08a; --t-discuss:#a98bff; --shadow:0 8px 30px rgba(0,0,0,.35); --nav-hint:#f4c430; }
+  :root[data-theme="light"] { --bg:#eef1f5; --bg-rail:#e6eaf0; --tile:#ffffff; --tile-head:#f6f8fb; --border:#d7dee7; --border-soft:#e4e9ef; --text:#182029; --text-dim:#5b6875; --text-faint:#8a97a6; --accent:#2563eb; --live:#1aa06a; --t-channel:#2f74d0; --t-private:#b57a1f; --t-direct:#1aa06a; --t-discuss:#7b5ce0; --shadow:0 6px 22px rgba(30,45,65,.12); --nav-hint:#8a5f00; }
 
   * { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -51,10 +51,17 @@
   .um-sub-wrap { position:relative; }
   .um-caret { margin-left:auto; color:var(--text-faint); font-size:14px; line-height:1; }
   .um-sub { display:none; position:absolute; left:100%; top:-6px; margin-left:2px; min-width:200px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:5px; z-index:121; }
-  .um-sub-wrap:hover .um-sub, .um-sub:hover { display:block; }
+  .um-sub-wrap:hover .um-sub, .um-sub:hover, .um-sub-wrap.open .um-sub { display:block; }
   .um-sub .rel-row { display:flex; align-items:baseline; gap:8px; padding:8px 10px; border-radius:7px; text-decoration:none; color:var(--text); font-size:12.5px; }
   .um-sub .rel-row:hover { background:color-mix(in srgb,var(--accent) 12%,transparent); }
   .um-sub .rel-row b { font-weight:600; } .um-sub .rel-row span { color:var(--accent); font-size:11px; margin-left:auto; }
+  .statusmenu { padding:10px; width:254px; }
+  .statusmenu .st-opts { padding:0; gap:6px; margin-bottom:8px; }
+  .statusmenu .st-opt { padding:7px 11px; font-size:12px; }
+  .statusmenu .st-msg { width:100%; box-sizing:border-box; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 10px; color:var(--text); font:inherit; font-size:12.5px; outline:none; margin-bottom:8px; }
+  .statusmenu .st-msg::placeholder { color:var(--text-faint); }
+  .statusmenu .st-msg:focus { border-color:color-mix(in srgb,var(--accent) 55%,var(--border)); }
+  .statusmenu .st-save { width:100%; padding:8px; }
   .usermenu[hidden] { display:none; }
   .usermenu .um-head { padding:11px 13px; border-bottom:1px solid var(--border-soft); display:flex; flex-direction:column; gap:1px; }
   .usermenu .um-head b { font-weight:650; letter-spacing:-.01em; } .usermenu .um-head span { color:var(--text-faint); font-size:11.5px; font-family:ui-monospace,monospace; }
@@ -92,11 +99,11 @@
   .glyph.tri{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.tri i:last-child{grid-column:1 / -1;}
   .glyph i { display:block; background:var(--text-dim); border-radius:1px; }
   .glyph.quad{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.six{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;height:12px;}
-  .savedbtn { height:32px; width:34px; box-sizing:border-box; background:var(--tile); border:1px solid var(--border); border-radius:6px; display:grid; place-items:center; color:var(--text-dim); cursor:pointer; padding:0; }
-  .savedbtn:hover { color:var(--text); }
-  .savedbtn[hidden] { display:none; }
-  .savedbtn[aria-pressed="true"] { background:color-mix(in srgb,var(--accent) 90%,black); border-color:transparent; color:var(--accent-ink); }
-  .savedbtn[aria-pressed="true"] .glyph i { background:currentColor; }
+  .usualbtn { height:32px; width:34px; box-sizing:border-box; background:var(--tile); border:1px solid var(--border); border-radius:6px; display:grid; place-items:center; color:var(--text-dim); cursor:pointer; padding:0; }
+  .usualbtn:hover { color:var(--text); }
+  .usualbtn[hidden] { display:none; }
+  .usualbtn[aria-pressed="true"] { background:color-mix(in srgb,var(--accent) 90%,black); border-color:transparent; color:var(--accent-ink); }
+  .usualbtn[aria-pressed="true"] .glyph i { background:currentColor; }
   .g-saved { position:relative; overflow:visible; }
   .g-saved .g-star { position:absolute; top:-6px; right:-7px; font-size:8.5px; line-height:1; color:#f4c430; font-style:normal; font-weight:400; }
   .iconbtn { border:1px solid var(--border); background:var(--tile); color:var(--text-dim); width:30px; height:30px; border-radius:6px; cursor:pointer; display:grid; place-items:center; }
@@ -109,6 +116,7 @@
   .tb-flat[aria-pressed="true"] { color:var(--accent); } .tb-flat[aria-pressed="true"] span { color:var(--accent); }
   .thread-ind.bfocus { outline:2px solid var(--accent); outline-offset:1px; }
   .tmenu { position:fixed; z-index:345; display:flex; flex-direction:column; min-width:190px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:5px; }
+  .tmenu-item.tmsel, .um-item.tmsel { background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent); }
   .jump-bottom { position:absolute; left:50%; transform:translateX(-50%); bottom:62px; width:34px; height:34px; border-radius:50%; border:none; background:var(--accent); color:var(--accent-ink); display:grid; place-items:center; cursor:pointer; box-shadow:var(--shadow); z-index:6; }
   .jump-bottom:hover { filter:brightness(1.08); }
   .jump-bottom[hidden] { display:none; }
@@ -126,9 +134,38 @@
   .workspace[data-layout="six"]{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;}
 
   .tile { background:var(--tile); border:1px solid var(--border); border-radius:var(--r); display:flex; flex-direction:column; overflow:hidden; min-width:0; min-height:0; position:relative; opacity:1; transition:border-color .14s,box-shadow .14s; }
-  .tile.active { opacity:1; border-color:color-mix(in srgb,var(--accent) 60%,var(--border)); box-shadow:0 0 0 1px var(--accent),var(--shadow); }
+  .tile.active { opacity:1; border-color:color-mix(in srgb,var(--text) 35%,var(--border)); box-shadow:0 0 0 1px color-mix(in srgb,var(--text) 30%,transparent),var(--shadow); }
+  .tile.watched { border-color:color-mix(in srgb,var(--accent) 60%,var(--border)); box-shadow:0 0 0 1px var(--accent),var(--shadow); }
+  .kb-hints { display:flex; flex-direction:column; align-items:flex-end; gap:2px 12px; line-height:1.3; font-size:9.5px; font-family:ui-monospace,monospace; color:var(--text-faint); margin-left:auto; white-space:nowrap; }
+  .kb-hints.two-col { display:grid; grid-template-columns:auto auto; justify-items:end; }
+  .kb-hints .kb-hot { color:var(--accent); border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); }
+  #meBtn.kbfocus { outline:2px solid var(--accent); outline-offset:2px; border-radius:9px; }
+  .kb-hints kbd { font-family:inherit; font-size:9px; border:1px solid var(--border); background:var(--tile-head); border-radius:3px; padding:0 3px; margin-right:1px; }
+  .tile-head .tile-name:focus, .tile-head .thead-btn:focus { outline:2px solid var(--accent); outline-offset:1px; border-radius:6px; }
+  .tile-head:has(.kb-hints) .head-hint { display:none; }
   .workspace[data-layout="solo"] .tile { opacity:1; }
-  .tile-head { display:flex; align-items:center; gap:8px; padding:9px 10px; background:var(--tile-head); border-bottom:1px solid var(--border-soft); cursor:pointer; }
+  .tile-head { display:flex; flex-direction:column; justify-content:center; gap:4px; min-height:48px; box-sizing:border-box; padding:6px 10px; background:var(--tile-head); border-bottom:1px solid var(--border-soft); cursor:pointer; }
+  .tile-head .th-row { display:flex; align-items:center; gap:8px; }
+  /* header hint bands: both rows share one 3-column grid, so the centre column lines up */
+  .tile { --hint-side:minmax(0,250px); }
+  .th-hints { display:none; grid-template-columns:var(--hint-side) 1fr var(--hint-side); align-items:center; gap:6px; font-family:ui-monospace,monospace; font-size:8.5px; line-height:1.35; color:var(--text-faint); }
+  .tile.kbhints .th-hints { display:grid; }
+  .th-hints .thh { display:flex; align-items:center; gap:7px; min-width:0; white-space:nowrap; }
+  .th-hints .thh-l { justify-content:flex-start; }
+  .th-hints .thh-m1 { justify-content:center; }
+  .th-hints .thh-r { justify-content:flex-end; }
+  .tile.kbhints .th-row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:6px; align-items:center; grid-template-areas:"name mid tools"; }
+  .tile.kbhints .th-row .head-hint { display:none; }
+  .tile.kbhints .th-row > .sigil, .tile.kbhints .th-row > .head-avwrap { grid-area:name; justify-self:start; }
+  .tile.kbhints .th-row .tile-name { grid-area:name; min-width:0; margin-left:21px; }
+  .tile.kbhints .th-row .tools { grid-area:tools; justify-self:end; }
+  .thh-m2 { display:none; grid-area:mid; flex-direction:column; align-items:center; gap:4px; line-height:1.2; font-family:ui-monospace,monospace; font-size:8.5px; color:var(--text-faint); pointer-events:none; white-space:nowrap; }
+  .tile.kbhints .thh-m2 { display:flex; }
+  .th-hints kbd, .thh-m2 kbd { font-family:ui-monospace,monospace; font-size:8px; border:1px solid var(--border); background:var(--tile-head); border-radius:3px; padding:0 2px; margin-right:1px; color:var(--text-dim); }
+  .th-hints .thh > span, .thh-m2 > span { white-space:nowrap; }
+  .tile-name { min-width:0; }
+  .tile-title { min-width:0; }
+  .tile-title b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .tile-head:hover { background:color-mix(in srgb,var(--accent) 6%,var(--tile-head)); }
   .sigil { flex:none; width:18px; text-align:center; font-family:ui-monospace,Menlo,monospace; font-size:14px; font-weight:600; }
   .sigil.c{color:var(--t-channel);} .sigil.p{color:var(--t-private);} .sigil.d{color:var(--t-direct);} .sigil.s{color:var(--t-discuss);}
@@ -259,9 +296,13 @@
   .be-send { display:inline-flex; align-items:center; gap:4px; }
   .tile.empty { border-style:dashed; background:transparent; opacity:1; }
   .tile.empty .stream { align-items:center; justify-content:center; text-align:center; color:var(--text-faint); gap:8px; }
-  .pin-hint { display:flex; flex-direction:column; gap:5px; font-size:12.5px; opacity:0; transition:opacity .18s; }
-  .pin-hint b { color:var(--text-dim); font-weight:600; margin-bottom:2px; }
-  .tile.empty:hover .pin-hint { opacity:1; }
+  .empty-ways { display:flex; flex-direction:column; align-items:center; gap:3px; font-size:12.5px; color:var(--text-faint); }
+  .empty-ways .ew-row { color:var(--text-dim); }
+  .empty-ways .ew-or { font-size:10px; font-style:italic; opacity:.75; }
+  .empty-ways kbd { font-family:ui-monospace,monospace; font-size:10px; background:var(--tile-head); border:1px solid var(--border); border-radius:4px; padding:1px 5px; color:var(--text); }
+  .empty-ways .ew-hover, .empty-ways .ew-foc { display:none; }
+  .tile.empty:hover .empty-ways .ew-hover { display:block; }
+  .tile.empty.active .empty-ways .ew-foc { display:block; }
 
   .backdrop { position:fixed; inset:0; z-index:100; display:grid; place-items:start center; padding-top:10vh; background:color-mix(in srgb,#05080c 62%,transparent); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
   .backdrop[hidden] { display:none; }
@@ -272,7 +313,7 @@
   .mhead .mtitle { font-weight:650; letter-spacing:-.01em; } .mhead .mtitle .mfocus { color:var(--accent); }
   .mkbd { font-family:ui-monospace,monospace; font-size:10px; color:var(--text-faint); border:1px solid var(--border); border-radius:4px; padding:1px 5px; }
   .mhead .mkbd { margin-left:auto; }
-  .mhead .mclose { margin-left:auto; }             /* close hugs the right edge even when the ⌥E badge is absent (muted chats) */
+  .mhead .mclose { margin-left:auto; }             /* close hugs the right edge */
   .mhead .mkbd ~ .mclose { margin-left:8px; }      /* ...but sits right after the badge when it's there */
   .mclose { border:none; background:none; color:var(--text-faint); cursor:pointer; width:26px; height:26px; border-radius:6px; display:grid; place-items:center; font-size:15px; }
   .mclose:hover { color:var(--text); background:color-mix(in srgb,var(--text) 8%,transparent); }
@@ -367,8 +408,8 @@
   .mm-react { border:none; background:none; cursor:pointer; font-size:19px; line-height:1; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; transition:transform .1s, background .1s; }
   .mm-react:hover { transform:scale(1.25); background:color-mix(in srgb,var(--text) 8%,transparent); }
   .mm-acts { display:flex; gap:5px; }
-  .mm-act { width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:var(--tile); color:var(--accent); cursor:pointer; display:grid; place-items:center; box-shadow:var(--shadow); }
-  .mm-act:hover, .mm-act.mmsel { color:var(--accent); border-color:var(--accent); }
+  .mm-act { width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:var(--tile); color:var(--text); cursor:pointer; display:grid; place-items:center; box-shadow:var(--shadow); }
+  .mm-act:hover, .mm-act.mmsel { color:var(--text); border-color:var(--text-dim); }
   .actbar { flex-direction:row; align-items:center; gap:5px; }
   .actbar .mm-reactions { padding:3px 5px; }
   .mm-inline-reacts { display:flex; align-items:center; gap:2px; background:var(--tile); border:1px solid var(--border); border-radius:22px; padding:2px 5px; box-shadow:var(--shadow); }
@@ -399,6 +440,7 @@
   .cal-day:hover:not(:disabled) { background:color-mix(in srgb,var(--accent) 14%,transparent); }
   .cal-day.today { border-color:var(--accent); color:var(--accent); font-weight:650; }
   .cal-day:disabled { color:var(--text-faint); opacity:.4; cursor:default; }
+  .cal-day.cal-sel { outline:2px solid var(--accent); outline-offset:-1px; }
   .cal-daybar { display:flex; align-items:center; gap:8px; padding-bottom:9px; border-bottom:1px solid var(--border-soft); margin-bottom:9px; flex-wrap:wrap; }
   .cal-daybar b { font-size:13px; }
   .cal-daybar .btn { flex:0 0 auto; padding:7px 12px; font-size:12px; }
@@ -481,6 +523,12 @@
   .favchip.is-unread { border-color:color-mix(in srgb,var(--accent) 55%,var(--border)); }
   .favchip.fcycle { outline:2px solid var(--accent); outline-offset:1px; background:color-mix(in srgb,var(--accent) 18%,var(--tile)); }
   .ur-star { color:#f4c430; font-size:11px; }
+  /* Tab hint-navigation */
+  .nav-tag { position:fixed; transform:translateX(-50%); z-index:400; background:color-mix(in srgb,var(--nav-hint) 16%,var(--tile)); color:var(--nav-hint); border:1px solid color-mix(in srgb,var(--nav-hint) 50%,var(--border)); border-radius:4px; font-family:ui-monospace,monospace; font-size:9.5px; font-weight:700; letter-spacing:.05em; padding:1px 5px; pointer-events:none; box-shadow:var(--shadow); }
+  .nav-tag.nav-dim { opacity:.25; }
+  .nav-glow { color:var(--nav-hint) !important; text-shadow:0 0 7px color-mix(in srgb,var(--nav-hint) 45%,transparent); font-weight:700; }
+  .nav-badge { border:1px solid color-mix(in srgb,var(--nav-hint) 50%,var(--border)); background:color-mix(in srgb,var(--nav-hint) 14%,var(--tile)); border-radius:3px; padding:0 3px; margin-right:4px; font-size:10px; text-shadow:none; }
+  .fnum.nav-key { color:var(--nav-hint) !important; background:color-mix(in srgb,var(--nav-hint) 16%,var(--tile)); border:1px solid color-mix(in srgb,var(--nav-hint) 50%,var(--border)); border-radius:4px; padding:0 3px; }
   .ur-peek { display:inline-flex; align-items:center; color:var(--accent); margin-left:1px; opacity:.75; }
   .ur-peek svg { display:block; }
   .ur-peek:hover { color:var(--text); opacity:1; }
@@ -527,6 +575,8 @@
   /* unread preview popup (double-click an unread person) */
   .urpop { position:fixed; z-index:340; width:min(520px,94vw); background:var(--tile); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
   .urpop .up-head { display:flex; align-items:center; gap:8px; padding:10px 13px; border-bottom:1px solid var(--border-soft); font-weight:650; }
+  .ur-navhint { flex:1; text-align:center; font-family:ui-monospace,monospace; font-size:9.5px; font-weight:400; color:var(--text-faint); }
+  .ur-navhint kbd { font-family:inherit; font-size:9px; border:1px solid var(--border); background:var(--tile-head); border-radius:3px; padding:0 3px; margin-right:2px; }
   .urpop .up-body { max-height:330px; overflow-y:auto; padding:10px 13px; display:flex; flex-direction:column; gap:8px; }
   .urpop .up-msg .up-txt { display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; overflow:hidden; }
   .urpop .up-msg .up-txt pre.code { max-height:90px; overflow:hidden; }
@@ -542,43 +592,189 @@
   .tile-cover:hover .cover-label { opacity:1; }
   .tile.uncovering { animation:flipReveal .45s ease; }
   @keyframes flipReveal { from { transform:perspective(700px) rotateY(0); } 40% { transform:perspective(700px) rotateY(-16deg); } to { transform:perspective(700px) rotateY(0); } }
-  /* welcome tour */
+  /* welcome tour — fixed-size card so Next/Back never move between slides */
   .tour { position:fixed; inset:0; z-index:400; display:grid; place-items:center; padding:20px; background:color-mix(in srgb,#05080c 72%,transparent); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
   .tour[hidden] { display:none; }
-  .tour-card { width:min(560px,94vw); max-height:88vh; display:flex; flex-direction:column; background:var(--tile); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); overflow:hidden; }
+  .tour-card { width:min(640px,94vw); height:min(650px,92vh); display:flex; flex-direction:column; background:var(--tile); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); overflow:hidden; }
   @media (prefers-reduced-motion: no-preference){ .tour-card { animation:pop .18s ease; } }
-  .tour-body { padding:22px 24px 8px; overflow-y:auto; }
-  .tour-body h2 { margin:0 0 6px; font-size:19px; letter-spacing:-.01em; text-wrap:balance; }
-  .tour-body p { margin:0; color:var(--text-dim); font-size:13.5px; line-height:1.5; }
-  .tour-keys { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
-  .tour-keys span { font-size:11.5px; color:var(--accent); border:1px solid color-mix(in srgb,var(--accent) 40%,transparent); background:color-mix(in srgb,var(--accent) 10%,transparent); border-radius:20px; padding:3px 10px; }
-  .tour-mock { height:150px; border-radius:12px; border:1px solid var(--border-soft); background:var(--bg); display:grid; place-items:center; margin-bottom:16px; overflow:hidden; }
-  .tour-nav { display:flex; align-items:center; gap:12px; padding:12px 24px 18px; border-top:1px solid var(--border-soft); }
-  .tour-nav .btn { flex:0 0 auto; padding:9px 16px; } .tour-nav #tourNext { margin-left:auto; }
+  .tour-eyebrow { display:flex; align-items:baseline; gap:10px; padding:16px 26px 0; flex:none; }
+  .tour-eyebrow .count { margin-left:auto; font-family:ui-monospace,monospace; font-size:10.5px; color:var(--text-faint); font-variant-numeric:tabular-nums; }
+  .tour-body { padding:12px 26px 6px; overflow-y:auto; flex:1; min-height:0; }
+  .tour-body h2 { margin:14px 0 7px; font-size:20px; letter-spacing:-.01em; text-wrap:balance; }
+  .tour-body p { margin:0; color:var(--text-dim); font-size:13.5px; line-height:1.6; max-width:60ch; }
+  .tour-body p + p { margin-top:8px; }
+  .tour-body p b { color:var(--text); font-weight:600; }
+  .tour-body kbd { font-family:ui-monospace,monospace; font-size:10.5px; color:var(--accent); font-weight:600; background:var(--tile-head); border:1px solid color-mix(in srgb,var(--accent) 40%,var(--border)); border-radius:5px; padding:1px 6px 0; white-space:nowrap; box-shadow:0 1.5px 0 color-mix(in srgb,var(--accent) 35%,var(--border)); }
+  .tour-body .ticks { margin:10px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; }
+  .tour-body .ticks li { display:flex; gap:9px; color:var(--text-dim); font-size:13px; line-height:1.5; }
+  .tour-body .ticks li b { color:var(--text); font-weight:600; }
+  .tour-body .ticks li::before { content:"+"; flex:none; color:var(--accent); font-weight:700; font-size:14px; }
+  .tour-mock { height:224px; flex:none; border-radius:12px; border:1px solid var(--border-soft); background:var(--bg); display:grid; place-items:center; overflow:hidden; position:relative; padding:14px; }
+  .tour-nav { display:flex; align-items:center; gap:12px; padding:14px 26px 18px; border-top:1px solid var(--border-soft); flex:none; }
+  .tour-nav .btn { flex:0 0 auto; padding:9px 16px; } .tour-nav #tourNext { min-width:118px; }
   .tour-nav .btn.ghost[disabled] { opacity:.4; cursor:default; }
-  .tour-dots { display:flex; gap:6px; margin:0 auto; }
+  .tour-dots { display:flex; gap:5px; margin:0 auto; flex-wrap:wrap; justify-content:center; max-width:230px; }
   .tour-dots .td { width:7px; height:7px; border-radius:50%; background:var(--border); }
   .tour-dots .td.on { background:var(--accent); }
-  /* tour mini-mocks */
-  .tm-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:7px; width:150px; height:104px; }
-  .tm-grid span { border:1px solid var(--border); border-radius:6px; background:var(--tile); display:grid; place-items:center; color:var(--text-faint); }
-  .tm-grid.covered span { background:color-mix(in srgb,var(--bg) 70%,var(--tile)); color:var(--text-faint); }
-  .tm-bar { display:flex; align-items:center; gap:7px; }
-  .tm-star { color:#f4c430; font-size:16px; } .tm-eye { color:var(--accent); font-size:14px; }
-  .tm-chip { display:inline-flex; align-items:center; gap:5px; border:1px solid var(--border); background:var(--tile); border-radius:20px; padding:5px 11px; font-size:12.5px; }
-  .tm-bar.unread .tm-chip { border-color:color-mix(in srgb,var(--accent) 50%,var(--border)); }
-  .tm-chip b { font-family:ui-monospace,monospace; font-size:10px; color:var(--accent); }
-  .tm-pop { width:210px; border:1px solid var(--border); border-radius:10px; background:var(--tile); box-shadow:var(--shadow); overflow:hidden; }
-  .tm-pop .tm-chips { display:flex; gap:6px; padding:9px; border-bottom:1px solid var(--border-soft); }
-  .tm-pop .tm-search { padding:9px 11px; color:var(--text-faint); font-size:12.5px; }
-  .tm-msg { position:relative; width:210px; }
-  .tm-bub { background:var(--tile-head); border:1px solid var(--border-soft); border-radius:10px 10px 10px 3px; padding:7px 11px; font-size:13px; display:inline-block; }
-  .tm-menu { display:inline-flex; flex-direction:column; gap:6px; align-items:center; margin-top:8px; }
-  .tm-react { background:var(--tile); border:1px solid var(--border); border-radius:20px; padding:4px 8px; font-size:15px; box-shadow:var(--shadow); }
-  .tm-acts { display:flex; gap:6px; } .tm-acts span { width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--tile); display:grid; place-items:center; box-shadow:var(--shadow); }
-  .tm-tile { width:200px; border:1px solid var(--accent); border-radius:8px; overflow:hidden; box-shadow:0 0 0 1px var(--accent); }
-  .tm-tile .tm-head { display:flex; align-items:center; gap:7px; padding:8px 10px; background:var(--tile-head); border-bottom:1px solid var(--border-soft); font-weight:600; }
-  .tm-sw, .tm-max { color:var(--accent); } .tm-lines { padding:10px; display:flex; flex-direction:column; gap:6px; } .tm-lines i { height:7px; border-radius:4px; background:var(--border); } .tm-lines i:nth-child(2){ width:70%; } .tm-lines i:nth-child(3){ width:45%; }
+  /* tour mocks — shared atoms */
+  .mocklab { font-family:ui-monospace,monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint); }
+  .blurred { filter:blur(2.2px); opacity:.45; }
+  .txtic { display:inline-flex; align-items:center; vertical-align:-1px; color:var(--text-dim); margin:0 6px 0 2px; position:relative; }
+  .txtic.big svg { width:19px; height:19px; } .txtic.big { vertical-align:-4px; color:var(--text); }
+  .tsg { font-family:ui-monospace,monospace; font-weight:600; }
+  .tsg.c{color:var(--t-channel);} .tsg.p{color:var(--t-private);} .tsg.d{color:var(--t-direct);}
+  .menucard { min-width:178px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:5px; }
+  .menucard .tum-head { display:flex; align-items:center; gap:8px; padding:7px 9px 8px; border-bottom:1px solid var(--border-soft); margin-bottom:4px; }
+  .menucard .tum-head .av { width:22px; height:22px; border-radius:6px; display:grid; place-items:center; font-size:9px; font-weight:700; color:#fff; font-family:ui-monospace,monospace; background:#5b7cff; }
+  .menucard .tum-head b { font-size:11.5px; } .menucard .tum-head span { display:block; font-size:9px; color:var(--text-faint); font-family:ui-monospace,monospace; }
+  .menucard .mi { display:flex; align-items:center; gap:9px; padding:7px 10px; border-radius:7px; font-size:12px; color:var(--text-dim); }
+  .menucard .mi.hot { background:color-mix(in srgb,var(--accent) 13%,transparent); color:var(--text); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent); }
+  .menucard .mi .ic { width:16px; text-align:center; font-size:12px; display:inline-flex; justify-content:center; }
+  .tmk-filters { display:flex; gap:5px; padding:7px 10px; border-bottom:1px solid var(--border-soft); flex-wrap:wrap; }
+  .tmk-filter { border:1px solid var(--border); background:var(--tile); color:var(--text-dim); border-radius:10px; padding:3px 8px; font-size:10px; }
+  .tmk-filter.on { background:color-mix(in srgb,var(--accent) 16%,var(--tile)); border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); color:var(--text); }
+  /* tour app-bar mock */
+  .tmk-appbar { display:flex; align-items:center; gap:11px; background:var(--bg-rail); border:1px solid var(--border); border-radius:12px; padding:9px 14px; }
+  .tmk-srchrect { width:104px; height:26px; border:1px solid var(--border); background:var(--tile); border-radius:8px; }
+  .tmk-flat { display:inline-flex; flex-direction:column; align-items:center; gap:2px; color:var(--text-dim); padding:2px; }
+  .tmk-flat svg { display:block; }
+  .tmk-flat small { font-size:8px; color:var(--text-faint); letter-spacing:.02em; white-space:nowrap; }
+  .tmk-segfrag { display:flex; gap:2px; border:1px solid var(--border); background:var(--tile); border-radius:6px; padding:3px; }
+  .tmk-segfrag > i { width:17px; height:17px; display:grid; place-items:center; border-radius:4px; }
+  .tmk-segfrag > i.on { background:color-mix(in srgb,var(--accent) 90%,black); }
+  .tmk-segfrag > i.on .glyph i { background:var(--accent-ink); }
+  .tmk-segfrag > i .glyph { width:11px; height:9px; gap:1px; }
+  .tmk-iconbtn { width:27px; height:27px; border:1px solid var(--border); background:var(--tile); border-radius:6px; display:grid; place-items:center; color:var(--text-dim); }
+  .tmk-iconbtn svg { display:block; }
+  .tmk-topav { display:inline-flex; align-items:center; gap:7px; margin-right:2px; }
+  .tmk-topav .bav { position:relative; width:24px; height:24px; border-radius:7px; background:#5b7cff; color:#fff; display:grid; place-items:center; font-size:9px; font-weight:700; font-family:ui-monospace,monospace; }
+  .tmk-topav .bav .bdot { position:absolute; right:-2px; bottom:-2px; width:8px; height:8px; border-radius:50%; background:#e5555f; box-shadow:0 0 0 2px var(--bg-rail); }
+  .tmk-topmeta { display:flex; flex-direction:column; line-height:1.2; }
+  .tmk-topmeta b { font-size:10px; } .tmk-topmeta i { font-style:normal; font-size:8.5px; color:var(--text-faint); }
+  /* tour mock: hero mini-app */
+  .tmk-heroapp { width:340px; border:1px solid var(--border); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); background:var(--bg); }
+  .th-top { display:flex; align-items:center; gap:6px; background:var(--bg-rail); border-bottom:1px solid var(--border); padding:6px 8px; }
+  .th-av { width:16px; height:16px; border-radius:5px; background:linear-gradient(150deg,var(--accent),#ff8a5c); }
+  .th-pill { margin-left:auto; margin-right:auto; width:110px; height:14px; border:1px solid var(--border); background:var(--tile); border-radius:5px; }
+  .th-seg { display:flex; gap:2px; } .th-seg i { width:12px; height:12px; border:1px solid var(--border); background:var(--tile); border-radius:3px; }
+  .th-bar { display:flex; align-items:center; gap:5px; padding:4px 8px; background:var(--bg-rail); border-bottom:1px solid var(--border-soft); font-size:8px; }
+  .th-bar .st { color:#f4c430; } .th-bar .ey { color:var(--accent); }
+  .th-chip { border:1px solid var(--border); background:var(--tile); border-radius:9px; padding:1px 7px; font-size:7.5px; color:var(--text-dim); }
+  .th-chip.u { border-color:color-mix(in srgb,var(--accent) 50%,var(--border)); }
+  .th-chip.u b { color:var(--accent); font-family:ui-monospace,monospace; font-size:7px; }
+  .th-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px; padding:6px; }
+  .th-tile { border:1px solid var(--border); background:var(--tile); border-radius:5px; overflow:hidden; }
+  .th-th { display:flex; align-items:center; gap:4px; background:var(--tile-head); border-bottom:1px solid var(--border-soft); padding:3px 6px; font-size:8px; font-weight:600; }
+  .th-th .tsg { font-size:8px; }
+  .th-tb { padding:5px 6px 7px; display:flex; flex-direction:column; gap:4px; }
+  .th-tb i { display:block; height:4px; border-radius:2px; background:var(--border-soft); }
+  /* tour mock: bars slice */
+  .tmk-slice { position:relative; width:352px; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--bg); box-shadow:var(--shadow); }
+  .ts-bar { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--bg-rail); border-bottom:1px solid var(--border-soft); }
+  .ts-bar .ic { font-size:11px; width:14px; text-align:center; }
+  .ts-bar .ic.star { color:#f4c430; } .ts-bar .ic.eye { color:var(--accent); }
+  .ts-chip { display:inline-flex; align-items:center; gap:4px; border:1px solid var(--border); background:var(--tile-head); border-radius:20px; padding:2px 9px; font-size:10.5px; }
+  .ts-chip .n { font-family:ui-monospace,monospace; font-size:8.5px; color:var(--accent); font-weight:700; }
+  .ts-chip.unread { border-color:color-mix(in srgb,var(--accent) 50%,var(--border)); background:var(--tile); }
+  .ts-chip .bdg { min-width:13px; height:13px; padding:0 4px; border-radius:20px; background:var(--accent); color:var(--accent-ink); font-family:ui-monospace,monospace; font-size:8px; font-weight:700; display:grid; place-items:center; }
+  .ts-tiles { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:7px; height:104px; }
+  .ts-tile { border:1px solid var(--border); background:var(--tile); border-radius:6px; overflow:hidden; }
+  .ts-tile .h { display:flex; align-items:center; gap:5px; background:var(--tile-head); border-bottom:1px solid var(--border-soft); padding:4px 7px; font-size:9.5px; font-weight:600; }
+  .ts-tile .b { padding:6px 7px; display:flex; flex-direction:column; gap:5px; }
+  .ts-tile .b i { display:block; height:5px; border-radius:3px; background:var(--border-soft); }
+  .ts-preview { position:absolute; right:8px; top:56px; width:225px; border:1px solid var(--border); border-radius:10px; background:var(--tile); box-shadow:var(--shadow); overflow:hidden; z-index:4; }
+  .ts-preview .ph { display:flex; align-items:center; gap:6px; padding:6px 10px; border-bottom:1px solid var(--border-soft); font-size:11px; font-weight:600; }
+  .ts-preview .ph .cnt { color:var(--text-faint); font-weight:400; font-size:10px; }
+  .ts-preview .ph .mr { margin-left:auto; color:var(--live); font-size:9.5px; font-weight:600; }
+  .ts-preview .pm { padding:5px 10px; font-size:11px; color:var(--text-dim); }
+  .ts-preview .pm b { color:var(--text); }
+  .ts-preview .pr { display:flex; gap:6px; padding:6px 10px 9px; }
+  .ts-preview .pr .in { flex:1; border:1px solid var(--border); background:var(--bg); border-radius:6px; font-size:10.5px; color:var(--text-faint); padding:3px 8px; }
+  .ts-preview .pr .snd { width:21px; height:21px; border-radius:5px; background:var(--accent); color:var(--accent-ink); display:grid; place-items:center; font-size:9px; }
+  /* tour mock: message toolbar */
+  .tmk-msg { display:flex; flex-direction:column; align-items:flex-start; gap:12px; }
+  .tmk-bub { background:var(--tile-head); border:1px solid var(--border-soft); border-radius:10px 10px 10px 3px; padding:7px 12px; font-size:13px; }
+  .tmk-actrow { display:flex; align-items:center; gap:6px; }
+  .tmk-acts { display:flex; gap:4px; }
+  .tmk-acts span { width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:var(--tile); color:var(--accent); display:grid; place-items:center; font-size:12px; box-shadow:var(--shadow); }
+  .tmk-ireacts { display:flex; align-items:center; gap:2px; background:var(--tile); border:1px solid var(--border); border-radius:22px; padding:4px 8px; font-size:15px; box-shadow:var(--shadow); }
+  .tmk-ireacts span { width:23px; text-align:center; }
+  /* tour mock: composer panels */
+  .tmk-trip { display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .tmk-cboxwrap { display:flex; flex-direction:column; gap:6px; align-items:center; }
+  .tmk-cbox { display:flex; align-items:center; gap:6px; background:var(--tile-head); border-radius:8px; padding:6px; }
+  .tmk-cin { display:flex; align-items:center; width:132px; border:1px solid var(--border); background:var(--tile); border-radius:6px; padding:6px 9px; font-size:11px; overflow:hidden; }
+  .tmk-cin.pv { border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); background:var(--bg); }
+  .tmk-cin .raw { font-family:ui-monospace,monospace; font-size:10px; white-space:nowrap; }
+  .tmk-cin code { font-family:ui-monospace,monospace; font-size:9.5px; background:color-mix(in srgb,var(--text) 11%,transparent); padding:0 4px; border-radius:4px; }
+  .tmk-csend { width:24px; height:24px; flex:none; border-radius:5px; background:var(--accent); color:var(--accent-ink); display:grid; place-items:center; font-size:10px; }
+  .tmk-big { width:184px; border:1px solid var(--border); border-radius:9px; background:var(--tile); box-shadow:var(--shadow); overflow:hidden; }
+  .tmk-big .mh { padding:5px 9px; border-bottom:1px solid var(--border-soft); font-size:9.5px; font-family:ui-monospace,monospace; letter-spacing:.06em; text-transform:uppercase; color:var(--text-faint); }
+  .tmk-big .tabs { display:flex; gap:4px; padding:6px 8px 0; }
+  .tmk-big .tabs span { border:1px solid var(--border); border-radius:11px; padding:1px 9px; font-size:9.5px; color:var(--text-dim); }
+  .tmk-big .tabs span.on { background:color-mix(in srgb,var(--accent) 16%,var(--tile)); border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); color:var(--text); }
+  .tmk-big .ta { margin:7px 8px; border:1px solid var(--border); border-radius:6px; background:var(--bg); padding:6px 8px; font-size:9.5px; line-height:1.55; color:var(--text-dim); }
+  .tmk-big .ta b { color:var(--text); }
+  .tmk-big .snd { display:flex; justify-content:flex-end; margin:0 8px 8px; }
+  .tmk-big .snd i { font-style:normal; background:var(--accent); color:var(--accent-ink); border-radius:6px; font-size:9.5px; padding:3px 12px; font-weight:600; }
+  /* tour mock: starred / files / calendar / config */
+  .tmk-starpanel { width:320px; border:1px solid var(--border); border-radius:10px; background:var(--tile); box-shadow:var(--shadow); overflow:hidden; margin-top:10px; }
+  .tmk-starpanel .hh { display:flex; align-items:center; gap:6px; padding:7px 11px; border-bottom:1px solid var(--border-soft); font-size:11.5px; font-weight:600; }
+  .tmk-starrow { padding:6px 11px 8px; font-size:11px; color:var(--text-dim); border-bottom:1px solid var(--border-soft); }
+  .tmk-starrow:last-child { border-bottom:none; }
+  .tmk-starrow .rh { display:flex; align-items:baseline; gap:7px; }
+  .tmk-starrow .rh b { color:var(--text); font-size:11.5px; }
+  .tmk-starrow .rh .rm { color:var(--accent); font-size:10px; } .tmk-starrow .rh .st { margin-left:auto; color:#f4c430; }
+  .tmk-starrow .rt { margin-top:2px; line-height:1.45; }
+  .tmk-filepanel { width:280px; border:1px solid var(--border); border-radius:10px; background:var(--tile); box-shadow:var(--shadow); overflow:hidden; }
+  .tmk-filepanel .hh { padding:7px 11px; border-bottom:1px solid var(--border-soft); font-size:11.5px; font-weight:600; }
+  .tmk-fr { display:flex; align-items:center; gap:8px; padding:6px 11px; font-size:11px; }
+  .tmk-fr .fic { font-size:13px; } .tmk-fr .fmeta { color:var(--text-faint); font-size:9.5px; margin-left:auto; font-family:ui-monospace,monospace; }
+  .tmk-fr .facts { display:flex; gap:3px; margin-left:8px; } .tmk-fr .facts i { font-style:normal; width:18px; height:18px; border:1px solid var(--border); border-radius:50%; display:grid; place-items:center; font-size:9px; color:var(--text-dim); background:var(--tile); }
+  .tmk-menuwrap { display:flex; align-items:flex-start; gap:16px; }
+  .tmk-cal { width:196px; border:1px solid var(--border); border-radius:10px; background:var(--tile); box-shadow:var(--shadow); padding:10px 12px; }
+  .tmk-cal .ch { display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:600; padding-bottom:7px; }
+  .tmk-cal .ch span { color:var(--text-faint); font-weight:400; }
+  .tmk-cal .cg { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .tmk-cal .cg i { font-style:normal; height:18px; display:grid; place-items:center; font-size:9px; color:var(--text-dim); border-radius:5px; }
+  .tmk-cal .cg i.dow { color:var(--text-faint); font-size:8px; text-transform:uppercase; }
+  .tmk-cal .cg i.pick { background:var(--accent); color:var(--accent-ink); font-weight:700; }
+  .tmk-cal .cg i.today { box-shadow:inset 0 0 0 1px var(--accent); color:var(--accent); }
+  .tmk-snaprow { display:flex; align-items:center; gap:20px; flex-wrap:wrap; justify-content:center; }
+  .tmk-json { width:230px; border:1px solid var(--border); border-radius:9px; background:var(--tile); box-shadow:var(--shadow); overflow:hidden; }
+  .tmk-json .jh { padding:5px 9px; border-bottom:1px solid var(--border-soft); font-size:10px; color:var(--text-faint); font-family:ui-monospace,monospace; }
+  .tmk-json pre { margin:0; padding:8px 10px; font-family:ui-monospace,monospace; font-size:9px; line-height:1.6; color:var(--text-dim); overflow-x:auto; }
+  .tmk-json pre b { color:var(--t-channel); font-weight:500; } .tmk-json pre i { font-style:normal; color:var(--live); }
+  /* tour mock: focus mode + inline edit chat */
+  .tmk-focusrow { display:flex; align-items:center; gap:26px; justify-content:center; }
+  .tmk-bigfocus { width:52px; height:52px; border:1px solid var(--border); background:var(--tile); border-radius:12px; display:grid; place-items:center; color:var(--text); box-shadow:var(--shadow); }
+  .tmk-bigfocus svg { width:30px; height:30px; }
+  .tmk-covered { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:6px; width:140px; height:96px; }
+  .tmk-covered span { border:1px solid var(--border); border-radius:6px; background:repeating-linear-gradient(45deg, color-mix(in srgb,var(--text) 6%,transparent) 0 5px, transparent 5px 10px), var(--tile); display:grid; place-items:center; font-size:8px; color:var(--text-faint); font-family:ui-monospace,monospace; letter-spacing:.05em; }
+  .tmk-covered span.open { background:var(--tile); border-color:color-mix(in srgb,var(--accent) 60%,var(--border)); box-shadow:0 0 0 1px var(--accent); color:transparent; }
+  .tmk-chatmock { width:280px; display:flex; flex-direction:column; gap:7px; }
+  .tc-row { display:flex; align-items:flex-end; gap:6px; }
+  .tc-row.mine { justify-content:flex-end; }
+  .tc-av { flex:none; width:20px; height:20px; border-radius:6px; color:#fff; display:grid; place-items:center; font-size:8px; font-weight:700; font-family:ui-monospace,monospace; }
+  .tc-bub { background:var(--tile-head); border:1px solid var(--border-soft); border-radius:10px 10px 10px 3px; padding:5px 10px; font-size:11px; }
+  .tc-bub.mine { background:color-mix(in srgb,var(--accent) 16%,var(--tile-head)); border:1px solid color-mix(in srgb,var(--accent) 28%,transparent); border-radius:10px 10px 3px 10px; }
+  .tc-input { display:flex; gap:6px; align-items:center; margin-top:2px; padding:5px; background:var(--tile-head); border-radius:8px; }
+  .tc-input .in { flex:1; height:24px; border:1px solid var(--border); background:var(--tile); border-radius:6px; }
+  .tmk-editwrap { background:color-mix(in srgb,var(--accent) 14%,var(--tile-head)); border:1px solid color-mix(in srgb,var(--accent) 30%,transparent); border-radius:14px 14px 4px 14px; padding:9px 11px 8px; display:flex; flex-direction:column; gap:5px; }
+  .tmk-editin { background:var(--tile); border:1.5px solid color-mix(in srgb,var(--accent) 60%,var(--border)); border-radius:9px; padding:7px 11px; font-size:12.5px; color:var(--text); white-space:nowrap; }
+  .tmk-editin .cur { display:inline-block; width:1.5px; height:13px; background:var(--accent); vertical-align:-2px; margin-left:1px; }
+  .tmk-edithint { font-size:9.5px; color:color-mix(in srgb,var(--accent) 55%,var(--text-faint)); text-align:left; padding-left:2px; }
+  .tmk-caret { display:inline-block; width:1px; height:13px; background:var(--accent); vertical-align:-2px; }
+  @media (prefers-reduced-motion: no-preference){ .tmk-caret, .tmk-editin .cur { animation:tmkblink 1.1s steps(1) infinite; } @keyframes tmkblink { 50% { opacity:0; } } }
+  .tmk-hintline { margin-top:9px; font-size:11px; color:var(--text-faint); }
+  .tmk-hintline em { font-style:normal; color:var(--accent); font-family:ui-monospace,monospace; }
+  .tmk-pop { width:290px; border:1px solid var(--border); border-radius:10px; background:var(--tile); box-shadow:var(--shadow); overflow:hidden; }
+  .tmk-pop .srch { display:flex; align-items:center; gap:7px; padding:10px 12px; font-size:13px; border-bottom:1px solid var(--border-soft); }
+  .tmk-pop .srch .q { color:var(--text); font-family:ui-monospace,monospace; }
+  .tmk-pop .row { display:flex; align-items:center; gap:8px; padding:8px 12px; font-size:12.5px; }
+  .tmk-pop .row.sel { background:color-mix(in srgb,var(--accent) 13%,transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 50%,transparent); }
+  .tmk-pop .row .mini { color:var(--text-faint); font-size:11px; margin-left:auto; }
+  .tmk-pop .row em { font-style:normal; color:var(--accent); }
   .favbar .bar-icon { color:#f4c430; }               /* yellow star */
   .workspace { min-height:0; } .tile { min-height:0; }
   .thread-back { position:fixed; inset:0; z-index:335; display:grid; place-items:center; background:color-mix(in srgb,#05080c 60%,transparent); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
@@ -651,12 +847,15 @@
   .bc-edwrap pre.bc-hl { position:absolute; inset:0; margin:0; z-index:1; background:var(--bg); border:1px solid transparent; border-radius:8px; padding:10px 12px; font-family:ui-monospace,monospace; font-size:12px; line-height:1.5; white-space:pre; overflow:hidden; pointer-events:none; color:var(--text); max-height:none; }
   .bc-json:focus { border-color:color-mix(in srgb,var(--accent) 55%,var(--border)); }
   .bc-foot { display:flex; align-items:center; gap:10px; padding:0 14px 14px; }
-  .bc-status { color:var(--text-faint); font-size:12px; }
+  .bcconfigpop .up-head .bc-status { flex:1; display:flex; align-items:center; justify-content:center; gap:5px; color:var(--text-faint); font-size:11.5px; font-weight:400; min-width:0; }
+  .bcconfigpop .up-head .bc-help { margin-left:0; order:2; }
+  .bcconfigpop .up-head .mclose { margin-left:4px !important; order:3; }
+  .chan-badge { display:inline-flex; align-items:center; gap:3px; background:var(--tile-head); border:1px solid var(--border); border-radius:5px; padding:1px 6px; color:var(--text-dim); font-family:ui-monospace,monospace; font-size:11px; }
+  .chan-badge svg { flex:none; opacity:.75; }
   .bc-foot .btn { margin-left:auto; }
   .rel-row { display:flex; align-items:baseline; gap:10px; padding:10px 12px; border-radius:8px; text-decoration:none; color:var(--text); }
   .rel-row:hover { background:color-mix(in srgb,var(--accent) 10%,transparent); }
   .rel-row b { font-weight:600; } .rel-row span { color:var(--accent); font-size:12px; }
-  .statuspop { height:auto !important; }
   .st-opts { display:flex; gap:8px; padding:14px 14px 4px; }
   .st-opt { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border); background:var(--tile); color:var(--text-dim); border-radius:10px; padding:8px 14px; font:inherit; cursor:pointer; }
   .st-opt.on { border-color:color-mix(in srgb,var(--accent) 55%,var(--border)); background:color-mix(in srgb,var(--accent) 12%,var(--tile)); color:var(--text); }
@@ -701,10 +900,8 @@
   .tsend { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-dim); margin-bottom:7px; cursor:pointer; }
   .tsend input { width:14px; height:14px; accent-color:var(--accent); }
   /* help popup: 2×2 sections */
-  .modal.help { width:min(80vw,1500px); height:80vh; max-height:80vh; }
-  .kbgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:12px 14px; align-items:start; }
-  .kbgrid .kbtile:first-child { grid-row:1 / 3; }   /* Chats fills the left column; the other two stack on the right */
-  @media (max-width: 900px){ .kbgrid { grid-template-columns:1fr; } }
+  .modal.help { width:min(620px,94vw); height:auto; max-height:80vh; }
+  .kbgrid { display:grid; grid-template-columns:1fr; gap:12px; padding:12px 14px; align-items:start; }
   .kbtile { background:var(--bg); border:1px solid var(--border-soft); border-radius:12px; padding:11px 14px 8px; }
   .kbtile h4 { font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-faint); margin:0 0 6px; font-weight:600; }
   .kbrow { display:flex; gap:10px; align-items:baseline; padding:6px 0; border-top:1px solid var(--border-soft); }
@@ -714,7 +911,29 @@
   .kbgrid .kbd-desc kbd { font-size:10px; padding:1px 5px; }
   .kb-or { font-style:normal; font-size:10px; color:var(--text-faint); align-self:center; padding:0 2px; }
   .kbrow .kbd-desc { flex:1; font-size:12.5px; color:var(--text-dim); }
-  .tour-card .kbgrid { padding:0; grid-template-columns:1fr; }
+  /* go-to walkthrough */
+  .gw-back { position:fixed; inset:0; z-index:500; display:grid; place-items:center; background:color-mix(in srgb,#05080c 70%,transparent); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+  .gw-card { width:min(520px,94vw); background:var(--tile); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:22px 24px 18px; }
+  @media (prefers-reduced-motion: no-preference){ .gw-card { animation:pop .18s ease; } }
+  .gw-eyebrow { font-family:ui-monospace,monospace; font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-faint); }
+  .gw-card h2 { margin:6px 0 10px; font-size:20px; letter-spacing:-.015em; }
+  .gw-card p { margin:0 0 10px; color:var(--text-dim); font-size:13.5px; line-height:1.55; }
+  .gw-card kbd { font-family:ui-monospace,monospace; font-size:11px; background:var(--tile-head); border:1px solid var(--border); border-radius:4px; padding:1px 5px; color:var(--text); }
+  .gw-task { color:var(--text) !important; font-weight:550; }
+  .gw-demo { border:1px solid var(--border); border-radius:10px; background:var(--bg); margin:12px 0 10px; }
+  .gw-demo-bar { display:flex; align-items:center; gap:5px; padding:7px 10px; background:var(--tile-head); border-bottom:1px solid var(--border-soft); border-radius:9px 9px 0 0; }
+  .gw-dot { width:7px; height:7px; border-radius:50%; background:color-mix(in srgb,var(--text) 22%,transparent); }
+  .gw-url { margin-left:8px; font-family:ui-monospace,monospace; font-size:9.5px; color:var(--text-faint); }
+  .gw-demo-body { padding:14px 14px 32px; }
+  .gw-line { height:7px; border-radius:4px; background:color-mix(in srgb,var(--text) 12%,transparent); margin-bottom:7px; width:62%; }
+  .gw-line.long { width:88%; }
+  .gw-btns { display:flex; gap:8px; margin-top:14px; }
+  .gw-btn { position:relative; border:1px solid var(--border); background:var(--tile); border-radius:7px; padding:5px 12px; font-size:12px; color:var(--text-dim); }
+  .gw-tag { position:absolute; left:50%; transform:translateX(-50%); top:100%; margin-top:4px; margin-right:0; }
+  .gw-foot { display:flex; justify-content:flex-end; margin-top:14px; }
+  .gw-foot .btn { flex:0 0 auto; padding:8px 18px; }
+  .gw-state { min-height:18px; text-align:center; font-size:12.5px; color:var(--live); opacity:0; transition:opacity .15s; }
+  .gw-state.on { opacity:1; }
   .mm-react.mmsel, .mm-act.mmsel { outline:2px solid var(--accent); outline-offset:1px; }
   .explore-kbd { font-size:11px; color:var(--text-faint); } .explore-kbd b { font-family:ui-monospace,monospace; font-weight:600; }
   .thread-ind { display:inline-flex; align-items:center; gap:4px; margin-top:5px; border:1px solid var(--border); background:var(--tile-head); color:var(--t-channel); border-radius:14px; padding:2px 9px; font:inherit; font-size:11.5px; font-weight:600; cursor:pointer; }
@@ -761,27 +980,30 @@
       <span class="focus-badge" id="focusBadge" hidden>&#9679; Focus mode</span>
     </div>
     <div class="cluster">
-      <button class="tb-search" id="finderBtn" title="Search / open a chat &mdash; &#8997;K" aria-label="Search chats"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search (Opt + K)</span></button>
+      <button class="tb-search" id="finderBtn" title="Search / open a chat — Shift" aria-label="Search chats"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search (Shift)</span></button>
       <button class="tb-flat" id="focusBtn" title="Focus mode — cover all chats but one or two (sets you Busy)" aria-label="Focus mode" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5a8 8 0 0 1 16 0"/><path d="M4 13.5v4.2a1.8 1.8 0 0 0 1.8 1.8H7a1 1 0 0 0 1-1v-3.6a1 1 0 0 0-1-1z"/><path d="M20 13.5v4.2a1.8 1.8 0 0 1-1.8 1.8H17a1 1 0 0 1-1-1v-3.6a1 1 0 0 1 1-1z"/></svg><span>Focus Mode</span></button>
       <button class="tb-flat" id="starredBtn" title="Starred messages (all chats)" aria-label="All starred messages"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9.1 9z"/></svg><span>All Starred</span></button>
       <button class="tb-flat" id="feedbackBtn" title="Leave feedback (better.chat.feedback)" aria-label="Leave feedback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 5v-16l-4 5H4a1 1 0 0 0-1 1z" transform="translate(1,0)"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg><span>Feedback</span></button>
     </div>
     <div class="right">
-      <span class="seg-cap" aria-hidden="true">⌥L</span><div class="segmented" role="group" aria-label="Grid layout — ⌥L cycles">
-        <button data-layout="solo" title="1-up (⌥L cycles layouts)" aria-pressed="false"><span class="glyph solo"><i></i></span></button>
-        <button data-layout="duo" title="2-up (⌥L cycles layouts)" aria-pressed="false"><span class="glyph duo"><i></i><i></i></span></button>
-        <button data-layout="tri" title="2+1 (⌥L cycles layouts)" aria-pressed="false"><span class="glyph tri"><i></i><i></i><i></i></span></button>
-        <button data-layout="quad" title="2×2 (⌥L cycles layouts)" aria-pressed="true"><span class="glyph quad"><i></i><i></i><i></i><i></i></span></button>
-        <button data-layout="six" title="3×2 (⌥L cycles layouts)" aria-pressed="false"><span class="glyph six"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+      <div class="segmented" role="group" aria-label="Grid layout">
+        <button data-layout="solo" title="1-up" aria-pressed="false"><span class="glyph solo"><i></i></span></button>
+        <button data-layout="duo" title="2-up" aria-pressed="false"><span class="glyph duo"><i></i><i></i></span></button>
+        <button data-layout="tri" title="2+1" aria-pressed="false"><span class="glyph tri"><i></i><i></i><i></i></span></button>
+        <button data-layout="quad" title="2×2" aria-pressed="true"><span class="glyph quad"><i></i><i></i><i></i><i></i></span></button>
+        <button data-layout="six" title="3×2" aria-pressed="false"><span class="glyph six"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
       </div>
-      <button class="savedbtn" id="savedGridBtn" title="Saved grid (⌥G)" aria-label="Apply saved grid" hidden><span class="glyph quad g-saved"><i></i><i></i><i></i><i></i><b class="g-star">★</b></span></button>
+      <button class="usualbtn" id="usualGridBtn" title="Usual Grid" aria-label="Apply the Usual Grid" hidden><span class="glyph quad g-saved"><i></i><i></i><i></i><i></i><b class="g-star">★</b></span></button>
       <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts — ?" aria-label="Keyboard shortcuts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12.5" rx="2"/><path d="M6.2 9.8h.01M9.8 9.8h.01M13.4 9.8h.01M17 9.8h.01M6.2 12.8h.01M9.8 12.8h.01M13.4 12.8h.01M17 12.8h.01M8 15.7h8"/></svg></button>
       <button class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </div>
     <div class="usermenu" id="userMenu" hidden>
       <div class="um-head"><b id="umName">You</b><span id="umSub">demo mode</span></div>
-      <button class="um-item" id="statusBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg> Change Status</button>
-      <button class="um-item" id="saveGridBtn"><span class="glyph quad g-saved"><i></i><i></i><i></i><i></i><b class="g-star">★</b></span> Save Current Grid</button>
+      <div class="um-sub-wrap" id="statusWrap">
+        <button class="um-item" id="statusBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg> Change Status<span class="um-caret">›</span></button>
+        <div class="um-sub statusmenu" id="statusSub"></div>
+      </div>
+      <button class="um-item" id="saveUsualGridBtn"><span class="glyph quad g-saved"><i></i><i></i><i></i><i></i><b class="g-star">★</b></span> Save Usual Grid</button>
       <button class="um-item" id="bcConfigBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.12-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.12 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01A1.7 1.7 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01c.26.63.87 1.04 1.56 1.04H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51.94z"/></svg> Better.Chat Config</button>
       <div class="um-sub-wrap">
         <button class="um-item" id="fontBtn"><span class="um-aa">Aa</span> Fonts &amp; Size<span class="um-caret">›</span></button>
@@ -828,6 +1050,7 @@
   "use strict";
 
   const ICON = {
+    lock:'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="10.5" width="16" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>',
     calendar:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>',
     dayStart:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14"/><path d="M12 20V9"/><path d="m7.5 13.5 4.5-4.5 4.5 4.5"/></svg>',
     pinOff:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 17v5"/><path d="M9 3h6l-1 6 3 3H7l3-3-1-6z"/></svg>',
@@ -886,7 +1109,7 @@
   // ---- ⌥/Opt on macOS, Alt everywhere else ----
   const IS_MAC = /Mac|iPhone|iPad|iPod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent);
   const MODK = IS_MAC ? "Opt" : "Alt";
-  const osKeys = v => String(v).replace(/⌥\s?/g, MODK + " + ").replace(/\bOpt\b/g, MODK);   // the ⌥ glyph is never shown — it becomes "Opt + " / "Alt + "
+  const osKeys = v => String(v).replace(/⌥\s?/g, MODK + " + ").replace(/⌘\s?/g, (IS_MAC ? "Cmd" : "Win") + " + ").replace(/\bOpt\b/g, MODK);   // glyphs are never shown — they become "Opt/Alt + " and "Cmd/Win + "
   const helpKeys = osKeys;
   {   // static markup is authored with ⌥/Opt; rewrite it once for the detected OS
     document.querySelectorAll("[title],[placeholder],[aria-label]").forEach(el => {
@@ -920,6 +1143,75 @@
   const n = () => layoutCount[state.layout];
   const visibleSlots = () => state.slots.slice(0, n());
   const activeRoomId = () => state.slots[state.active];
+  // "watching" = active focus: the chat is marked read now AND new messages auto-read while watched.
+  // The arrow-focused tile is only "passive" — grey ring, nothing marked. Exactly one tile is always passive-focused.
+  let watchedSlot = -1, kbTileFocus = false;
+  const watchedRoomId = () => (watchedSlot >= 0 ? state.slots[watchedSlot] : null);
+  function applyFocusClasses() {
+    document.querySelectorAll(".tile").forEach(t => { const sl = +t.dataset.slot; t.classList.toggle("active", sl === state.active); t.classList.toggle("watched", sl === watchedSlot); });
+    updateKeyHints();
+  }
+  function watch(slot, focusInput) {
+    setActive(slot); watchedSlot = slot;
+    const id = state.slots[slot];
+    if (id) {
+      markRead(id);
+      const t = ws.querySelector(`.tile[data-slot="${slot}"]`);
+      if (t) { const b = t.querySelector('[data-role="badge"]'); if (b) b.hidden = true; t.querySelectorAll(".msg.unread").forEach(m => m.classList.remove("unread")); }
+    }
+    applyFocusClasses();
+    if (focusInput) { focusComposer(slot); updateKeyHints(); }   // refresh directly — focus events don't fire in unfocused documents
+  }
+  const HEAD_CTLS = '[data-role="more"], [data-role="unread"]';   // name has Esc+Enter, ✕ has Esc — Tab only offers what lacks a shortcut
+  function tabHeaderCycle(back) {   // Tab: chat name → ⋮ → mark unread → ✕, wrapping
+    const t = ws.querySelector(`.tile[data-slot="${state.active}"]`); if (!t) return;
+    const els = [...t.querySelectorAll(HEAD_CTLS)]; if (!els.length) return;
+    const cur = els.indexOf(document.activeElement);
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    const nxt = els[(cur + (back ? -1 : 1) + els.length) % els.length];
+    nxt.tabIndex = -1; nxt.focus(); updateKeyHints();
+  }
+  const _watchReadT = {};
+  function queueWatchRead(id) {   // arriving messages while watched: push the read-marker (debounced per room)
+    clearTimeout(_watchReadT[id]);
+    _watchReadT[id] = setTimeout(() => { const r = rooms[id]; if (r) r.lastSeen = Date.now(); rc("readMessages", [id], "watch read"); }, 400);
+  }
+  function unwatch() {
+    if (watchedSlot < 0) { updateKeyHints(); return; }
+    const t = ws.querySelector(`.tile[data-slot="${watchedSlot}"]`);
+    if (t && document.activeElement && t.contains(document.activeElement)) document.activeElement.blur();
+    watchedSlot = -1; applyFocusClasses();
+  }
+  function updateKeyHints() {   // on-screen key hints in the focused tile's header
+    document.querySelectorAll(".tile.kbhints").forEach(t => t.classList.remove("kbhints"));
+    document.querySelectorAll(".thh-l, .thh-m1, .thh-r, .thh-m2").forEach(x => x.innerHTML = "");
+    if (!kbTileFocus || state.active < 0) return;
+    const t = ws.querySelector(`.tile[data-slot="${state.active}"]`); if (!t || !state.slots[state.active]) return;
+    const put = (sel, rows) => { const el = t.querySelector(sel); if (el) el.innerHTML = rows.map(r => `<span>${r}</span>`).join(""); };
+    const inputFocused = document.activeElement && t.contains(document.activeElement) && document.activeElement.classList.contains("cinput");
+    const msgHere = kbMsgFocus && focusedMsgEl && t.contains(focusedMsgEl);
+    const watched = watchedSlot === state.active;
+    t.classList.add("kbhints");
+    if (msgHere && msgMenu && menuSel >= 0) { put(".thh-m1", ["<kbd>Tab</kbd> or <kbd>←</kbd><kbd>→</kbd> move"]); put(".thh-m2", ["<kbd>Enter</kbd> execute"]); return; }
+    if (msgHere) { put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); return; }
+    if (inputFocused) { put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-r", ["<kbd>Esc</kbd> unwatch"]); return; }
+    put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> watch",
+                   watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close",
+                   "<kbd>Shift</kbd> switch"].concat(watched ? ["<kbd>↑</kbd> write"] : []));
+    put(".thh-m1", ["<kbd>u</kbd> unread"]);
+    put(".thh-r", ["<kbd>Tab</kbd> actions"]);
+    put(".thh-m2", ["<kbd>z</kbd> prev chat", `<kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swap with neighbour`]);
+  }
+
+  ws.addEventListener("mousedown", e => {   // clicking into a chat watches it; header buttons only move the passive focus (✕ must not mark read)
+    const t = e.target.closest(".tile"); if (!t) return;
+    if (kbTileFocus) { kbTileFocus = false; setTimeout(updateKeyHints, 0); }   // a click in the grid = mouse mode
+    const slot = +t.dataset.slot;
+    if (e.target.closest(".tile-head") || !state.slots[slot]) { if (slot !== state.active) setActive(slot); return; }
+    if (slot !== watchedSlot) watch(slot, false);
+  });
+  document.addEventListener("focusin", e => { if (e.target.classList && e.target.classList.contains("cinput")) { const t = e.target.closest(".tile"); if (t && +t.dataset.slot !== watchedSlot && state.slots[+t.dataset.slot]) { setActive(+t.dataset.slot); watchedSlot = +t.dataset.slot; markRead(state.slots[watchedSlot]); applyFocusClasses(); } else updateKeyHints(); } });
+  document.addEventListener("focusout", e => { if (e.target.classList && e.target.classList.contains("cinput")) setTimeout(updateKeyHints, 0); });
   const slotTag = s => `Tile ${s + 1}`;
 
   let hintTimer;
@@ -1239,7 +1531,7 @@
     let obj = raw;
     if (typeof raw === "string") { try { obj = JSON.parse(raw); } catch (e) { return { ok: false, err: "Invalid JSON: " + e.message }; } }
     if (!obj || typeof obj !== "object" || Array.isArray(obj)) return { ok: false, err: "Config must be a JSON object." };
-    const eff = { version: 1, quickReactions: DEFAULT_QUICK.slice() };
+    const eff = { version: 1, quickReactions: DEFAULT_QUICK.slice(), welcomeTourPassed: obj.welcomeTourPassed === true, focusMode: obj.focusMode === true };
     if (Array.isArray(obj.quickReactions)) {
       const valid = [...new Set(obj.quickReactions.filter(x => typeof x === "string").map(x => normEmojiKey(x)).filter(k => EMOJI[k]))];
       if (valid.length) eff.quickReactions = valid.slice(0, 10);
@@ -1252,7 +1544,7 @@
     }
     bcRawConfig = obj; bcConfig = eff;
     QUICK = eff.quickReactions.map(k => [k, EMOJI[k]]);
-    const hb = document.getElementById("savedGridBtn"); if (hb) hb.hidden = !eff.savedGrid;   // the ★ grid shows only once a grid was saved
+    const hb = document.getElementById("usualGridBtn"); if (hb) hb.hidden = !eff.savedGrid;   // the ★ grid shows only once a grid was saved
     return { ok: true };
   }
   const SVG_SMILE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>';
@@ -1287,7 +1579,7 @@
     else btns.reverse();   // "other" bars are a mirror image of your own — emoji first from the right
     return `<div class="mm-acts">` + btns.join("") + `</div>`;
   }
-  function applyMenuSel() { if (!msgMenu) return; const items = [...msgMenu.querySelectorAll(".mm-react,.mm-act")]; items.forEach((b, i) => b.classList.toggle("mmsel", i === menuSel)); }
+  function applyMenuSel() { if (!msgMenu) return; const items = [...msgMenu.querySelectorAll(".mm-react,.mm-act")]; items.forEach((b, i) => b.classList.toggle("mmsel", i === menuSel)); if (typeof updateKeyHints === "function") updateKeyHints(); }
   function renderMenu() { if (!msgMenu || !msgMenuCtx) return; msgMenu.innerHTML = menuItemsHtml(isMine(msgMenuCtx.m)); applyMenuSel(); }
   function positionMenu(el) {
     if (!msgMenu) return; const mine = isMine(msgMenuCtx.m);
@@ -1494,6 +1786,7 @@
     else if (t.dataset.orig) { t.textContent = t.dataset.orig; delete t.dataset.orig; }
   }
   function setFocusedMsg(el, byKey) {
+    setTimeout(() => { if (typeof updateKeyHints === "function") updateKeyHints(); }, 0);
     kbMsgFocus = !!byKey && !!el;
     if (focusedMsgEl !== el) {
       if (focusedMsgEl) { focusedMsgEl.classList.remove("mfocus"); focusDateShow(focusedMsgEl, false); }
@@ -1726,34 +2019,54 @@
   }
 
   // ---------- tiles ----------
+  let _prevSlots = []; const lastClosed = {};   // per tile: the last chat it lost (z brings it back)
+  function reopenLastClosed() {
+    const sl = state.active >= 0 ? state.active : 0;
+    const id = lastClosed[sl];
+    if (!id || !rooms[id]) { hint("Nothing to reopen in this tile."); return; }
+    if (state.slots[sl] === id) { hint("Already open."); return; }
+    state.slots[sl] = id;
+    renderTiles(); setActive(sl); ensureHistory(id); persist();
+    hint("Reopened " + (rooms[id].name || "chat"));
+  }
   function firstEmptyTile() { for (let i = 0; i < n(); i++) if (!state.slots[i]) return i; return -1; }
 
   function renderTiles() {
     const cnt = n();
-    if (state.active >= cnt) state.active = 0;
+    state.slots.forEach((id, i) => { const p = _prevSlots[i]; if (p && p !== id) lastClosed[i] = p; });   // any close/switch/replace remembers what the tile lost
+    _prevSlots = state.slots.slice();
+    if (state.active >= cnt || state.active < 0) state.active = 0;
+    if (watchedSlot >= 0 && (watchedSlot >= cnt || !rooms[state.slots[watchedSlot]])) watchedSlot = -1;
     ws.dataset.layout = state.layout; ws.innerHTML = "";
     for (let i = 0; i < cnt; i++) {
       const id = state.slots[i], r = rooms[id];
       const tile = document.createElement("section");
-      tile.className = "tile" + (i === state.active ? " active" : "") + (r ? "" : " empty") + (r && hasNew(r) && i !== state.active ? " has-unread" : "");
+      tile.className = "tile" + (i === state.active ? " active" : "") + (i === watchedSlot ? " watched" : "") + (r ? "" : " empty") + (r && hasNew(r) && i !== state.active ? " has-unread" : "");
       tile.dataset.slot = i;
       if (r) { tile.style.setProperty("--stripe", stripe[r.t]); tile.dataset.rt = r.t; }
       if (!r) {
-        tile.innerHTML = `<div class="stream"><div class="pin-hint"><b>Pin a chat by:</b><span>Double-click here</span><span>Drop a favourite</span><span>Press ${MODK} + K</span></div></div>`;
+        tile.innerHTML = `<div class="stream"><div class="empty-ways">` +
+          `<span class="ew-row ew-always">Press <kbd>${i + 1}</kbd> to open chat here</span>` +
+          `<span class="ew-or ew-hover">or</span><span class="ew-row ew-hover">Double-click to open chat</span>` +
+          `<span class="ew-or ew-hover">or</span><span class="ew-row ew-hover">Drop a favourite</span>` +
+          `<span class="ew-or ew-foc">or</span><span class="ew-row ew-foc">Press <kbd>Enter</kbd> to start a chat</span>` +
+          `</div></div>`;
       } else {
         const showUnread = ru(r) > 0;
         tile.innerHTML = `
           <div class="tile-head" data-role="head">
+            <div class="th-hints" aria-hidden="true"><span class="thh thh-l"></span><span class="thh thh-m1"></span><span class="thh thh-r"></span></div>
+            <div class="th-row">
+            <span class="thh-m2" aria-hidden="true"></span>
             ${headSigil(r)}
-            <div class="tile-name" data-role="name" title="Click to switch this chat"><div class="tile-title"><b>${esc(r.name)}${r.muted ? '<span class="muted-tag">MUTED</span>' : ""}</b></div><span class="name-switch" title="Switch chat">${ICON.swap}</span></div>
-            <span class="head-hint"><span>Double-click to expand (${osKeys("⌥E")})</span><span class="hh2">${osKeys("⌥X")} to close</span></span>
+            <div class="tile-name" data-role="name" title="${esc(r.name)} — click to switch this chat"><div class="tile-title"><b>${esc(r.name)}${r.muted ? '<span class="muted-tag">MUTED</span>' : ""}</b></div><span class="name-switch" title="Switch chat">${ICON.swap}</span></div>
+            <span class="head-hint"><span>Double-click to expand</span></span>
             <div class="tools">
               <span class="tile-unread" data-role="badge" title="Jump to next unread" ${showUnread?"":"hidden"}>${ru(r)}</span>
               <button class="thead-btn" data-role="more" title="More actions">${ICON.dots}</button>
-              <button class="thead-btn" data-role="search" title="Search messages (${osKeys("⌥S")})">${ICON.search}</button>
-              <button class="thead-btn" data-role="starred" title="Starred messages">${ICON.starLine}</button>
-              <button class="thead-btn" data-role="unread" title="Mark unread (${osKeys("⌥Z")})">${ICON.eyeoff}</button>
-              <button class="thead-btn" data-role="clear" title="Close chat (${osKeys("⌥X")})">${ICON.close}</button>
+              <button class="thead-btn" data-role="unread" title="Mark unread (u)">${ICON.eyeoff}</button>
+              <button class="thead-btn" data-role="clear" title="Close chat (Esc)">${ICON.close}</button>
+            </div>
             </div>
           </div>
           <div class="stream" data-role="stream">${renderMsgs(r.msgs, r)}</div>
@@ -1762,7 +2075,8 @@
       ws.appendChild(tile);
       if (r) { const s = tile.querySelector('[data-role="stream"]'); s.scrollTop = s.scrollHeight; attachScroll(s, id); restoreDraft(tile, id); if (focusMode && !uncovered.has(id)) { const cv = document.createElement("div"); cv.className = "tile-cover"; cv.innerHTML = '<span class="cover-label">Click to uncover</span>'; tile.appendChild(cv); } }
     }
-    refreshTopbar(); refreshDmStatuses();
+    refreshTopbar(); refreshDmStatuses(); updateKeyHints();
+    setTimeout(refocusMore, 0);
   }
 
   // mark a room read locally + on the server (real read-marker)
@@ -1792,14 +2106,20 @@
     clearVisibleThreadReads(id, slot);
   }
   function setActive(slot) {
-    if (slot === state.active) return;
-    state.active = slot;                                 // focus only — reading is marked by Enter / opening from a bar
+    if (slot === state.active) { updateKeyHints(); return; }
+    const ae = document.activeElement;
+    if (ae && ae.closest && ae.closest(".tile-head")) ae.blur();   // leaving a tile abandons its Tab-focused header control
+    if (avatarFocused) blurAvatar();
+    state.active = slot;                                 // passive focus only — reading happens when the chat is watched
+    if (watchedSlot >= 0 && watchedSlot !== slot) watchedSlot = -1;   // moving the passive focus leaves watch mode
     document.querySelectorAll(".tile").forEach(t => {
-      const s = +t.dataset.slot, on = s === slot;
-      t.classList.toggle("active", on);
+      const s = +t.dataset.slot;
+      t.classList.toggle("active", s === slot);
+      t.classList.toggle("watched", s === watchedSlot);
       const b = t.querySelector('[data-role="badge"]'), r = rooms[state.slots[s]];
       if (b && r) { b.hidden = !ru(r); b.textContent = ru(r); }
     });
+    updateKeyHints();
     refreshTopbar();
   }
   function focusComposer(slot) { const inp = ws.querySelector(`.tile[data-slot="${slot}"] [data-role="composer"] .cinput`); if (inp) inp.focus(); }
@@ -1862,8 +2182,9 @@
       const echoK = fromMe ? pendingSent.findIndex(p => p.sig === roomId + "\x00" + (m.text || "")) : -1;
       if (echoK >= 0) { pendingSent.splice(echoK, 1); const opt = [...r.msgs].reverse().find(x => !x.id && isMine(x) && x.text === m.text); if (opt) { opt.id = m.id; opt.reactions = m.reactions; opt.tmid = m.tmid; opt.tshow = true; opt.replyTag = m.replyTag; rerenderMsgById(roomId, m.id); refreshTopbar(); return; } }
       r.msgs.push(m); if (m.tsMs) r.lm = Math.max(r.lm || 0, m.tsMs);
-      const read = fromMe || roomId === activeRoomId() || roomId === expandRoomId;
+      const read = fromMe || roomId === watchedRoomId() || roomId === expandRoomId;
       if (!read && !r.muted && !m.sys) { r.unread = (r.unread || 0) + 1; r.alert = true; r._walk = null; }   // muted chats never count unread; system lines (joins etc.) don't either
+      if (!fromMe && read && roomId === watchedRoomId()) queueWatchRead(roomId);
       const vi = visibleSlots().indexOf(roomId); if (vi >= 0) { appendToTile(vi, m, !read); refreshTileBadge(vi); }
       if (roomId === expandRoomId) appendToExpand(roomId, m, !read);
       refreshTopbar();
@@ -1875,8 +2196,9 @@
     }
     r.msgs.push(m); if (m.tsMs) r.lm = Math.max(r.lm || 0, m.tsMs);
     const slots = visibleSlots(); let idx = slots.indexOf(roomId);
-    const read = fromMe || roomId === activeRoomId() || roomId === expandRoomId;
+    const read = fromMe || roomId === watchedRoomId() || roomId === expandRoomId;
     if (!read && !r.muted) { r.unread = (r.unread || 0) + 1; r.alert = true; r._walk = null; }   // muted chats never count unread
+    if (!fromMe && read && roomId === watchedRoomId()) queueWatchRead(roomId);
     if (idx >= 0) { appendToTile(idx, m, !read); refreshTileBadge(idx); }
     else if (!fromMe) { const target = firstEmptyTile(); if (target >= 0) { state.slots[target] = roomId; renderTiles(); ensureHistory(roomId); persist(); } }
     if (roomId === expandRoomId) appendToExpand(roomId, m, !read);
@@ -1935,7 +2257,7 @@
     if (slot >= 0) upd(ws.querySelector(`.tile[data-slot="${slot}"] [data-role="stream"]`));
     if (expandRoomId === id) upd(modal.querySelector('[data-role="stream"]'));
   }
-  function markUnread(id) { const r = rooms[id]; if (!r) return; r.manualUnread = true; r.unread = Math.max(1, r.unread || 0); r.lastSeen = 0; const s = state.slots.indexOf(id); if (s >= 0) state.slots[s] = null; state.active = -1; renderTiles(); persist(); rc("unreadMessages", [null, id], "mark unread"); }
+  function markUnread(id) { const r = rooms[id]; if (!r) return; r.manualUnread = true; r.unread = Math.max(1, r.unread || 0); r.lastSeen = 0; const s = state.slots.indexOf(id); if (s >= 0) state.slots[s] = null; renderTiles(); persist(); rc("unreadMessages", [null, id], "mark unread"); }
   function nextPopulated(from) { const cnt = n(); for (let k = 1; k <= cnt; k++) { const i = (from + k) % cnt; if (state.slots[i]) return i; } return -1; }
   function closeTile(slot) { state.slots[slot] = null; state.active = slot; renderTiles(); persist(); }   // stay focused on the now-empty tile
 
@@ -2054,8 +2376,9 @@
     for (const base of [location.origin, "https://" + serverHost]) { try { const r = await fetch(base + path, opts); if (r.ok) return await r.json(); } catch (e) {} }
     return null;
   }
+  const chanBadge = nm => `<span class="chan-badge">${ICON.lock}${esc(nm)}</span>`;
   let panelBack = null;
-  function closePanel() { if (panelBack) { panelBack.remove(); panelBack = null; } }
+  function closePanel() { if (panelBack) { panelBack.remove(); panelBack = null; setTimeout(refocusMore, 0); } }
   function openPanel(headHtml, bodyHtml, cls) {
     closePanel();
     if (typeof setFocusedMsg === "function") setFocusedMsg(null);   // popups steal focus from any focused message
@@ -2266,13 +2589,109 @@
     render();
   }
   // "⋮ more actions" dropdown in the chat header
-  let tileMenu = null;
-  function hideTileMenu() { if (tileMenu) { tileMenu.remove(); tileMenu = null; } }
+  // mini hint mode inside a menu: the first letters of each option light up; typing one runs it
+  let menuHintCtx = null;
+  function stopMenuHints() {
+    if (!menuHintCtx) return;
+    menuHintCtx.items.forEach(t => t.el.classList.remove("tmsel"));
+    menuHintCtx.restore.forEach(([el, html]) => { if (document.contains(el)) el.innerHTML = html; });
+    document.querySelectorAll(".um-sub-wrap.open").forEach(w => w.classList.remove("open"));
+    menuHintCtx = null;
+  }
+  function menuLabelEl(btn) {
+    const sp = btn.querySelector(":scope > span:not(.um-caret):not(.glyph):not(.um-aa)");
+    if (sp) return sp;
+    for (const nd of btn.childNodes) {
+      if (nd.nodeType === 3 && nd.textContent.trim()) { const w = document.createElement("span"); const txt = nd.textContent.trim(); nd.replaceWith(w); w.textContent = txt; return w; }
+    }
+    return null;
+  }
+  function startMenuHints(container, sel) {
+    stopMenuHints();
+    const items = [...container.querySelectorAll(sel)].map(el => ({ el, word: (el.textContent || "menu").trim() }));
+    if (!items.length) return;
+    navAssignKeys(items);
+    const restore = [];
+    items.forEach(it => {
+      const lab = menuLabelEl(it.el); if (!lab) return;
+      restore.push([lab, lab.innerHTML]);
+      const name = lab.textContent;
+      if (it.word.startsWith(it.key)) {
+        let matched = 0, cut = 0;
+        for (let ci = 0; ci < name.length && matched < it.key.length; ci++) { if (/[a-z0-9]/i.test(name[ci])) matched++; cut = ci + 1; }
+        lab.innerHTML = `<span class="nav-glow">${esc(name.slice(0, cut))}</span>${esc(name.slice(cut))}`;
+      } else lab.innerHTML = `<span class="nav-glow nav-badge">${esc(it.key)}</span>${esc(name)}`;
+    });
+    menuHintCtx = { container, items, restore, buf: "", sel: 0 };
+    if (items[0]) items[0].el.classList.add("tmsel");   // the first option starts focused
+  }
+  function openSubWrap(wrap) {   // keyboard-open a hover submenu; the synthetic mouseenter lets lazy submenus (Change Status) render their content
+    wrap.classList.add("open");
+    wrap.dispatchEvent(new MouseEvent("mouseenter"));
+  }
+  function menuHintKey(e) {   // returns true when consumed
+    if (!menuHintCtx) return false;
+    const c = menuHintCtx;
+    if (!document.contains(c.container) || c.container.hidden) { stopMenuHints(); return false; }
+    if (e.key === "Escape") { e.preventDefault(); const cont = c.container; stopMenuHints(); if (cont.id === "userMenu") { cont.hidden = true; if (avatarFocused) document.getElementById("meBtn").classList.add("kbfocus"); } else hideTileMenu(); return true; }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Tab") {   // arrows walk the options
+      e.preventDefault();
+      const d = (e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) ? -1 : 1;
+      c.sel = (c.sel + d + c.items.length) % c.items.length;
+      c.items.forEach((t, i) => t.el.classList.toggle("tmsel", i === c.sel));
+      return true;
+    }
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {   // → opens the focused item's submenu, ← closes it — never the grid underneath
+      e.preventDefault();
+      const t = c.items[c.sel >= 0 ? c.sel : 0]; const wrap = t && t.el.closest(".um-sub-wrap");
+      if (wrap) {
+        if (e.key === "ArrowRight") { document.querySelectorAll(".um-sub-wrap.open").forEach(w => w !== wrap && w.classList.remove("open")); openSubWrap(wrap); }
+        else wrap.classList.remove("open");
+      }
+      return true;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const t = c.items[c.sel >= 0 ? c.sel : 0]; if (!t) return true;
+      const wrap = t.el.closest(".um-sub-wrap");
+      if (wrap) { if (wrap.classList.contains("open")) wrap.classList.remove("open"); else openSubWrap(wrap); return true; }
+      const el = t.el; stopMenuHints(); el.click();
+      return true;
+    }
+    if (!/^[a-z0-9]$/i.test(e.key) || e.altKey || e.metaKey || e.ctrlKey) return false;
+    e.preventDefault();
+    c.buf += e.key.toLowerCase();
+    let cand = c.items.filter(t => t.key.startsWith(c.buf));
+    if (!cand.length) { c.buf = e.key.toLowerCase(); cand = c.items.filter(t => t.key.startsWith(c.buf)); }
+    if (!cand.length) { c.buf = ""; return true; }
+    const exact = cand.find(t => t.key === c.buf);
+    if (exact) {
+      c.buf = "";
+      const wrap = exact.el.closest(".um-sub-wrap");
+      if (wrap) { document.querySelectorAll(".um-sub-wrap.open").forEach(w => w !== wrap && w.classList.remove("open")); if (wrap.classList.contains("open")) wrap.classList.remove("open"); else openSubWrap(wrap); return true; }   // hover submenus (Status, Fonts, Releases) toggle open
+      const el = exact.el; stopMenuHints(); el.click();
+    }
+    return true;
+  }
+  let menuViaKb = false;   // Enter on the Tab-focused ⋮ opens the menu WITH letter hints; a mouse click opens it without
+  let pendingMoreFocus = -1;   // slot whose ⋮ button regains focus after a menu action finishes
+  function refocusMore() {
+    if (pendingMoreFocus < 0) return;
+    if (panelBack || !backdrop.hidden || tileMenu) return;   // an open popup owns the focus until it closes
+    const mb = ws.querySelector(`.tile[data-slot="${pendingMoreFocus}"] [data-role="more"]`);
+    pendingMoreFocus = -1;
+    if (mb) { mb.tabIndex = -1; mb.focus(); updateKeyHints(); }
+  }
+  document.addEventListener("mousedown", () => { pendingMoreFocus = -1; });
+  let tileMenu = null, tmSel = -1;
+  function hideTileMenu() { if (tileMenu) { tileMenu.remove(); tileMenu = null; } tmSel = -1; if (menuHintCtx && menuHintCtx.container !== document.getElementById("userMenu")) menuHintCtx = null; }
   function showTileMenu(btn, slot) {
     hideTileMenu(); const id = state.slots[slot]; if (!id) return;
     tileMenu = document.createElement("div"); tileMenu.className = "tmenu";
     const rm = rooms[id];
     tileMenu.innerHTML =
+      `<button class="tmenu-item" data-act="search">${ICON.search}<span>Search messages</span></button>` +
+      `<button class="tmenu-item" data-act="starred">${ICON.starLine}<span>Starred messages</span></button>` +
       `<button class="tmenu-item" data-act="files">${ICON.paperclip}<span>Files</span></button>` +
       `<button class="tmenu-item" data-act="threads">${ICON.threads}<span>Threads</span></button>` +
       `<button class="tmenu-item" data-act="mymsgs">${ICON.person}<span>Messages by user</span></button>` +
@@ -2284,9 +2703,13 @@
     const r = btn.getBoundingClientRect();
     tileMenu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - tileMenu.offsetWidth - 8)) + "px";
     tileMenu.style.top = (r.bottom + 4) + "px";
+    if (menuViaKb) startMenuHints(tileMenu, ".tmenu-item");
+    menuViaKb = false;
     tileMenu.addEventListener("click", e => {
       const b = e.target.closest(".tmenu-item"); if (!b) return; e.stopPropagation(); const act = b.dataset.act; hideTileMenu();
-      if (act === "files") openFiles(id); else if (act === "threads") openThreadsList(id); else if (act === "mymsgs") openMyMessages(id);
+      pendingMoreFocus = slot; setTimeout(refocusMore, 60);   // the ⋮ regains focus after the action (or once its popup closes)
+      if (act === "search") openSearch(id); else if (act === "starred") openStarred(id);
+      else if (act === "files") openFiles(id); else if (act === "threads") openThreadsList(id); else if (act === "mymsgs") openMyMessages(id);
       else if (act === "fav") toggleFav(id);
       else if (act === "mute") setMuted(id, !(rooms[id] && rooms[id].muted));
       else if (act === "daystart") jumpToDayStart(id);
@@ -2656,7 +3079,7 @@
     expandRoomId = id; markRead(id); modalKind = "expand";
     modal.className = "modal lg";
     modal.innerHTML = `
-      <div class="mhead">${headSigil(r)}<div class="mtitle">${esc(r.name)}${r.muted ? '<span class="muted-tag">MUTED</span>' : ""}</div><span class="mono" style="color:var(--text-faint);font-size:11.5px">${esc(r.topic)}</span>${r.muted ? "" : `<span class="mkbd">${osKeys("⌥E")}</span>`}<button class="mclose" data-role="close">✕</button></div>
+      <div class="mhead">${headSigil(r)}<div class="mtitle">${esc(r.name)}${r.muted ? '<span class="muted-tag">MUTED</span>' : ""}</div><span class="mono" style="color:var(--text-faint);font-size:11.5px">${esc(r.topic)}</span><button class="mclose" data-role="close">✕</button></div>
       <div class="mbody chat" data-role="stream">${renderMsgs(r.msgs, r)}</div>
       ${composerHtml(id, r)}`;
     backdrop.hidden = false;
@@ -2731,9 +3154,9 @@
     const favs = order().filter(id => rooms[id].fav);
     modalResults = filterRooms(""); modalNumbered = favs;
     modal.innerHTML =
-      `<div class="mhead"><div class="mtitle">Open a chat in <span class="mfocus">${tname}</span><span style="color:var(--text-faint);font-weight:400"> &middot; now ${esc(focusName)}</span></div><span class="mkbd">${osKeys("⌥K")}</span><button class="mclose" data-role="close">✕</button></div>` +
+      `<div class="mhead"><div class="mtitle">Open a chat in <span class="mfocus">${tname}</span><span style="color:var(--text-faint);font-weight:400"> &middot; now ${esc(focusName)}</span></div><span class="mkbd">Shift</span><button class="mclose" data-role="close">✕</button></div>` +
       `<div class="mchips"><span class="clabel label">★ Favorites</span>${favs.map((id)=>`<button class="chip" data-room="${id}"><span class="sigil ${rooms[id].t}">${sig[rooms[id].t]}</span>${esc(rooms[id].name)}</button>`).join("")}</div>` +
-      searchBar("Search name or initials (try &ldquo;js&rdquo; for john.smith or &ldquo;jb&rdquo; for john.black)") +
+      searchBar("Search name or initials (try &ldquo;js&rdquo; for john.smith or &ldquo;pt&rdquo; for pinga-team)") +
       `<div class="mbody" data-role="results">${modalResults.map((id,i)=>roomRow(id,null,i===0)).join("")}</div>` +
       foot(`Opens in <b>${tname}</b>`, true);
     backdrop.hidden = false;
@@ -2748,30 +3171,21 @@
   }
   function helpTableHtml() {
     const SECTIONS = [
-      ["Chats", [
-        ["← → ↑ ↓", "Move focus between chat windows (does <b>NOT</b> mark it read). Hit [[Enter]] to mark the chat read and focus its message input"],
-        ["⌥ E", "Expand the focused chat to a big window"],
-        ["⌥ L", "Cycle grid layout (1 → 2 → 2+1 → 2×2 → 3×2)"],
-        ["⌥ X", "Close the focused chat"],
-        ["⌥ Z", "Mark the focused chat unread (adds it to the unread bar)"],
-        ["⌥ ← → ↑ ↓", "Swap the focused chat with the neighbouring tile"],
-        ["⌥ S", "Search focused chat’s messages"],
-        ["⌥ G", "Apply your saved grid (save one via the avatar menu → Save Current Grid)"],
-      ]],
-      ["Messages", [
-        ["Tab · Enter (on a focused message)", "Select the emoji action; [[Tab]] / [[← →]] cycle actions, [[Enter]] runs the selected one"],
-        ["↑ from the input", "Jump up from the composer into the messages"],
-        ["↑ ↓ (on a message)", "Move between messages; [[↓]] past the last returns to the composer"],
-      ]],
-      ["Bars, search & favourites", [
-        ["⌥ K", "Open a chat — into the focused tile, or the first empty one if nothing's focused"],
-        ["⌥ F", "Cycle the favourites bar; [[Enter]] opens the highlighted one in the first free window"],
-        ["⌥ U", "Cycle the unread bar; [[Enter]] opens the highlighted one, [[⌥ Enter]] brings up the quick-reply popup"],
-        ["⌥ number", "Open favourite N (double-digits ok, e.g. [[⌥ 12]])"],
+      ["Shortcuts", [
+        ["f", "Fast Nav mode — key tags light up over everything clickable; type one to trigger it ([[esc]] exits)"],
+        ["Shift", "Search and open a chat — in the focused tile, or the first empty one"],
+        ["u", "Mark the focused chat unread — it moves to the unread bar"],
+        ["z", "Bring back this tile’s previous chat (after closing or switching)"],
+        [["⌘", "←", "→", "↑", "↓"], "Swap the focused chat with the neighbouring tile"],
       ]],
     ];
-    const rowH = ([k, d]) => `<div class="kbrow"><span class="kbkeys">${k.split(/\s·\s|\s\/\s/).map(p => `<kbd>${helpKeys(p)}</kbd>`).join('<i class="kb-or">or</i>')}</span><div class="kbd-desc">${helpKeys(d).replace(/\[\[(.+?)\]\]/g, "<kbd>$1</kbd>")}</div></div>`;
-    return `<div class="kbgrid">` + SECTIONS.map(([t, rows]) => `<section class="kbtile"><h4>${t}</h4>${rows.map(rowH).join("")}</section>`).join("") + `</div>`;
+    const rowH = ([k, d]) => {   // string keys split on " · " into alternatives; an array renders adjacent badges
+      const keys = Array.isArray(k)
+        ? k.map(p => `<kbd>${p === "⌘" ? (IS_MAC ? "Cmd" : "Win") : p === "⌥" ? MODK : helpKeys(p)}</kbd>`).join("")
+        : k.split(/\s·\s|\s\/\s/).map(p => `<kbd>${helpKeys(p)}</kbd>`).join('<i class="kb-or">or</i>');
+      return `<div class="kbrow"><span class="kbkeys">${keys}</span><div class="kbd-desc">${helpKeys(d).replace(/\[\[(.+?)\]\]/g, "<kbd>$1</kbd>")}</div></div>`;
+    };
+    return `<div class="kbgrid">` + SECTIONS.map(([t, rows]) => `<section class="kbtile">${SECTIONS.length > 1 ? `<h4>${t}</h4>` : ""}${rows.map(rowH).join("")}</section>`).join("") + `</div>`;
   }
   function setLayout(name) {
     if (!layoutCount[name]) return;
@@ -2790,10 +3204,10 @@
   }
   function pickRoom(id) {
     const existing = visibleSlots().indexOf(id);
-    if (existing >= 0 && existing !== modalTarget) { closeModal(); setActive(existing); focusComposer(existing); hint("Already open — focused that window."); return; }   // no duplicates: focus the existing one
+    if (existing >= 0 && existing !== modalTarget) { closeModal(); setActive(existing); hint("Already open — focused that window."); return; }   // no duplicates: focus the existing one
     if (modalTarget < 0) modalTarget = firstEmptyTile() >= 0 ? firstEmptyTile() : 0;
     state.slots[modalTarget] = id; markRead(id);
-    const t = modalTarget; closeModal(); renderTiles(); setActive(t); ensureHistory(id); persist(); focusComposer(t);
+    const t = modalTarget; closeModal(); renderTiles(); setActive(t); ensureHistory(id); persist();
   }
   backdrop.addEventListener("click", e => {
     if (e.target === backdrop || e.target.closest('[data-role="close"]')) return closeModal();
@@ -2812,15 +3226,19 @@
 
   // ---------- keyboard ----------
   const LAYOUTS = ["solo", "duo", "tri", "quad", "six"];
-  function cycleLayout() { setLayout(LAYOUTS[(LAYOUTS.indexOf(state.layout) + 1) % LAYOUTS.length]); }   // ⌥L — plain layouts only; the saved grid has its own ⌥G
-  function moveWindow(key) {   // arrow navigation between chat windows — grid-aware, wraps on ← →, jumps by row on ↑ ↓
-    const cnt = n(); if (cnt <= 1 || state.active < 0) { setActive(0); setFocusedMsg(null); return; }   // nothing focused -> the first press just focuses the first window
+  function cycleLayout() { setLayout(LAYOUTS[(LAYOUTS.indexOf(state.layout) + 1) % LAYOUTS.length]); }   // the layout switcher's own cycling
+  function moveWindow(key) {   // arrow navigation between chat windows — edge-aware (no wrapping); ↑ from the top row climbs into the bars
+    kbTileFocus = true;
+   
+    if (key === "ArrowUp" && state.active >= 0 && state.active === watchedSlot && state.slots[state.active]) { focusComposer(state.active); updateKeyHints(); return; }   // watched: ↑ drops into the input
+    const cnt = n(); if (state.active < 0) { setActive(0); setFocusedMsg(null); return; }   // nothing focused -> the first press just focuses the first window
     const cols = layoutCols[state.layout] || 1, cur = state.active;
+    const row = Math.floor(cur / cols), lastRow = Math.floor((cnt - 1) / cols);
     let t = cur;
-    if (key === "ArrowLeft") t = (cur - 1 + cnt) % cnt;
-    else if (key === "ArrowRight") t = (cur + 1) % cnt;
-    else if (key === "ArrowUp") t = cur - cols >= 0 ? cur - cols : (cur - 1 + cnt) % cnt;
-    else if (key === "ArrowDown") t = cur + cols < cnt ? cur + cols : (cur + 1) % cnt;
+    if (key === "ArrowLeft") { if (cur % cols === 0) return; t = cur - 1; }
+    else if (key === "ArrowRight") { if (cur % cols === cols - 1 || cur + 1 >= cnt) return; t = cur + 1; }
+    else if (key === "ArrowUp") { if (row === 0) { enterBarNav(); return; } t = cur - cols; }
+    else if (key === "ArrowDown") { if (row >= lastRow) return; t = Math.min(cur + cols, cnt - 1); }
     setActive(t); setFocusedMsg(null);
   }
   function neighborSlot(cur, key) {
@@ -2830,12 +3248,15 @@
     if (key === "ArrowUp") return cur - cols >= 0 ? cur - cols : (cur - 1 + cnt) % cnt;
     return cur + cols < cnt ? cur + cols : (cur + 1) % cnt;
   }
-  function swapWindow(key) {   // ⌥arrow: swap the focused tile's chat with its neighbour (either may be empty)
+  function swapWindow(key) {   // ⌘arrow: swap the focused tile's chat with its neighbour (either may be empty)
     if (n() <= 1) return;
     const cur = state.active >= 0 ? state.active : 0, t = neighborSlot(cur, key);
     if (t === cur) return;
+    const wasWatching = watchedSlot === cur;
     const tmp = state.slots[cur]; state.slots[cur] = state.slots[t]; state.slots[t] = tmp;
-    setFocusedMsg(null); renderTiles(); setActive(t); persist();   // focus follows the chat that moved
+    setFocusedMsg(null); renderTiles(); setActive(t);
+    if (wasWatching && state.slots[t]) { watchedSlot = t; applyFocusClasses(); }   // still watching the same chat, just in its new tile
+    persist();
   }
   const favList = () => order().filter(id => rooms[id].fav);
   function showInfoPop(x, y, text) {
@@ -2852,7 +3273,6 @@
     else if (x != null) showInfoPop(x, y, "No empty window — drag onto a chat to replace it.");
     else hint("No empty window — drag onto a chat to replace it.");
   }
-  function pickFavByNumber(k) { const id = favbarRooms()[k - 1]; if (id) placeFavourite(id); }
   // clicking a user's avatar in a channel opens (or creates) the DM in the first free window
   async function openDmWith(username, display) {
     const uname = (username || "").toLowerCase();
@@ -2889,12 +3309,10 @@
     openDmWith(u.username, u.display);
   });
 
-  // buffered ⌥number so double digits work (⌥1 then ⌥2 = 12); numbers cover ALL favourites
-  let numBuf = "", numTimer = null, lastEnter = 0;
+  let lastEnter = 0;
   function flushNum() {
     const k = parseInt(numBuf, 10); numBuf = ""; if (!k) return;
     if (!backdrop.hidden && modalKind && modalKind !== "expand") { const id = modalNumbered[k - 1]; if (id) pickRoom(id); }
-    else if (backdrop.hidden) pickFavByNumber(k);
   }
   function queueNum(d) { numBuf += d; clearTimeout(numTimer); numTimer = setTimeout(flushNum, 550); }
 
@@ -2913,12 +3331,33 @@
       if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); const c = emojiList[emojiSel]; if (c) chooseEmoji(c.name); return; }
       if (e.key === "Escape") { e.preventDefault(); hideEmoji(); return; }
     }
+    if (navMode && handleNavKey(e)) return;   // hint navigation owns plain keys while active
+    if (menuHintKey(e)) return;   // an open menu's letter hints
+    if (tileMenu) {   // ⋮ menu: arrows/Tab move, Enter runs, Esc closes (below)
+      const tItems = [...tileMenu.querySelectorAll(".tmenu-item")];
+      if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Tab") {
+        e.preventDefault(); if (!tItems.length) return;
+        const d = (e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) ? -1 : 1;
+        tmSel = tmSel < 0 ? (d > 0 ? 0 : tItems.length - 1) : (tmSel + d + tItems.length) % tItems.length;
+        tItems.forEach((b, i) => b.classList.toggle("tmsel", i === tmSel)); return;
+      }
+      if (e.key === "Enter") { e.preventDefault(); const b = tItems[tmSel >= 0 ? tmSel : 0]; if (b) b.click(); return; }
+    }
+    if (urPop && e.key === "Tab") { e.preventDefault(); urPopTab(); return; }   // quick-reply popup: Tab -> Mark read -> input -> …
+    if (urPop && e.key === "Enter" && backdrop.hidden) {   // Enter: input sends (form), Mark read marks (button), anywhere else opens the chat
+      const ae = document.activeElement, inUr = ae && urPop.contains(ae);
+      if (!(inUr && (ae.tagName === "INPUT" || ae.matches('[data-role="ur-read"]')))) {
+        e.preventDefault(); const id = urPop.dataset.room; hideUrPop(); if (id) placeFavourite(id); return;
+      }
+    }
     if (e.key === "Escape") {   // Esc closes whichever popup is open (topmost first)
-      if (msgMenu || focusedMsgEl) { e.preventDefault(); return setFocusedMsg(null); }   // fully defocus (clears kbMsgFocus so hover works again)
+      if (msgMenu && !kbMsgFocus && !focusedMsgEl) hideMsgMenu();   // hover-only toolbar: dismiss silently, Esc continues to its real target
+      else if (msgMenu || focusedMsgEl) { e.preventDefault(); return setFocusedMsg(null); }   // fully defocus (clears kbMsgFocus so hover works again)
       if (bigBack) { e.preventDefault(); return closeBigEditor(); }
       if (tileMenu) { e.preventDefault(); return hideTileMenu(); }
       if (panelBack) { e.preventDefault(); return closePanel(); }
-      if (urPop) { e.preventDefault(); return hideUrPop(); }
+      if (urPop) { e.preventDefault(); hideUrPop(); if (unreadCycleId) { unreadCycleId = null; renderUnreadbar(); setActive(Math.min(barReturnSlot, n() - 1)); } return; }
+      if (favCycleId || unreadCycleId) { e.preventDefault(); favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); setActive(Math.min(barReturnSlot, n() - 1)); return; }
       if (threadsBack) { e.preventDefault(); return hideThreadsList(); }
       if (threadPop) { e.preventDefault(); return hideThread(); }
     }
@@ -2926,23 +3365,32 @@
     if (msgMenu && kbMsgFocus && !focusedBadgeEl) {   // keyboard-focused message: Tab/Enter select the emoji action first; then Tab/←→ cycle, Enter runs
       const items = [...msgMenu.querySelectorAll(".mm-react,.mm-act")];
       const entrySel = () => { const i = items.findIndex(b => b.dataset && b.dataset.act === "emoji"); return i >= 0 ? i : 0; };   // land on the emoji action first, wherever it sits ("other" bars are reversed)
-      if (e.key === "Tab" || ((e.key === "ArrowLeft" || e.key === "ArrowRight") && menuSel >= 0)) {
+      if ((e.key === "Tab" && menuSel >= 0) || ((e.key === "ArrowLeft" || e.key === "ArrowRight") && menuSel >= 0)) {
         e.preventDefault(); if (!items.length) return;
-        if (menuSel < 0) menuSel = entrySel();
-        else menuSel = (menuSel + ((e.key === "ArrowLeft" || (e.key === "Tab" && e.shiftKey)) ? -1 : 1) + items.length) % items.length;
+        const fwd = isMine(msgMenuCtx.m) ? 1 : -1;   // "next" = toward reply, copy, … on both sides (other bars are mirrored)
+        if (e.key === "Tab") menuSel = (menuSel + (e.shiftKey ? -fwd : fwd) + items.length) % items.length;
+        else menuSel = (menuSel + (e.key === "ArrowLeft" ? -1 : 1) + items.length) % items.length;
         applyMenuSel(); return;
       }
       if (e.key === "Enter") {
         e.preventDefault(); if (!items.length) return;
-        if (menuSel < 0) { menuSel = entrySel(); applyMenuSel(); return; }   // first Enter only highlights the emoji action
+        if (menuSel < 0) { menuSel = entrySel(); applyMenuSel(); return; }   // Enter enters the action bar on the emoji action
         const b = items[menuSel]; if (b) b.click(); return;
       }
     }
     const inPopup = !backdrop.hidden && modalKind && modalKind !== "expand";
     const typing = /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName) || !!(document.activeElement && document.activeElement.isContentEditable);   // inputs + inline message editing
     if (e.key === "?" && backdrop.hidden && !typing) { e.preventDefault(); openHelp(); return; }
-    if ((favCycleId || unreadCycleId) && backdrop.hidden && !typing) {   // bar-cycle mode (⌥F favourites / ⌥U unread)
-      if (e.key === "Enter" && e.altKey && unreadCycleId) {   // ⌥Enter -> preview & quick-reply the highlighted unread
+    if (avatarFocused && backdrop.hidden && !typing && !e.altKey && !e.metaKey && !e.ctrlKey) {   // avatar: Enter opens its menu, ↓ returns to the favourites, Esc lets go
+      const um = document.getElementById("userMenu");
+      if (e.key === "Enter") { e.preventDefault(); um.hidden = false; startMenuHints(um, ".um-item"); return; }
+      if (e.key === "ArrowDown") { e.preventDefault(); blurAvatar(); const fv = favbarRooms(); if (fv.length) { favCycleId = fv[0]; renderFavbar(); } else { kbTileFocus = true; setActive(Math.min(barReturnSlot, n() - 1)); } return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); return; }   // nothing above
+      if (e.key === "Escape") { e.preventDefault(); blurAvatar(); um.hidden = true; kbTileFocus = true; setActive(Math.min(barReturnSlot, n() - 1)); return; }
+    }
+    if ((favCycleId || unreadCycleId) && backdrop.hidden && !typing && !e.altKey && !e.metaKey && /^Arrow/.test(e.key)) { e.preventDefault(); barArrow(e.key); return; }
+    if ((favCycleId || unreadCycleId) && backdrop.hidden && !typing) {   // a bar chip is highlighted
+      if (e.key === "Enter" && e.altKey && unreadCycleId) {   // ⌥Enter -> preview & quick-reply the highlighted unread (legacy combo)
         e.preventDefault(); const id = unreadCycleId, chip = unreadbarEl.querySelector(`.favchip[data-room="${id}"]`), rct = chip ? chip.getBoundingClientRect() : null;
         unreadCycleId = null; renderUnreadbar(); openUnreadPreview(id, rct ? rct.left : window.innerWidth / 2, rct ? rct.bottom : 120); return;
       }
@@ -2950,23 +3398,39 @@
       if (e.key === "Escape") { e.preventDefault(); favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); return; }
     }
 
-    if (e.altKey && !e.metaKey && !e.ctrlKey && /^Digit[0-9]$/.test(e.code)) { e.preventDefault(); queueNum(e.code.slice(5)); return; }
-
-    if (e.altKey && !e.metaKey && !e.ctrlKey && /^Arrow(Left|Right|Up|Down)$/.test(e.key) && !typing && backdrop.hidden) { e.preventDefault(); swapWindow(e.key); return; }
-    if (e.altKey && !e.metaKey && !e.ctrlKey) {
-      if (e.code === "KeyK") { e.preventDefault(); openFinder(null); return; }
-      if (e.code === "KeyF") { e.preventDefault(); cycleFav(); return; }
-      if (e.code === "KeyU") { e.preventDefault(); cycleUnreadBar(); return; }
-      if (e.code === "KeyZ") { e.preventDefault(); if (state.slots[state.active]) markUnread(state.slots[state.active]); return; }
-      if (e.code === "KeyE") { e.preventDefault(); openExpand(state.active); return; }
-      if (e.code === "KeyL") { e.preventDefault(); cycleLayout(); return; }
-      if (e.code === "KeyX") { e.preventDefault(); closeTile(state.active); return; }
-      if (e.code === "KeyS") { e.preventDefault(); if (state.slots[state.active]) openSearch(state.slots[state.active]); return; }
-      if (e.code === "KeyG") { e.preventDefault(); applySavedGrid(); return; }   // ⌥G (G = grid)
+    if (e.metaKey && !e.altKey && !e.ctrlKey && /^Arrow(Left|Right|Up|Down)$/.test(e.key) && !typing && backdrop.hidden) { e.preventDefault(); swapWindow(e.key); return; }
+    if (e.key === "f" && !typing && backdrop.hidden && !urPop && !kbMsgFocus && !e.altKey && !e.metaKey && !e.ctrlKey) { e.preventDefault(); enterNavMode(); return; }   // f = Fast Nav mode
+    if (e.key === "Tab") {
+      if (inPopup) { if (!modalResults.length) return; e.preventDefault(); modalSel = (modalSel + (e.shiftKey ? -1 : 1) + modalResults.length) % modalResults.length; renderResults(); return; }
+      e.preventDefault();   // browser tab-focus stays disabled app-wide
+      const ae = document.activeElement;
+      const inTileComposer = ae && ae.classList && ae.classList.contains("cinput") && ae.closest(".tile");
+      if (typing && !inTileComposer) return;   // editors in popups keep Tab inert
+      if (backdrop.hidden && !panelBack && state.active >= 0 && state.slots[state.active]) { kbTileFocus = true; setFocusedMsg(null); tabHeaderCycle(e.shiftKey); }
+      return;
     }
-    if (e.key === "Tab" && inPopup) { if (!modalResults.length) return; e.preventDefault(); modalSel = (modalSel + (e.shiftKey ? -1 : 1) + modalResults.length) % modalResults.length; renderResults(); return; }
     // arrows move between chat windows — ← → always; ↑ ↓ when no message is keyboard-focused (never while typing or focused anywhere in a composer)
     const inComposer = document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"], .up-reply, .bigeditor, .inline-edit');
+    const calPop = panelBack && panelBack.querySelector && panelBack.querySelector(".calpop");
+    if (calPop && /^(Arrow(Left|Right|Up|Down)|Enter)$/.test(e.key) && !typing) {   // arrows move between days, Enter opens one
+      e.preventDefault();
+      const bar = calPop.querySelector(".cal-daybar");
+      if (bar) {   // day view: ← → step days
+        if (e.key === "ArrowLeft") { const p = bar.querySelector('[data-dnav="-1"]'); if (p && !p.disabled) p.click(); }
+        else if (e.key === "ArrowRight") { const nx = bar.querySelector('[data-dnav="1"]'); if (nx && !nx.disabled) nx.click(); }
+        return;
+      }
+      const cells = [...calPop.querySelectorAll(".cal-day")]; if (!cells.length) return;
+      let sel = cells.findIndex(c => c.classList.contains("cal-sel"));
+      if (sel < 0) sel = Math.max(cells.findIndex(c => c.classList.contains("today")), 0);
+      if (e.key === "Enter") { const c = cells[sel]; if (c && !c.disabled) c.click(); return; }
+      const step = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" ? -7 : 7;
+      const nxt = sel + step;
+      if (nxt >= 0 && nxt < cells.length && !cells[nxt].disabled) { cells[sel].classList.remove("cal-sel"); cells[nxt].classList.add("cal-sel"); }
+      else cells[sel].classList.add("cal-sel");   // first arrow press just shows the selection
+      return;
+    }
+    if (panelBack && !typing && /^(Arrow|Enter$)/.test(e.key)) return;   // other panels: arrows/Enter never leak to the grid behind
     if (!typing && !inComposer && backdrop.hidden && !inPopup && (e.key === "ArrowLeft" || e.key === "ArrowRight" || ((e.key === "ArrowUp" || e.key === "ArrowDown") && !focusedMsgEl))) {
       e.preventDefault(); moveWindow(e.key); return;
     }
@@ -2999,9 +3463,34 @@
         }
         setFocusedMsg(msgs[idx], true); msgs[idx].scrollIntoView({ block: "nearest" }); e.preventDefault(); return;
       }
-      if (e.key === "Enter" && !kbMsgFocus && state.active >= 0 && state.slots[state.active]) { e.preventDefault(); markRead(state.slots[state.active]); renderTiles(); const inp = modalKind === "expand" ? modal.querySelector('[data-role="composer"] .cinput') : ws.querySelector(`.tile[data-slot="${state.active}"] [data-role="composer"] .cinput`); if (inp) inp.focus(); return; }   // Enter on a chat (no message kb-focused) marks it read and drops into its composer
+      if (e.key === "Enter" && document.activeElement && document.activeElement.closest && document.activeElement.closest(".tile-head") && document.activeElement.matches('[data-role="name"], .thead-btn')) { e.preventDefault(); if (document.activeElement.dataset.role === "more") menuViaKb = true; document.activeElement.click(); return; }   // Enter runs the Tab-focused header control
+      if (e.key === "Enter" && !kbMsgFocus && backdrop.hidden && !panelBack && state.active >= 0) {   // Enter: watch the chat; again to expand — empty tile starts one
+        e.preventDefault(); kbTileFocus = true;
+        if (!state.slots[state.active]) openFinder(state.active);
+        else if (watchedSlot === state.active) openExpand(state.active);
+        else watch(state.active, false);
+        return;
+      }
+      if (!e.altKey && !e.metaKey && !e.ctrlKey && !kbMsgFocus && backdrop.hidden && !panelBack && state.active >= 0) {   // single-key actions on the focused chat
+        if (/^[1-9]$/.test(e.key)) { const ti = +e.key - 1; if (ti < n()) { e.preventDefault(); kbTileFocus = true; setFocusedMsg(null); if (state.slots[ti]) watch(ti, false); else { setActive(ti); openFinder(ti); } } return; }   // digits watch that tile — an empty one opens the chat picker
+        if (e.key === "u" && state.slots[state.active]) { e.preventDefault(); markUnread(state.slots[state.active]); return; }
+        if (e.key === "z") { e.preventDefault(); reopenLastClosed(); return; }   // z = bring back this tile's previous chat
+
+      }
     }
-    if (e.key === "Escape" && backdrop.hidden) { e.preventDefault(); state.active = -1; document.querySelectorAll(".tile.active").forEach(t => t.classList.remove("active")); setFocusedMsg(null); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return; }  // defocus
+    if (e.key === "Escape" && backdrop.hidden) {   // Esc: unwatch first; on a passive chat — close it (the empty tile keeps the passive focus)
+      e.preventDefault(); setFocusedMsg(null);
+      if (document.activeElement && document.activeElement.closest && document.activeElement.closest(".tile-head")) { document.activeElement.blur(); updateKeyHints(); return; }   // leave the header controls first
+      const inComposer = document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"]');
+      if (inComposer) { document.activeElement.blur(); if (watchedSlot >= 0) unwatch(); return; }
+      if (watchedSlot >= 0) { unwatch(); return; }
+      if (state.active >= 0 && state.slots[state.active]) { closeTile(state.active); return; }
+      if (state.active >= 0) {   // empty tile: pass the focus on — repeated Esc sweeps the whole grid closed
+        const cnt = n();
+        for (let st = 1; st < cnt; st++) { const cand = (state.active + st) % cnt; if (state.slots[cand]) { kbTileFocus = true; setActive(cand); return; } }
+      }
+      return;
+    }  // passive focus never fully leaves the grid
     if (backdrop.hidden) return;
     if (e.key === "Escape") { e.preventDefault(); return closeModal(); }
     if (modalKind === "expand") return;
@@ -3014,32 +3503,297 @@
   document.getElementById("starredBtn").addEventListener("click", () => openAllStarred());
   document.getElementById("feedbackBtn").addEventListener("click", () => openFeedback());
 
-  // ---------- welcome tour (mandatory once) ----------
+  // ---------- welcome tour (mandatory once, no skip; the mocks mirror the real UI) ----------
+  const TIC = {   // the app-bar icons, verbatim from the markup above
+    focus: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5a8 8 0 0 1 16 0"/><path d="M4 13.5v4.2a1.8 1.8 0 0 0 1.8 1.8H7a1 1 0 0 0 1-1v-3.6a1 1 0 0 0-1-1z"/><path d="M20 13.5v4.2a1.8 1.8 0 0 1-1.8 1.8H17a1 1 0 0 1-1-1v-3.6a1 1 0 0 1 1-1z"/></svg>',
+    star: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9.1 9z"/></svg>',
+    feedback: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 5v-16l-4 5H4a1 1 0 0 0-1 1z" transform="translate(1,0)"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/></svg>',
+    kbd: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12.5" rx="2"/><path d="M6.2 9.8h.01M9.8 9.8h.01M13.4 9.8h.01M17 9.8h.01M6.2 12.8h.01M9.8 12.8h.01M13.4 12.8h.01M17 12.8h.01M8 15.7h8"/></svg>',
+    moon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+  };
+  const TOUR_USUAL = `<span class="glyph quad g-saved" style="width:13px;height:10px;gap:1px"><i></i><i></i><i></i><i></i><b class="g-star">★</b></span>`;
+  // full app-bar mock; everything blurred except the keys in `sharp`
+  function tourAppBar(sharp, busyAvatar) {
+    const S = k => sharp.includes(k) ? "" : " blurred";
+    return `<div class="tmk-appbar">
+      ${busyAvatar ? `<span class="tmk-topav"><span class="bav">JS<span class="bdot"></span></span><span class="tmk-topmeta"><b>John</b><i>busy</i></span></span>` : ""}
+      <span class="tmk-srchrect${S("search")}"></span>
+      <span class="tmk-flat${S("focus")}">${TIC.focus}<small>Focus Mode</small></span>
+      <span class="tmk-flat${S("star")}">${TIC.star}<small>All Starred</small></span>
+      <span class="tmk-flat${S("feedback")}">${TIC.feedback}<small>Feedback</small></span>
+      <span class="tmk-segfrag${S("seg")}"><i><span class="glyph duo"><i></i><i></i></span></i><i class="on"><span class="glyph quad"><i></i><i></i><i></i><i></i></span></i><i><span class="glyph six"><i></i><i></i><i></i><i></i><i></i><i></i></span></i></span>
+      <span class="tmk-iconbtn${S("usual")}">${TOUR_USUAL}</span>
+      <span class="tmk-iconbtn${S("kbd")}">${TIC.kbd}</span>
+      <span class="tmk-iconbtn${S("moon")}">${TIC.moon}</span>
+    </div>`;
+  }
+  // avatar menu mock with header for context; only the `hot` row is readable
+  function tourAvatarMenu(hot) {
+    const rows = [["◉", "Change Status", "status"], [TOUR_USUAL, "Save Usual Grid", "saved"], ["⚙", "Better.Chat Config", "config"], ["Aa", "Fonts &amp; Size", "fonts"], ["🔕", "Muted Chats", "muted"]];
+    return `<div class="menucard">
+      <div class="tum-head"><span class="av">JS</span><span><b>John Smith</b><span>your-server.com</span></span></div>
+      ${rows.map(([ic, lb, k]) => `<div class="mi${k === hot ? " hot" : " blurred"}"><span class="ic">${ic}</span>${lb}</div>`).join("")}
+    </div>`;
+  }
   function tourSlides() { return [
-    { t: "Many chats, one screen", x: "Watch several conversations at once. Switch the grid layout any time — 1-up, 2-up, 2+1, 2×2 or 3×2.", keys: ["⌥L cycles layouts", "or the layout buttons"], m: `<div class="tm-grid"><span></span><span></span><span></span><span></span></div>` },
-    { t: "Favourites bar", x: "Your favourites sit in a bar under the top bar. Click one to open it in the first free window, or drag it onto any window to place / replace.", keys: ["click a favourite", "drag → a window", "⌥1 … ⌥12"], m: `<div class="tm-bar"><span class="tm-star">★</span><span class="tm-chip"><b>1</b> general</span><span class="tm-chip"><b>2</b> design</span><span class="tm-chip"><b>3</b> sara</span></div>` },
-    { t: "Unread bar", x: "Everyone who messaged you shows here. Click to open it, or just hover the chip to preview the messages and quick-reply on the spot.", keys: ["click → open", "hover → preview & reply"], m: `<div class="tm-bar unread"><span class="tm-eye">◉</span><span class="tm-chip">ops-alerts <b>8</b></span><span class="tm-chip">dejan <b>4</b></span></div>` },
-    { t: "Explore — search + favourites", x: "One place for search and your favourites together. Type a name, or even initials — “ks” finds Kristina Stolic.", keys: ["⌥K"], m: `<div class="tm-pop"><div class="tm-chips"><span class="tm-chip">general</span><span class="tm-chip">design</span></div><div class="tm-search">🔍 search name or initials…</div></div>` },
-    { t: "Quick message actions", x: "Hover a message for the action toolbar. Click or use ↑ ↓ to focus one, then Tab/Enter select and run actions — reactions, reply, copy, star, edit.", keys: ["hover → toolbar", "click / ↑ ↓ to focus", "Tab + Enter"], m: `<div class="tm-msg"><div class="tm-bub">ship it 🚀</div><div class="tm-menu"><div class="tm-react">😃 😄 😅 👍 ❤️ 🚀 👏</div><div class="tm-acts"><span>↩</span><span>⧉</span><span>✎</span></div></div></div>` },
-    { t: "Expand & switch", x: "Double-click a chat header (or Opt+E) to expand it into a big window. Click the chat name to switch who's in that window.", keys: ["double-click header / Opt+E", "click the name → switch"], m: `<div class="tm-tile"><div class="tm-head"><b>general</b> <span class="tm-sw">⇄</span> <span class="tm-max">⤢</span></div><div class="tm-lines"><i></i><i></i><i></i></div></div>` },
-    { t: "Focus mode", x: "Need to concentrate? Focus mode covers every chat so you can talk to just one or two. Messages keep arriving underneath — you simply don't see them until you're ready.", keys: ["Focus button, top-right"], m: `<div class="tm-grid covered"><span>▨</span><span>▨</span><span>▨</span><span>▨</span></div>` },
+    { t: "Meet Better.Chat",
+      x: ["A better Rocket.Chat web client — removes the little frustrations and adds the missing bits.",
+          "Built around two ideas: a <b>grid</b> of multiple chats at once, and <b>keyboard-first</b> navigation — switch between chats, read, reply, react — without touching the mouse."],
+      m: `<div class="tmk-heroapp">
+            <div class="th-top"><span class="th-av"></span><span class="th-pill"></span><span class="th-seg"><i></i><i></i><i></i></span></div>
+            <div class="th-bar"><span class="st">★</span><span class="th-chip">general</span><span class="th-chip">design</span><span class="th-chip">sara</span></div>
+            <div class="th-bar"><span class="ey">◉</span><span class="th-chip u">ops-alerts <b>8</b></span><span class="th-chip u">dejan <b>4</b></span></div>
+            <div class="th-grid">
+              <div class="th-tile"><div class="th-th"><span class="tsg c">#</span>general</div><div class="th-tb"><i style="width:78%"></i><i style="width:52%"></i><i style="width:64%"></i></div></div>
+              <div class="th-tile"><div class="th-th"><span class="tsg p">🔒</span>design-crit</div><div class="th-tb"><i style="width:60%"></i><i style="width:74%"></i><i style="width:40%"></i></div></div>
+              <div class="th-tile"><div class="th-th"><span class="tsg d">@</span>john</div><div class="th-tb"><i style="width:66%"></i><i style="width:44%"></i><i style="width:58%"></i></div></div>
+              <div class="th-tile"><div class="th-th"><span class="tsg c">#</span>incidents</div><div class="th-tb"><i style="width:70%"></i><i style="width:56%"></i><i style="width:36%"></i></div></div>
+            </div>
+          </div>` },
+    { t: "Your Favourites & Unread chats at the top",
+      x: "Two thin bars live at the top, one glance away from your chat windows — the first lists your favourite chats, the second the unread ones. Hover an unread chip to sneak peek, quick reply, or mark as read, without opening the chat in a separate window.",
+      m: `<div class="tmk-slice">
+            <div class="ts-bar"><span class="ic star">★</span><span class="ts-chip"><span class="n">1</span> general</span><span class="ts-chip"><span class="n">2</span> design</span><span class="ts-chip"><span class="n">3</span> sara</span></div>
+            <div class="ts-bar"><span class="ic eye">◉</span><span class="ts-chip unread">ops-alerts <span class="bdg">8</span></span><span class="ts-chip unread">dejan <span class="bdg">4</span></span></div>
+            <div class="ts-tiles">
+              <div class="ts-tile"><div class="h"><span class="tsg c">#</span>general</div><div class="b"><i style="width:80%"></i><i style="width:55%"></i><i style="width:68%"></i></div></div>
+              <div class="ts-tile"><div class="h"><span class="tsg p">🔒</span>design-crit</div><div class="b"><i style="width:62%"></i><i style="width:75%"></i><i style="width:40%"></i></div></div>
+            </div>
+            <div class="ts-preview"><div class="ph"><span class="tsg d">@</span> dejan <span class="cnt">4 unread</span><span class="mr">✓ Mark read</span></div><div class="pm"><b>Dejan</b> take the on-call swap Friday?</div><div class="pr"><span class="in">Quick reply…</span><span class="snd">➤</span></div></div>
+          </div>` },
+    { t: "Save your “Usual Grid”",
+      x: `Arrange your “usual” chats, in their usual places, and save the workspace as your <b>Usual Grid</b>. Whenever the grid gets messy after swapping chats in and out, bring it back with the <span class="txtic">${TOUR_USUAL}</span> icon in the app bar.`,
+      m: `<div class="tmk-snaprow">${tourAvatarMenu("saved")}<div class="tmk-appbar"><span class="tmk-segfrag blurred"><i><span class="glyph duo"><i></i><i></i></span></i><i class="on"><span class="glyph quad"><i></i><i></i><i></i><i></i></span></i><i><span class="glyph six"><i></i><i></i><i></i><i></i><i></i><i></i></span></i></span><span class="tmk-iconbtn">${TOUR_USUAL}</span><span class="tmk-iconbtn blurred">${TIC.kbd}</span><span class="tmk-iconbtn blurred">${TIC.moon}</span></div></div>` },
+    { t: "All starred messages in one place",
+      x: "Rocket.Chat keeps starred messages scattered per chat. Better.Chat <b>collects them into one place</b> — searchable, filterable by text / files / images, and by who wrote them or where.",
+      m: `<div style="display:flex;flex-direction:column;align-items:center">
+            ${tourAppBar(["star"])}
+            <div class="tmk-starpanel">
+              <div class="hh">☆ Starred · <b>&nbsp;all chats</b></div>
+              <div class="tmk-filters"><span class="tmk-filter on">🗂️ All</span><span class="tmk-filter">💬 Text</span><span class="tmk-filter">📎 Files</span><span class="tmk-filter">🖼 Images</span></div>
+              <div class="tmk-starrow"><div class="rh"><b>Ana</b><span class="rm"># general</span><span class="st">★</span></div><div class="rt">From today we are changing our guidelines regarding the front-end development…</div></div>
+            </div>
+          </div>` },
+    { t: "The keyboard reaches every message",
+      x: ["Navigate to every message — reply, copy, star, or react without lifting your hands off the keyboard.",
+          "<b>Bonus:</b> you can define your own quick reactions — which emojis, and their order (avatar menu → Better.Chat Config)."],
+      m: `<div class="tmk-msg">
+            <span class="tmk-bub">How are you?</span>
+            <div class="tmk-actrow">
+              <div class="tmk-acts"><span>➦</span><span>☆</span><span>⧉</span><span>↩</span></div>
+              <div class="tmk-ireacts"><span>👍</span><span>😃</span><span>😄</span><span>😅</span><span>🚀</span><span>❤️</span><span>👏</span></div>
+              <div class="tmk-acts"><span>⊕</span></div>
+            </div>
+          </div>` },
+    { t: "A bit smarter chat search",
+      x: `Initials work! “js” finds <span class="mention">@john.smith</span>, “pt” finds <span class="chanref">#pinga-team</span>.`,
+      m: `<div>
+            <div class="tmk-pop">
+              <div class="srch">🔍&nbsp;<span class="q">js</span><span class="tmk-caret"></span></div>
+              <div class="row sel"><span class="tsg d">@</span><b><em>J</em>ohn <em>S</em>mith</b><span class="mini">direct message</span></div>
+              <div class="row"><span class="tsg c">#</span><span><em>j</em>ava-<em>s</em>quad</span><span class="mini">channel</span></div>
+            </div>
+            <div class="tmk-hintline">…and <em>pt</em> finds <em>p</em>inga-<em>t</em>eam</div>
+          </div>` },
+    { t: "A bit friendlier message typing",
+      x: ["Preview messages with rich elements before sending them. “Essayists” can switch to the expanded mode and enjoy writing long messages.",
+          "<b>Bonus:</b> emojis land <b>inline as you type</b> — you see 🚀, not :rocket:."],
+      m: `<div class="tmk-trip">
+            <div class="tmk-cboxwrap">
+              <div class="tmk-cbox"><span class="tmk-cin"><span class="raw">**done** 🚀 \`diff\`</span></span><span class="tmk-csend">➤</span></div>
+              <span class="mocklab">write mode</span>
+            </div>
+            <div class="tmk-cboxwrap">
+              <div class="tmk-cbox"><span class="tmk-cin pv"><span><b>done</b> 🚀 <code>diff</code></span></span><span class="tmk-csend">➤</span></div>
+              <span class="mocklab">preview</span>
+            </div>
+            <div class="tmk-cboxwrap">
+              <div class="tmk-big">
+                <div class="mh">Send message to <b># general</b></div>
+                <div class="tabs"><span>Write</span><span class="on">Preview</span></div>
+                <div class="ta"><b>done</b> — rolled out to prod.<br>Migrations ran clean, latency back under 300ms.<br><em>Thanks @ana for the review!</em></div>
+                <div class="snd"><i>Send</i></div>
+              </div>
+              <span class="mocklab">expanded mode</span>
+            </div>
+          </div>` },
+    { t: "Focus mode",
+      x: "Need to concentrate? One click <b>covers every chat</b>, <b>hides the unread bar</b>, and <b>sets your status to Busy</b> — uncover just the one or two you're actually talking in. Messages keep arriving quietly underneath; you simply don't see them until you're ready.",
+      m: `<div class="tmk-focusrow">
+            <span class="tmk-bigfocus">${TIC.focus}</span>
+            <div class="tmk-covered"><span class="open"></span><span>covered</span><span>covered</span><span>covered</span></div>
+          </div>` },
+    { t: "Better browsing for uploaded files",
+      x: "Use a dozen type filters for the uploaded files — images, PDFs, sheets, archives, and more. Search by name, <b>preview without downloading</b>, star a file's message right from the list.",
+      m: `<div class="tmk-filepanel">
+            <div class="hh">📎 Files in <b>design-crit</b></div>
+            <div class="tmk-filters"><span class="tmk-filter on">🗂️</span><span class="tmk-filter">🖼</span><span class="tmk-filter">🎬</span><span class="tmk-filter">📕</span><span class="tmk-filter">📊</span><span class="tmk-filter">🗜️</span><span class="tmk-filter">📘</span></div>
+            <div class="tmk-fr"><span class="fic">🖼</span>homepage-v3.png<span class="facts"><i>👁</i><i>☆</i><i>⬇</i></span><span class="fmeta">2.1MB</span></div>
+            <div class="tmk-fr"><span class="fic">📕</span>brand-guide.pdf<span class="facts"><i>👁</i><i>☆</i><i>⬇</i></span><span class="fmeta">840KB</span></div>
+            <div class="tmk-fr"><span class="fic">📊</span>q3-numbers.xlsx<span class="facts"><i>👁</i><i>☆</i><i>⬇</i></span><span class="fmeta">96KB</span></div>
+          </div>` },
+    { t: "Easily navigate the chat's history",
+      x: "Long chat, long scroll? <b>Jump to the beginning of the day</b>, or choose a <b>particular day</b> to see the messages on that day.",
+      m: `<div class="tmk-menuwrap">
+            <div class="menucard">
+              <div class="mi blurred"><span class="ic">📎</span>Files</div>
+              <div class="mi blurred"><span class="ic">💬</span>Threads</div>
+              <div class="mi blurred"><span class="ic">👤</span>Messages by user</div>
+              <div class="mi"><span class="ic">⤒</span>Jump to beginning of day</div>
+              <div class="mi"><span class="ic">📅</span>See messages for day</div>
+            </div>
+            <div class="tmk-cal">
+              <div class="ch"><span>‹</span>March 2026<span>›</span></div>
+              <div class="cg">
+                <i class="dow">M</i><i class="dow">T</i><i class="dow">W</i><i class="dow">T</i><i class="dow">F</i><i class="dow">S</i><i class="dow">S</i>
+                <i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i>
+                <i>9</i><i>10</i><i class="pick">11</i><i>12</i><i>13</i><i>14</i><i>15</i>
+                <i>16</i><i>17</i><i>18</i><i class="today">19</i><i>20</i><i>21</i><i>22</i>
+              </div>
+            </div>
+          </div>` },
+    { t: "Other small improvements",
+      x: "Little things the native client gets wrong or misses, quietly repaired:",
+      list: [
+        "Thread replies “also sent to channel” no longer stay stuck unread until you open the thread — once you've <b>seen</b> them, they're read.",
+        "<b>Edit a message right in its bubble</b> — Enter saves, Esc cancels. No detour.",
+        "<b>Preview any file</b> in a tab without downloading it first.",
+        "Click someone's <b>avatar</b> in a channel to open a DM in the first free window.",
+        "<b>Muted chats</b> are listed in one place under the avatar menu, instead of silently lost.",
+        "<b>Messages by user</b> — filter chat messages from a particular user only."
+      ],
+      m: `<div class="tmk-chatmock">
+            <div class="tc-row"><span class="tc-av" style="background:#3fd08a">AR</span><span class="tc-bub">are we still on for Friday?</span></div>
+            <div class="tc-row mine"><span class="tc-bub mine">yes, all set 👍</span></div>
+            <div class="tc-row mine">
+              <div class="tmk-editwrap">
+                <div class="tmk-editin">moving the release<span class="cur"></span> to Friday</div>
+                <div class="tmk-edithint">Enter to save · Shift+Enter = newline · Esc to cancel</div>
+              </div>
+            </div>
+            <div class="tc-input"><span class="in"></span><span class="tmk-csend">➤</span></div>
+          </div>` },
+    { t: "Better.Chat remembers — without a server",
+      x: "Better.Chat is just a web client; there's no backend holding your settings. Instead, your quick reactions, Usual Grid, and other settings are stored in a <b>private channel on your own Rocket.Chat server</b>, created and managed for you in the background. Sign in from any browser — your setup follows you.",
+      m: `<div class="tmk-snaprow">
+            ${tourAvatarMenu("config")}
+            <div class="tmk-json">
+              <div class="jh"><span class="tsg p">🔒</span> john.smith.bc.config · latest message</div>
+              <pre>{
+  <b>"quickReactions"</b>: [<i>"thumbsup"</i>, <i>"rocket"</i>, <i>"heart"</i>],
+  <b>"savedGrid"</b>: {
+    <b>"layout"</b>: <i>"quad"</i>,
+    <b>"slots"</b>: [<i>"pinga-team"</i>, <i>"john.smith"</i>, …]
+  }
+}</pre>
+            </div>
+          </div>` },
+    { t: "You're set",
+      x: [`We'd love your contribution: for any suggestions or bugs, hit the <span class="txtic big">${TIC.feedback}</span> icon in the app bar.`,
+          "Replay this tour any time from your avatar menu."],
+      m: tourAppBar(["feedback"]) },
   ]; }
   let tourI = 0;
   function renderTour() {
-    const slides = tourSlides(), total = slides.length + 1, card = document.querySelector("#tour .tour-card");
-    let body;
-    if (tourI < slides.length) { const sl = slides[tourI]; body = `<div class="tour-mock">${sl.m}</div><h2>${sl.t}</h2><p>${osKeys(sl.x)}</p><div class="tour-keys">${sl.keys.map(k => `<span>${osKeys(k)}</span>`).join("")}</div>`; }
-    else { body = `<h2>All the shortcuts</h2><p style="margin-top:-4px">You're set. Here's the full cheat-sheet — the <b>?</b> icon in the top bar reopens it any time.</p>${helpTableHtml()}`; }
+    const slides = tourSlides(), total = slides.length, card = document.querySelector("#tour .tour-card");
+    const sl = slides[tourI], paras = Array.isArray(sl.x) ? sl.x : [sl.x];
+    const body = `<div class="tour-mock">${osKeys(sl.m)}</div><h2>${sl.t}</h2>` +
+      paras.map(p => `<p>${osKeys(p)}</p>`).join("") +
+      (sl.list ? `<ul class="ticks">${sl.list.map(li => `<li><span>${osKeys(li)}</span></li>`).join("")}</ul>` : "");
     const dots = Array.from({ length: total }, (_, i) => `<span class="td ${i === tourI ? "on" : ""}"></span>`).join("");
-    card.innerHTML = `<div class="tour-body">${body}</div>` +
+    card.innerHTML = `<div class="tour-eyebrow"><span class="label">Welcome tour</span><span class="count">${tourI + 1} / ${total}</span></div>` +
+      `<div class="tour-body">${body}</div>` +
       `<div class="tour-nav"><button class="btn ghost" id="tourBack" ${tourI === 0 ? "disabled" : ""}>Back</button><div class="tour-dots">${dots}</div><button class="btn primary" id="tourNext">${tourI === total - 1 ? "Get started" : "Next →"}</button></div>`;
     card.querySelector("#tourBack").onclick = () => { if (tourI > 0) { tourI--; renderTour(); } };
     card.querySelector("#tourNext").onclick = () => { if (tourI < total - 1) { tourI++; renderTour(); } else finishTour(); };
     card.querySelector(".tour-body").scrollTop = 0;
   }
-  function openTour() { tourI = 0; document.getElementById("tour").hidden = false; renderTour(); }
-  function finishTour() { LS.set("rg.tour", 1); document.getElementById("tour").hidden = true; }
-  function maybeTour() { if (!LS.get("rg.tour")) openTour(); }
+  function tourKey(e) {   // capture: while the tour is open the arrows page the slides, not the grid underneath
+    if (document.getElementById("tour").hidden) return;
+    if (!/^Arrow(Left|Right|Up|Down)$/.test(e.key)) return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.key === "ArrowRight") { if (tourI < tourSlides().length - 1) { tourI++; renderTour(); } else finishTour(); }
+    else if (e.key === "ArrowLeft" && tourI > 0) { tourI--; renderTour(); }
+  }
+  function openTour() { tourI = 0; document.getElementById("tour").hidden = false; window.addEventListener("keydown", tourKey, true); renderTour(); }
+  function finishTour() { window.removeEventListener("keydown", tourKey, true); document.getElementById("tour").hidden = true; openGotoWalk(); }   // the slides roll straight into the Fast Nav dialogs
+  let tourChecked = false;
+  function maybeTour() {   // one flag for the whole welcome tour (slides + go-to dialogs), stored in your Better.Chat config
+    if (tourChecked) return; tourChecked = true;
+    if (bcConfig.welcomeTourPassed || LS.get("rg.tour")) return;   // rg.tour = legacy local flag from before the config held it
+    openTour();
+  }
+
+  // ---- Fast Nav walkthrough: two hands-on dialogs, taken once, that can't be dismissed ----
+  let gwBack = null, gwStep = 0, gwBuf = "", gwArmed = false;
+  const GW_KEYS = [["Save", "s"], ["Ready", "re"], ["Cancel", "c"]];
+  function openGotoWalk() {
+    closeGotoWalk(); gwStep = 1; gwBuf = ""; gwArmed = false;
+    gwBack = document.createElement("div"); gwBack.className = "gw-back";
+    document.body.appendChild(gwBack);
+    window.addEventListener("keydown", gwKey, true);   // capture: the walkthrough owns every key while open
+    renderGotoWalk();
+  }
+  function closeGotoWalk() { window.removeEventListener("keydown", gwKey, true); if (gwBack) { gwBack.remove(); gwBack = null; } }
+  function renderGotoWalk(state) {
+    if (!gwBack) return;
+    if (gwStep === 1) {
+      gwBack.innerHTML = `<div class="gw-card">
+        <div class="gw-eyebrow">Keyboard tour · 1 of 2</div>
+        <h2>Fast Nav mode</h2>
+        <p>Inspired by <b>Vimium</b>: press <kbd>f</kbd> for <b>Fast Nav</b> and Better.Chat labels everything clickable with a letter or two. Type the letters and it clicks for you — no mouse, no memorising shortcuts.</p>
+        <p class="gw-task">Try it here: press <kbd>f</kbd>, then type <kbd>re</kbd> to press <b>Ready</b>.</p>
+        <div class="gw-demo" aria-hidden="true">
+          <div class="gw-demo-bar"><span class="gw-dot"></span><span class="gw-dot"></span><span class="gw-dot"></span><span class="gw-url">example.com</span></div>
+          <div class="gw-demo-body">
+            <div class="gw-line long"></div><div class="gw-line"></div>
+            <div class="gw-btns">${GW_KEYS.map(([label, k]) => `<span class="gw-btn" data-k="${k}">${gwArmed ? `<span class="nav-glow nav-badge gw-tag">${k}</span>` : ""}${label}</span>`).join("")}</div>
+          </div>
+        </div>
+        <div class="gw-state ${state ? "on" : ""}">${state || "&nbsp;"}</div>
+      </div>`;
+    } else {
+      gwBack.innerHTML = `<div class="gw-card">
+        <div class="gw-eyebrow">Keyboard tour · 2 of 2</div>
+        <h2>Keyboard wrap-up</h2>
+        <p>Use <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> to move between your chat windows, the Favourites and Unread bars, and the top bar. <kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swaps the focused chat with its neighbour.</p>
+        <p>There are only three other keys to remember: <kbd>Shift</kbd> searches and opens a chat — in the focused tile, or the first empty one, <kbd>u</kbd> marks the focused chat unread, and <kbd>z</kbd> brings back a tile’s previous chat.</p>
+        <p>No need to memorise any of it now: keyboard hints are displayed on screen where needed.</p>
+        <p class="gw-task">Give it a go — hit any arrow to close this dialog and see where you can get to from there.</p>
+
+      </div>`;
+    }
+  }
+  function gwKey(e) {
+    if (!gwBack) return;
+    e.preventDefault(); e.stopPropagation();   // nothing reaches the app underneath — Esc included
+    const k = (e.key || "").toLowerCase();
+    if (gwStep === 1) {
+      if (!gwArmed) { if (k === "f") { gwArmed = true; gwBuf = ""; renderGotoWalk("Letters are up — now type <b>re</b>"); } return; }
+      if (!/^[a-z0-9]$/.test(k)) return;
+      gwBuf += k;
+      if (GW_KEYS.some(([, key]) => key === gwBuf)) {
+        const hit = GW_KEYS.find(([, key]) => key === gwBuf)[0];
+        if (hit !== "Ready") { gwBuf = ""; renderGotoWalk(`That pressed <b>${hit}</b> — try <b>re</b> for Ready`); return; }
+        renderGotoWalk("Nice — that's the whole trick. ✓");
+        setTimeout(() => { gwStep = 2; gwBuf = ""; renderGotoWalk(); }, 1100);
+        return;
+      }
+      if (!GW_KEYS.some(([, key]) => key.startsWith(gwBuf))) gwBuf = k;
+      return;
+    }
+    if (/^arrow(up|down|left|right)$/.test(k)) gwFinish();   // any arrow closes it; you always land on the first window
+  }
+  async function gwFinish() {   // finishing the Fast Nav dialogs completes the welcome tour
+    closeGotoWalk();
+    setLayout("duo");   // a calm two-window grid to start from
+    kbTileFocus = true; setFocusedMsg(null); setActive(Math.min(1, n() - 1));   // land on the second window, whichever arrow closed the guide
+    LS.set("rg.tour", 1);
+    bcConfig.welcomeTourPassed = true;
+    const merged = { ...bcRawConfig, version: 1, welcomeTourPassed: true };
+    bcRawConfig = merged; LS.set("rg.bcconfig", merged);
+    if (connection === "real") { try { await bcPushConfig(JSON.stringify(merged, null, 2)); } catch (e) {} }
+  }
 
   // ---------- favourites + unread bars ----------
   const favbarEl = document.getElementById("favbar"), unreadbarEl = document.getElementById("unreadbar");
@@ -3050,10 +3804,35 @@
     const shown = favbarRooms(), open = visibleSlots();
     if (favCycleId && !shown.includes(favCycleId)) favCycleId = null;
     favbarEl.innerHTML = `<span class="bar-icon" title="Favourites">${ICON.starSolid}</span>` +
-      `<div class="fav-chips">${shown.map((id, i) => { const r = rooms[id], pinned = open.includes(id); return `<button class="favchip ${pinned ? "is-pinned" : ""} ${id === favCycleId ? "fcycle" : ""}" draggable="true" data-room="${id}" title="${pinned ? "Already open — click to jump to its window" : "Click to open " + esc(r.name) + " in the first free window · or drag onto a window"}"><span class="fnum">${i + 1}</span><span class="sigil ${r.t}">${sig[r.t]}</span><span class="fnm">${esc(r.name)}</span></button>`; }).join("")}</div>`;
+      `<div class="fav-chips">${shown.map((id, i) => { const r = rooms[id], pinned = open.includes(id); return `<button class="favchip ${pinned ? "is-pinned" : ""} ${id === favCycleId ? "fcycle" : ""}" draggable="true" data-room="${id}" title="${pinned ? "Already open — click to jump to its window" : "Click to open " + esc(r.name) + " in the first free window · or drag onto a window"}"><span class="sigil ${r.t}">${sig[r.t]}</span><span class="fnm">${esc(r.name)}</span></button>`; }).join("")}</div>`;
   }
-  // ⌥F cycles a highlight through the favourites bar; Enter opens the highlighted one in the first free window
   let favCycleId = null, unreadCycleId = null;
+  let barReturnSlot = 0, avatarFocused = false;
+  function focusAvatar() { hideUrPop(); unreadCycleId = null; favCycleId = null; renderFavbar(); renderUnreadbar(); avatarFocused = true; document.getElementById("meBtn").classList.add("kbfocus"); }
+  function blurAvatar() { avatarFocused = false; document.getElementById("meBtn").classList.remove("kbfocus"); }
+  function enterBarNav() {   // ↑ from the top tile row: first unread (with its quick-reply popup), else first favourite
+    barReturnSlot = state.active >= 0 ? state.active : 0;
+    const ul = unreadbarRooms(), fv = favbarRooms();
+    if (ul.length) { favCycleId = null; renderFavbar(); navOpenUnread(ul[0]); }
+    else if (fv.length) { unreadCycleId = null; favCycleId = fv[0]; renderFavbar(); renderUnreadbar(); }
+    else return;
+    state.active = -1; document.querySelectorAll(".tile.active").forEach(t => t.classList.remove("active"));
+  }
+  function barArrow(key) {   // ← → along a bar; ↑ ↓ between favourites, unread and the tiles (closest index kept)
+    const ul = unreadbarRooms(), fv = favbarRooms();
+    const backToTiles = () => { hideUrPop(); unreadCycleId = null; favCycleId = null; renderFavbar(); renderUnreadbar(); setActive(Math.min(barReturnSlot, n() - 1)); };
+    if (unreadCycleId) {
+      const i = Math.max(0, ul.indexOf(unreadCycleId));
+      if (key === "ArrowLeft" || key === "ArrowRight") { const j = i + (key === "ArrowRight" ? 1 : -1); if (j < 0 || j >= ul.length) return; navOpenUnread(ul[j]); return; }
+      if (key === "ArrowUp") { if (!fv.length) return; hideUrPop(); unreadCycleId = null; favCycleId = fv[Math.min(i, fv.length - 1)]; renderFavbar(); renderUnreadbar(); const c = favbarEl.querySelector(`.favchip[data-room="${favCycleId}"]`); if (c) c.scrollIntoView({ inline: "nearest", block: "nearest" }); return; }
+      if (key === "ArrowDown") backToTiles();
+    } else if (favCycleId) {
+      const i = Math.max(0, fv.indexOf(favCycleId));
+      if (key === "ArrowLeft" || key === "ArrowRight") { const j = i + (key === "ArrowRight" ? 1 : -1); if (j < 0 || j >= fv.length) return; favCycleId = fv[j]; renderFavbar(); const c = favbarEl.querySelector(`.favchip[data-room="${favCycleId}"]`); if (c) c.scrollIntoView({ inline: "nearest", block: "nearest" }); return; }
+      if (key === "ArrowDown") { favCycleId = null; renderFavbar(); if (ul.length) navOpenUnread(ul[Math.min(i, ul.length - 1)]); else backToTiles(); return; }
+      if (key === "ArrowUp") { focusAvatar(); return; }   // above the favourites sits your avatar
+    }
+  }
   function cycleFav() { unreadCycleId = null; renderUnreadbar(); const list = favbarRooms(); if (!list.length) { hint("No favourites to cycle."); return; } const i = (list.indexOf(favCycleId) + 1) % list.length; favCycleId = list[i]; renderFavbar(); const chip = favbarEl.querySelector(`.favchip[data-room="${favCycleId}"]`); if (chip) chip.scrollIntoView({ inline: "nearest", block: "nearest" }); }
   function unreadbarRooms() { return order().filter(id => hasNew(rooms[id])).sort((a, b) => (ru(rooms[b]) - ru(rooms[a])) || rooms[a].name.localeCompare(rooms[b].name)); }
   function renderUnreadbar() {
@@ -3086,6 +3865,144 @@
   });
 
   // unread preview + quick reply popup
+  // ---- Tab hint-navigation: little key tags under the app-bar controls + glowing bar keys (Vimium-style) ----
+  let navMode = false, navBuf = "", navTimer = null, navTargets = [], navSuppressFocus = false; const navTagEls = [];
+  function navReposition() { navTagEls.forEach(({ tag, el }) => { const r = el.getBoundingClientRect(); tag.style.left = (r.left + r.width / 2) + "px"; tag.style.top = (r.bottom + 3) + "px"; }); }
+  window.addEventListener("resize", () => { if (navMode) navReposition(); });
+  // prefix-free key assignment: no key may be a prefix of another, so a match always fires instantly.
+  // Prefixes grow at most to 3 letters — past that the item takes the shortest free key instead
+  // (pinga-team vs pinga-core-team never spell themselves out to uniqueness).
+  function navAssignKeys(items) {   // items: [{word, seed?, fixed?}] in claim order -> sets item.key
+    const conflict = (a, b) => a === b || a.startsWith(b) || b.startsWith(a);
+    const live = [];
+    const fits = (k, self) => !live.some(o => o !== self && conflict(o.key, k));
+    const fallback = self => {   // shortest free key — 1, 2, then 3 chars, the item's own letters first
+      const uniq = [...new Set((self.word + "abcdefghijklmnopqrstuvwxyz").split(""))];
+      for (const a of uniq) if (fits(a, self)) return a;
+      for (const a of uniq) for (const b of uniq) if (fits(a + b, self)) return a + b;
+      for (const a of uniq) for (const b of uniq) for (const c of uniq) if (fits(a + b + c, self)) return a + b + c;
+      return self.key;
+    };
+    const bump = t => {
+      if (t.fixed || t.final) return;
+      if (t.len >= 3 || t.len >= t.word.length) { t.key = fallback(t); t.final = true; }
+      else { t.len++; t.key = t.word.slice(0, t.len); }
+    };
+    items.forEach(it => {
+      it.word = (it.word || "x").toLowerCase().replace(/[^a-z0-9]/g, "") || "x";
+      it.key = (it.seed || it.word.slice(0, 1)); it.len = it.key.length;
+      live.push(it);
+      let guard = 0;
+      while (guard++ < 60) {
+        const other = live.find(o => o !== it && conflict(o.key, it.key));
+        if (!other) break;
+        if (!other.fixed && !other.final && other.key.length <= it.key.length) bump(other);
+        if (!live.some(o => o !== it && conflict(o.key, it.key))) break;
+        if (!it.fixed && !it.final) bump(it);
+        else if (!other.fixed && !other.final) bump(other);
+        else { it.key = fallback(it); it.final = true; }
+      }
+    });
+    return items;
+  }
+  function enterNavMode() {
+    exitNavMode();
+    navBuf = ""; navTargets = [];
+    const items = [];
+    const addBtn = (el, word, seed) => { if (el && !el.hidden && el.offsetParent) items.push({ kind: "btn", el, word, seed }); };
+    const meWord = (myUsername || ME || "you");
+    if (document.getElementById("meBtn")) items.push({ kind: "me", el: document.getElementById("meBtn"), word: meWord });
+    addBtn(document.getElementById("focusBtn"), "fmode", "fm");   // plain f opens the mode itself
+    addBtn(document.getElementById("starredBtn"), "allstarred", "as");
+    const LNUM = { solo: "1", duo: "2", tri: "3", quad: "4", six: "6" };
+    document.querySelectorAll('.segmented button[data-layout]').forEach(b => { if (b.offsetParent) items.push({ kind: "btn", el: b, word: LNUM[b.dataset.layout] || "l", seed: LNUM[b.dataset.layout], fixed: true }); });
+    addBtn(document.getElementById("usualGridBtn"), "usual");
+    addBtn(document.getElementById("helpBtn"), "keyboard", "k");
+    addBtn(document.getElementById("themeBtn"), "dark", "d");
+    favbarRooms().forEach(id => {   // favourites claim name letters, same as the unread chips
+      const chip = favbarEl.querySelector(`.favchip[data-room="${id}"]`); if (!chip) return;
+      items.push({ kind: "fav", id, chip, word: (rooms[id] && rooms[id].name) || "chat" });
+    });
+    unreadbarRooms().forEach(id => {
+      const chip = unreadbarEl.querySelector(`.favchip[data-room="${id}"]`); if (!chip) return;
+      items.push({ kind: "unread", id, chip, word: (rooms[id] && rooms[id].name) || "chat" });
+    });
+    navAssignKeys(items);
+    items.forEach(it => {
+      if (it.kind === "btn" || it.kind === "me") {
+        navTargets.push({ key: it.key, run: it.kind === "me"
+          ? () => { const um = document.getElementById("userMenu"); um.hidden = false; startMenuHints(um, ".um-item"); }
+          : () => it.el.click() });
+        const tag = document.createElement("span");
+        tag.className = "nav-tag"; tag.textContent = it.key; tag.dataset.navkey = it.key;
+        document.body.appendChild(tag); navTagEls.push({ tag, el: it.el });
+      } else {
+        navTargets.push({ key: it.key, run: it.kind === "fav" ? () => placeFavourite(it.id) : () => navOpenUnread(it.id) });
+        const nameEl = it.chip.querySelector(".fnm"), name = (rooms[it.id] && rooms[it.id].name) || "chat";
+        if (nameEl) {
+          if (it.word.startsWith(it.key)) {   // the key is a prefix of the CLEANED name — map it back onto the raw one
+            let matched = 0, cut = 0;
+            for (let ci = 0; ci < name.length && matched < it.key.length; ci++) { if (/[a-z0-9]/i.test(name[ci])) matched++; cut = ci + 1; }
+            nameEl.innerHTML = `<span class="nav-glow">${esc(name.slice(0, cut))}</span>${esc(name.slice(cut))}`;
+          } else {   // fallback key — show it as a little badge in front of the name
+            nameEl.innerHTML = `<span class="nav-glow nav-badge">${esc(it.key)}</span>${esc(name)}`;
+          }
+        }
+      }
+    });
+    if (!navTargets.length) return;
+    navReposition(); requestAnimationFrame(navReposition);   // once now, once after layout settles
+    navMode = true;
+  }
+  function exitNavMode() {
+    const was = navMode;
+    navMode = false; navBuf = ""; clearTimeout(navTimer); navTargets = []; navTagEls.length = 0;
+    document.querySelectorAll(".nav-tag").forEach(x => x.remove());
+    if (was) refreshTopbar();   // restores the chip names + favourite numbers
+  }
+  function navRun(t) { exitNavMode(); t.run(); }
+  function handleNavKey(e) {
+    if (e.altKey || e.metaKey || e.ctrlKey) return false;   // modifier combos keep working in Fast Nav mode
+    if (e.key === "Escape" || e.key === "Tab" || e.key === " ") { e.preventDefault(); exitNavMode(); return true; }
+    if (!/^[a-z0-9]$/i.test(e.key)) return false;
+    e.preventDefault();
+    navBuf += e.key.toLowerCase();
+    let cand = navTargets.filter(t => t.key.startsWith(navBuf));
+    if (!cand.length) { navBuf = e.key.toLowerCase(); cand = navTargets.filter(t => t.key.startsWith(navBuf)); }
+    if (!cand.length) { navBuf = ""; document.querySelectorAll(".nav-tag").forEach(x => x.classList.remove("nav-dim")); return true; }
+    document.querySelectorAll(".nav-tag").forEach(x => x.classList.toggle("nav-dim", !x.dataset.navkey.startsWith(navBuf)));
+    const exact = cand.find(t => t.key === navBuf);
+    if (exact) { navRun(exact); return true; }   // keys are prefix-free — an exact match is always unambiguous
+    return true;
+  }
+  function navOpenUnread(id) {
+    unreadCycleId = id; renderUnreadbar();
+    const chip = unreadbarEl.querySelector(`.favchip[data-room="${id}"]`);
+    const rct = chip ? chip.getBoundingClientRect() : { left: 40, bottom: 92 };
+    navSuppressFocus = true;
+    try { openUnreadPreview(id, rct.left, rct.bottom - 6); } finally { navSuppressFocus = false; }
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  }
+  function urPopTab() {   // Tab inside the quick-reply popup: Mark read first, then the input, then around
+    if (!urPop) return;
+    const read = urPop.querySelector('[data-role="ur-read"]'), inp = urPop.querySelector(".up-reply input");
+    const ae = document.activeElement;
+    if (ae === read && inp) inp.focus();
+    else if (read && ae !== read) read.focus();
+    else if (inp) inp.focus();
+  }
+  document.addEventListener("mousedown", () => { if (navMode) exitNavMode(); });
+  // bare Shift (pressed and released alone) opens the chat picker for the focused tile
+  let shiftSolo = false;
+  window.addEventListener("keydown", e => { shiftSolo = e.key === "Shift" && !e.altKey && !e.metaKey && !e.ctrlKey; }, true);
+  window.addEventListener("keyup", e => {
+    if (e.key !== "Shift" || !shiftSolo) return;
+    shiftSolo = false;
+    const t = document.activeElement, typing = t && (/^(INPUT|TEXTAREA)$/.test(t.tagName) || t.isContentEditable);
+    if (typing || !backdrop.hidden || navMode || urPop || tileMenu || kbMsgFocus) return;
+    kbTileFocus = true;
+    openFinder(state.active >= 0 ? state.active : null);
+  });
   let urPop = null;
   function hideUrPop() { if (urPop) { urPop.remove(); urPop = null; } }
   function urMsgsHtml(un) { return un.length ? un.map(m => `<div class="up-msg"><b>${esc(m.user)}</b><time>${m.time}</time><div class="up-txt">${renderText(displayText(m))}${quotesHtml(m)}</div></div>`).join("") : `<div class="tload" style="color:var(--text-faint);font-size:12px">No messages to preview.</div>`; }
@@ -3094,12 +4011,12 @@
     hideUrPop(); const r = rooms[id]; if (!r) return;
     setFocusedMsg(null);
     urPop = document.createElement("div"); urPop.className = "urpop"; urPop.dataset.room = id;
-    urPop.innerHTML = `<div class="up-head"><span class="sigil ${r.t}">${sig[r.t]}</span> ${esc(r.name)} <span style="color:var(--text-faint);font-weight:400;font-size:12px">${ru(r)} unread</span><button type="button" class="ur-read" data-role="ur-read" title="Mark as read" style="margin-left:auto">✓ Mark read</button></div>` +
+    urPop.innerHTML = `<div class="up-head"><span class="sigil ${r.t}">${sig[r.t]}</span> ${esc(r.name)} <span style="color:var(--text-faint);font-weight:400;font-size:12px">${ru(r)} unread</span><span class="ur-navhint"><kbd>Tab</kbd> to navigate</span><button type="button" class="ur-read" data-role="ur-read" title="Mark as read">✓ Mark read</button></div>` +
       `<div class="up-body" data-role="ur-body">${r.msgs.length ? urMsgsHtml(unreadMsgs(r)) : `<div class="tload" style="color:var(--text-faint);font-size:12px">loading messages…</div>`}</div>` +
       `<form class="up-reply" data-room="${id}"><input placeholder="Quick reply…" aria-label="Quick reply"><button class="send" type="submit">${ICON.send}</button></form>`;
     document.body.appendChild(urPop); placeUrPop(x, y);
     const ae = document.activeElement, typing = ae && (/^(INPUT|TEXTAREA)$/.test(ae.tagName) || ae.isContentEditable);
-    const inp = urPop.querySelector("input"); if (inp && !typing) setTimeout(() => inp.focus(), 0);   // hover-open must not steal focus mid-typing
+    const inp = urPop.querySelector("input"); if (inp && !typing && !navSuppressFocus) setTimeout(() => inp.focus(), 0);   // hover-open must not steal focus mid-typing
     if (!r.msgs.length && connection === "real" && ddp) {          // off-grid chats have no history yet — load it for the preview
       await ensureHistory(id);
       if (urPop && urPop.dataset.room === id) { const body = urPop.querySelector('[data-role="ur-body"]'); if (body) body.innerHTML = urMsgsHtml(unreadMsgs(r)); placeUrPop(x, y); }
@@ -3113,15 +4030,29 @@
 
   // ---------- focus mode ----------
   let focusMode = false; const uncovered = new Set(); let preFocusStatus = null;
-  async function focusStatus(on) {   // entering focus -> Busy; leaving -> whatever you were before
-    if (on) { preFocusStatus = myStatusName || "online"; if (preFocusStatus === "busy") return; }
-    const target = on ? "busy" : (preFocusStatus || "online");
-    if (!on && (preFocusStatus === "busy" || myStatusName !== "busy")) { preFocusStatus = null; return; }   // user changed status meanwhile — leave it alone
-    if (connection === "real") { if (!(await restPost("/api/v1/users.setStatus", { status: target, message: myStatusText || "" }))) return; }
-    myStatusName = target; applyMyStatus();
-    if (!on) preFocusStatus = null;
+  let focusStatusChain = Promise.resolve();   // enter/leave status flips run strictly in order — a quick toggle must not read the previous flip's half-done state
+  function focusStatus(on) { focusStatusChain = focusStatusChain.then(() => focusStatusNow(on)).catch(() => {}); }
+  async function focusStatusNow(on) {   // entering focus -> Busy; leaving -> back to the pre-focus status (or Available)
+    if (on) {
+      preFocusStatus = (myStatusName && myStatusName !== "busy") ? myStatusName : "online";
+      if (myStatusName === "busy") return;   // already Busy — nothing to change; leaving focus still restores Available
+      if (connection === "real" && !(await restPost("/api/v1/users.setStatus", { status: "busy", message: myStatusText || "" }))) { hintLong("Couldn't set your status to Busy on the server"); return; }
+      myStatusName = "busy"; applyMyStatus();
+    } else {
+      if (myStatusName !== "busy") { preFocusStatus = null; return; }   // user picked another status during focus — respect it
+      const target = preFocusStatus || "online";
+      if (connection === "real" && !(await restPost("/api/v1/users.setStatus", { status: target, message: myStatusText || "" }))) { hintLong("Couldn't restore your status on the server"); return; }
+      myStatusName = target; applyMyStatus(); preFocusStatus = null;
+    }
   }
-  function setFocusMode(on) { focusMode = on; if (!on) uncovered.clear(); document.getElementById("app").classList.toggle("focusmode", on); document.getElementById("focusBtn").setAttribute("aria-pressed", on ? "true" : "false"); document.getElementById("focusBadge").hidden = !on; focusStatus(on); renderTiles(); }
+  function persistFocusMode(on) {   // focus mode survives reloads and follows you — stored in your .bc.config channel
+    if (!!bcConfig.focusMode === on) return;
+    const res = applyBcConfig({ ...bcRawConfig, version: 1, focusMode: on });
+    if (!res.ok) return;
+    LS.set("rg.bcconfig", bcRawConfig);
+    if (connection === "real") { try { bcPushConfig(JSON.stringify(bcRawConfig, null, 2)).catch(() => {}); } catch (e) {} }
+  }
+  function setFocusMode(on, persist) { focusMode = on; if (!on) uncovered.clear(); document.getElementById("app").classList.toggle("focusmode", on); document.getElementById("focusBtn").setAttribute("aria-pressed", on ? "true" : "false"); document.getElementById("focusBadge").hidden = !on; focusStatus(on); if (persist !== false) persistFocusMode(on); renderTiles(); }
   document.getElementById("focusBtn").addEventListener("click", () => setFocusMode(!focusMode));
 
   // ---------- chat font + size ----------
@@ -3207,7 +4138,7 @@
   document.getElementById("demoBtn").addEventListener("click", e => { e.preventDefault(); startDemo(); });
 
   function stopFeed() { if (feedTimer) { clearInterval(feedTimer); feedTimer = null; } }
-  function boot() { restorePrefs(); applyFont(); syncLayoutButtons(); setMeAvatar(); renderFavbar(); state.active = -1; renderTiles(); updateFavicon(); maybeTour(); }
+  function boot() { restorePrefs(); applyFont(); syncLayoutButtons(); setMeAvatar(); renderFavbar(); state.active = -1; renderTiles(); updateFavicon(); if (bcConfig.focusMode && !focusMode) setFocusMode(true, false); if (connection !== "real") maybeTour(); }   // real logins wait for the config (welcomeTourPassed) to load
 
   // ---------- account avatar + menu ----------
   function setMeAvatar() {
@@ -3250,19 +4181,19 @@
     if (!rid) throw new Error("couldn't create #" + bcCfgName());
     await ddp.call("sendMessage", [{ rid, msg: "```json\n" + text.trim() + "\n```" }]);
   }
-  document.getElementById("saveGridBtn").addEventListener("click", async () => {
+  document.getElementById("saveUsualGridBtn").addEventListener("click", async () => {
     document.getElementById("userMenu").hidden = true;
     const slots = visibleSlots().map(id => id && rooms[id] ? rooms[id].name : null);
     const merged = { ...bcRawConfig, version: 1, savedGrid: { layout: state.layout, slots } }; delete merged.snapshotGrid; delete merged.homeGrid;
     const res = applyBcConfig(merged);
     if (!res.ok) { hintLong("Couldn't save grid: " + res.err); return; }
     LS.set("rg.bcconfig", bcRawConfig);
-    if (connection !== "real") { hintLong(osKeys("Grid saved (demo) ★ — apply it any time with the ★ button next to the layout switcher or ⌥G.")); return; }
-    try { await bcPushConfig(JSON.stringify(merged, null, 2)); hintLong(osKeys("Grid saved ★ — apply it any time with the ★ button next to the layout switcher or ⌥G.")); }
-    catch (e) { hintLong("Couldn't save grid: " + ((e && (e.reason || e.message)) || "error")); }
+    if (connection !== "real") { hintLong("Usual Grid saved (demo) ★ — bring it back any time with the ★ button next to the layout switcher."); return; }
+    try { await bcPushConfig(JSON.stringify(merged, null, 2)); hintLong("Usual Grid saved ★ — bring it back any time with the ★ button next to the layout switcher."); }
+    catch (e) { hintLong("Couldn't save the Usual Grid: " + ((e && (e.reason || e.message)) || "error")); }
   });
-  function applySavedGrid() {
-    const hg = bcConfig.savedGrid; if (!hg) { hint("No saved grid yet — save one from the avatar menu."); return; }
+  function applyUsualGrid() {
+    const hg = bcConfig.savedGrid; if (!hg) { hint("No Usual Grid yet — save one from the avatar menu."); return; }
     const byName = {}; order().forEach(id => byName[(rooms[id].name || "").toLowerCase()] = id);
     const missing = [];
     const resolved = Array.from({ length: 6 }, (_, i) => {
@@ -3274,9 +4205,9 @@
     renderTiles(); persist();
     savedActive = true; syncLayoutButtons();   // after persist(), so the ★ grid stays selected
     visibleSlots().filter(Boolean).forEach(ensureHistory);
-    if (missing.length) hintLong("Saved grid: couldn't find " + missing.join(", "));
+    if (missing.length) hintLong("Usual Grid: couldn't find " + missing.join(", "));
   }
-  document.getElementById("savedGridBtn").addEventListener("click", applySavedGrid);
+  document.getElementById("usualGridBtn").addEventListener("click", applyUsualGrid);
   async function joinUpdatesChannel() {   // auto-join the public better.chat.updates channel if it exists (silent)
     if (connection !== "real") return;
     try {
@@ -3288,12 +4219,12 @@
       for (const base of [location.origin, "https://" + serverHost]) { try { const r = await fetch(base + "/api/v1/channels.join", opts); if (r.ok) { await refreshSubscriptions(); hint("Joined #better.chat.updates 📣"); return; } } catch (e) {} }
     } catch (e) {}
   }
-  const BC_EXAMPLE = '{\n  "version": 1,\n  "quickReactions": ["thumbsup", "heart", "tada", "eyes"],\n  "savedGrid": { "layout": "quad", "slots": ["pinga-team", "merge-requests", "john.smith", null] }\n}';
+  const BC_EXAMPLE = '{\n  "version": 1,\n  "welcomeTourPassed": true,\n  "focusMode": false,\n  "quickReactions": ["thumbsup", "heart", "tada", "eyes"],\n  "savedGrid": { "layout": "quad", "slots": ["pinga-team", "merge-requests", "john.smith", null] }\n}';
   async function openBcConfig() {
-    const card = openPanel(`<span>Better.Chat config</span><button type="button" class="bc-help" data-role="bc-help" title="Show an example config">?</button>`,
+    const card = openPanel(`<span>Better.Chat config</span><span class="bc-status" data-role="bc-status"></span><button type="button" class="bc-help" data-role="bc-help" title="Show an example config">?</button>`,
       `<pre class="bc-example" data-role="bc-example" hidden>${highlightCode("json", BC_EXAMPLE)}</pre>` +
       `<div class="bc-edwrap"><pre class="code bc-hl" data-role="bc-hl" aria-hidden="true"></pre><textarea class="bc-json" data-role="bc-json" spellcheck="false" wrap="off"></textarea></div>` +
-      `<div class="bc-foot"><span class="bc-status" data-role="bc-status"></span><button type="button" class="btn primary" data-role="bc-save">Save</button></div>`, "bcconfigpop");
+      `<div class="bc-foot"><button type="button" class="btn primary" data-role="bc-save">Save</button></div>`, "bcconfigpop");
     const ta = card.querySelector('[data-role="bc-json"]'), st = card.querySelector('[data-role="bc-status"]');
     const hl = card.querySelector('[data-role="bc-hl"]');   // highlighted mirror behind the transparent textarea
     const paint = () => { hl.innerHTML = highlightCode("json", ta.value) + "\n"; hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; };
@@ -3305,7 +4236,7 @@
       st.textContent = "Loading latest config…";
       await fetchBcConfig();
       ta.value = JSON.stringify(Object.keys(bcRawConfig).length ? bcRawConfig : bcConfig, null, 2); paint();
-      st.textContent = bcCfgRoomId() ? `Loaded from #${bcCfgName()}.` : `No #${bcCfgName()} channel yet — it'll be created on Save.`;
+      st.innerHTML = bcCfgRoomId() ? `Loaded from ${chanBadge(bcCfgName())}` : `${chanBadge(bcCfgName())} not created yet — Save makes it`;
     } else st.textContent = "Demo mode — saves locally only.";
     card.querySelector('[data-role="bc-save"]').addEventListener("click", async () => {
       const res = applyBcConfig(ta.value);
@@ -3328,23 +4259,22 @@
     { v: "13", url: "https://github.com/kotevskim/better.chat/releases#release-v13" },
   ];
   document.getElementById("releasesSub").innerHTML = RELEASES.map(r => `<a class="rel-row" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><b>Version ${esc(r.v)}</b><span>notes ↗</span></a>`).join("");
-  document.getElementById("statusBtn").addEventListener("click", () => { document.getElementById("userMenu").hidden = true; openStatusPopup(); });
-  function openStatusPopup() {
+  function renderStatusSub() {   // hover submenu beside "Change Status", like Fonts & Releases
     const STATUSES = [{ k: "online", label: "Online", c: "var(--live)" }, { k: "busy", label: "Busy", c: "#e5555f" }, { k: "offline", label: "Offline", c: "#8a97a6" }];
-    const card = openPanel(`<span>Change status</span>`,
-      `<div class="st-opts">${STATUSES.map(s => `<button class="st-opt${myStatusName === s.k ? " on" : ""}" data-st="${s.k}"><span class="st-dot" style="background:${s.c}"></span>${s.label}</button>`).join("")}</div>` +
-      `<div class="pn-searchrow"><input class="pn-q" data-role="st-msg" placeholder="Status message (optional)…" value="${esc(myStatusText || "")}"></div>` +
-      `<div class="be-foot" style="padding:0 14px 14px"><button type="button" class="btn primary" data-role="st-save">Save</button></div>`, "statuspop");
+    const sub = document.getElementById("statusSub");
     let sel = myStatusName || "online";
-    card.querySelector(".st-opts").addEventListener("click", e => { const b = e.target.closest(".st-opt"); if (!b) return; sel = b.dataset.st; card.querySelectorAll(".st-opt").forEach(x => x.classList.toggle("on", x === b)); });
-    card.querySelector('[data-role="st-save"]').addEventListener("click", async () => {
-      const msg = card.querySelector('[data-role="st-msg"]').value.trim();
-      let ok = true;
-      if (connection === "real") ok = await restPost("/api/v1/users.setStatus", { status: sel, message: msg });
-      if (!ok) return;
-      myStatusName = sel; myStatusText = msg; applyMyStatus(); closePanel(); hint("Status updated");
+    sub.innerHTML =
+      `<div class="st-opts">${STATUSES.map(s => `<button class="st-opt${sel === s.k ? " on" : ""}" data-st="${s.k}"><span class="st-dot" style="background:${s.c}"></span>${s.label}</button>`).join("")}</div>` +
+      `<input class="st-msg" data-role="st-msg" placeholder="Status message (optional)…" value="${esc(myStatusText || "")}">` +
+      `<button type="button" class="btn primary st-save" data-role="st-save">Save</button>`;
+    sub.querySelector(".st-opts").addEventListener("click", e => { const b = e.target.closest(".st-opt"); if (!b) return; sel = b.dataset.st; sub.querySelectorAll(".st-opt").forEach(x => x.classList.toggle("on", x === b)); });
+    sub.querySelector('[data-role="st-save"]').addEventListener("click", async () => {
+      const msg = sub.querySelector('[data-role="st-msg"]').value.trim();
+      if (connection === "real" && !(await restPost("/api/v1/users.setStatus", { status: sel, message: msg }))) return;
+      myStatusName = sel; myStatusText = msg; applyMyStatus(); document.getElementById("userMenu").hidden = true; hint("Status updated");
     });
   }
+  document.getElementById("statusWrap").addEventListener("mouseenter", renderStatusSub);
   function openMutedChats() {
     const card = openPanel(`🔕<span style="margin-left:6px">Muted chats</span><span style="margin-left:9px;font-weight:400;font-size:11px;color:var(--text-faint)">mark-as-unread off · alerts off</span>`, `<div class="up-body pn-results" data-role="muted-body"></div>`, "mutedpop");
     const body = card.querySelector('[data-role="muted-body"]');
@@ -3558,7 +4488,7 @@
     lstatus("Loading recent messages...");
     await Promise.all(visibleSlots().filter(Boolean).map(ensureHistory));
     setConn("real", server);
-    refreshMyStatus(); fetchBcConfig(); joinUpdatesChannel();
+    refreshMyStatus(); fetchBcConfig().then(() => { maybeTour(); if (!!bcConfig.focusMode !== focusMode) setFocusMode(!!bcConfig.focusMode, false); }); joinUpdatesChannel();
   }
   async function ensureHistory(id) {
     if (connection !== "real" || !ddp || !rooms[id] || rooms[id]._loaded) return;
@@ -3608,7 +4538,7 @@
   function clearSession() { LS.del("rg.session"); }
   function syncLayoutButtons() {
     document.querySelectorAll(".segmented button").forEach(x => x.setAttribute("aria-pressed", (!savedActive && x.dataset.layout === state.layout) ? "true" : "false"));
-    const hb = document.getElementById("savedGridBtn"); if (hb) hb.setAttribute("aria-pressed", savedActive ? "true" : "false");
+    const hb = document.getElementById("usualGridBtn"); if (hb) hb.setAttribute("aria-pressed", savedActive ? "true" : "false");
   }
 
   // ---------- login ----------
