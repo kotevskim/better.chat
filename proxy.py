@@ -39,6 +39,28 @@ def _server():
     sys.exit("No Rocket.Chat server configured. Run: python3 proxy.py <server-hostname>  (or set BC_SERVER, or write the hostname into a 'server' file next to proxy.py)")
 
 SERVER = _server()
+
+# A wrong hostname here is close to invisible: the browser talks to Rocket.Chat directly over the
+# websocket, so login and messages work normally and only the routes that go through this proxy
+# (avatars, custom emoji, file attachments) fail. Say so at startup instead of leaving it to be
+# discovered as "images don't load".
+PLACEHOLDER_HOSTS = {
+    "your.rocketchat.host", "your-rocketchat-server.com", "your.rocketchat-server.com",
+    "your.server.com", "<your-server-hostname>", "your-server-hostname",
+}
+if SERVER.lower().strip("<>") in PLACEHOLDER_HOSTS or SERVER.lower() in PLACEHOLDER_HOSTS:
+    sys.exit("Refusing to start: the server is still the documentation placeholder %r.\n"
+             "Pass your own Rocket.Chat hostname, e.g. -e BC_SERVER=chat.example.com" % SERVER)
+
+def _warn_unresolvable():
+    import socket
+    try:
+        socket.getaddrinfo(SERVER, 443)
+    except OSError as e:
+        print("WARNING: %s does not resolve from here (%s).\n"
+              "         Chats will still work — the browser reaches Rocket.Chat directly — but avatars,\n"
+              "         custom emoji and file attachments are proxied through here and will fail." % (SERVER, e))
+
 PORT = int(sys.argv[2]) if len(sys.argv) > 2 else int(os.environ.get("BC_PORT", "").strip() or 9000)
 BIND = os.environ.get("BC_BIND", "").strip() or "127.0.0.1"
 
@@ -140,4 +162,5 @@ if __name__ == "__main__":
         # mapping that doesn't reuse the container's own port.
         where = "listening on %s:%d — open the host port mapped to it (docker run -p 127.0.0.1:<port>:%d)" % (BIND, PORT, PORT)
     print("Better.Chat proxy → https://%s   %s" % (SERVER, where))
+    _warn_unresolvable()   # after the banner, so the warning is the last thing on screen
     Server((BIND, PORT), Handler).serve_forever()

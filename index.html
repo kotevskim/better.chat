@@ -1392,6 +1392,28 @@
     catch (e) { lastFileErr = "proxy unreachable: " + (e.message || e); }
     return null;
   }
+  // The proxy in front of us can be pointed at nothing, or at a different workspace than the one you
+  // signed in to. Neither shows up in normal use: chats arrive straight from the browser's websocket,
+  // so only the proxied routes (avatars, custom emoji, attachments) break. Ask the proxy what it sees.
+  // Every check is opt-in on strong evidence — anything ambiguous stays quiet, so serving the app
+  // without a proxy at all never produces a warning.
+  async function checkProxyTarget() {
+    let res, body;
+    try { res = await fetch(location.origin + "/api/info", { cache: "no-store" }); } catch (e) { return; }   // nothing in front of us
+    try { body = await res.json(); } catch (e) { return; }                                                   // HTML back = not our proxy
+    if (!body || typeof body !== "object") return;
+    if (res.status === 502 && typeof body.error === "string" && body.error.startsWith("proxy:")) {            // our proxy's own error shape
+      const why = body.error.replace(/^proxy:\s*/, "");
+      console.warn("Better.Chat: the proxy cannot reach its configured server —", why);
+      hintLong("Avatars and attachments will not load — the proxy can't reach its server: " + why);
+      return;
+    }
+    const ws = String(body.workspaceUrl || "").replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    if (res.ok && ws && serverHost && ws.toLowerCase() !== serverHost.toLowerCase()) {
+      console.warn("Better.Chat: the proxy serves", ws, "but you are signed in to", serverHost);
+      hintLong("Attachments may not load — this proxy serves " + ws + ", but you are signed in to " + serverHost);
+    }
+  }
   async function downloadFile(url, name) {
     const res = await fileFetch(url);
     if (!res) { hintLong("download failed — " + (lastFileErr || "the /file-upload route needs CORS, or run Better.Chat via proxy.py.")); return; }
@@ -4692,6 +4714,7 @@
     await Promise.all(visibleSlots().filter(Boolean).map(ensureHistory));
     setConn("real", server);
     refreshMyStatus(); fetchBcConfig().then(() => { maybeTour(); if (!!bcConfig.focusMode !== focusMode) setFocusMode(!!bcConfig.focusMode, false); }); joinUpdatesChannel();
+    checkProxyTarget();   // once per sign-in, not per reconnect — a standing misconfiguration only needs saying once
   }
   async function ensureHistory(id) {
     if (connection !== "real" || !ddp || !rooms[id] || rooms[id]._loaded) return;
