@@ -234,6 +234,10 @@
   .msg.mine .atts { align-items:flex-end; }
   .att { display:flex; flex-direction:column; gap:5px; align-items:flex-start; }
   .att-imgwrap { position:relative; display:inline-block; }
+  /* an attachment that would not load — visible on purpose, so a broken deployment shows up */
+  .att-imgwrap.att-failed { display:flex; flex-direction:column; gap:2px; max-width:min(320px,100%); padding:9px 11px; border:1px dashed var(--border); border-radius:8px; background:color-mix(in srgb,var(--text) 4%,transparent); }
+  .att-failed b { font-weight:600; font-size:12.5px; color:var(--text-dim); overflow-wrap:anywhere; }
+  .att-failed i { font-style:normal; font-family:ui-monospace,monospace; font-size:10px; line-height:1.4; color:var(--text-faint); overflow-wrap:anywhere; }
   .att-img { display:block; max-width:min(320px,100%); max-height:240px; border-radius:8px; border:1px solid var(--border-soft); object-fit:cover; }
   .file-att { display:inline-flex; align-items:center; gap:7px; max-width:100%; border:1px solid var(--border); background:var(--tile-head); color:var(--text); border-radius:8px; padding:7px 9px 7px 11px; font-size:13px; }
   .file-att .fnm { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1371,25 +1375,32 @@
   // file-route CORS), then falls back to the same-origin path (works when served via proxy.py).
   const authFetch = url => fetch(url, { headers: { "X-Auth-Token": rcToken, "X-User-Id": myUserId } });
   const isOurUrl = url => (serverHost && url.startsWith("https://" + serverHost + "/")) || url.startsWith(location.origin + "/") || url.startsWith("blob:") || url.startsWith("/");
+  // Why the most recent fileFetch failed. Both hops can fail for very different reasons (the direct
+  // hop on CORS, the proxy hop on a 502 whose body names the real cause), and without keeping them
+  // the caller can only say "it didn't work" — which is no help to anyone diagnosing a deployment.
+  let lastFileErr = "";
+  const proxyWhy = async r => { try { const j = JSON.parse(await r.text()); return j && j.error ? " — " + j.error : ""; } catch (e) { return ""; } };
   async function fileFetch(url) {
+    lastFileErr = "";
     if (!isOurUrl(url)) {   // external URL (e.g. a link-preview attachment): NEVER attach the auth token
-      try { const r = await fetch(url); if (r.ok) return r; } catch (e) {}
+      try { const r = await fetch(url); if (r.ok) return r; lastFileErr = `external HTTP ${r.status}`; } catch (e) { lastFileErr = "external fetch blocked: " + (e.message || e); }
       return null;
     }
-    try { const r = await authFetch(url); if (r.ok) return r; } catch (e) {}
+    try { const r = await authFetch(url); if (r.ok) return r; lastFileErr = `direct HTTP ${r.status}`; } catch (e) { lastFileErr = "direct fetch blocked (CORS?): " + (e.message || e); }
     const path = url.replace(/^https?:\/\/[^/]+/, "");
-    try { const r2 = await authFetch(location.origin + path); if (r2.ok) return r2; } catch (e) {}
+    try { const r2 = await authFetch(location.origin + path); if (r2.ok) return r2; lastFileErr = `proxy HTTP ${r2.status}${await proxyWhy(r2)}`; }
+    catch (e) { lastFileErr = "proxy unreachable: " + (e.message || e); }
     return null;
   }
   async function downloadFile(url, name) {
     const res = await fileFetch(url);
-    if (!res) { hintLong("download failed — the /file-upload route needs CORS, or run Better.Chat via proxy.py."); return; }
+    if (!res) { hintLong("download failed — " + (lastFileErr || "the /file-upload route needs CORS, or run Better.Chat via proxy.py.")); return; }
     const blob = await res.blob(); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name || "file"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
   }
   async function previewFile(url) {
     const w = window.open("", "_blank");   // open synchronously to keep the user-gesture (avoids popup blocker)
     const res = await fileFetch(url);
-    if (!res) { if (w) w.close(); hintLong("preview failed — the /file-upload route needs CORS, or run Better.Chat via proxy.py."); return; }
+    if (!res) { if (w) w.close(); hintLong("preview failed — " + (lastFileErr || "the /file-upload route needs CORS, or run Better.Chat via proxy.py.")); return; }
     const u = URL.createObjectURL(await res.blob());
     if (w) w.location = u; else window.open(u, "_blank");   // viewable types show inline; others download (browser's call)
     setTimeout(() => URL.revokeObjectURL(u), 60000);
@@ -1403,8 +1414,19 @@
   async function hydrateAtts() {
     for (const el of [...document.querySelectorAll(".att-img[data-src]")]) {
       const url = el.dataset.src; el.removeAttribute("data-src");
-      const drop = () => { const w = el.closest(".att-imgwrap"); if (w) w.remove(); else el.remove(); };   // failed image -> no empty box left behind
-      el.addEventListener("error", drop, { once: true });
+      // A failed image used to delete its own wrapper, so a broken deployment looked like a message
+      // that never had an attachment — nothing to see, nothing logged, nothing to debug. Leave a
+      // labelled placeholder and say why, the same way download/preview already do.
+      const drop = why => {
+        const reason = why || lastFileErr || "couldn't load";
+        console.warn("Better.Chat: image attachment failed —", el.alt || "(unnamed)", "|", reason, "|", url);
+        const w = el.closest(".att-imgwrap");
+        if (!w) { el.remove(); return; }
+        w.classList.add("att-failed"); w.removeAttribute("data-role");   // not clickable: there is nothing to expand
+        w.title = (el.alt || "image") + " — " + reason;
+        w.innerHTML = `<b>${esc(el.alt || "image")}</b><i>${esc(reason)}</i>`;
+      };
+      el.addEventListener("error", () => drop("the image data could not be decoded"), { once: true });
       // decide BEFORE the image loads: if the stream sits at the bottom now, keep it there once the image grows the content
       const st0 = el.closest('[data-role="stream"]');
       const stick = st0 && st0.scrollHeight - st0.scrollTop - st0.clientHeight < 80;
