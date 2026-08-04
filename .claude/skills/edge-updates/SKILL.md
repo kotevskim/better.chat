@@ -1,0 +1,96 @@
+---
+name: edge-updates
+description: Refresh the "Edge updates" popup — summarize every commit landed on main since the last release tag and write it into the EDGE_UPDATES block in index.html, so the edge label in the footer shows what's new. Incremental and safe to re-run daily; requires a clean working tree.
+---
+
+Refresh the **Edge updates** popup — the list behind the `edge` label in Better.Chat's
+bottom-left corner. Run from the repo root, **fully automatically**, and report a
+summary at the end.
+
+The popup answers one question for someone running an untagged `main` build: *what
+has landed since the last release?* This skill keeps that list current. It is
+designed to be re-run — today, tomorrow, after every few commits — and only ever
+writes up commits it has not written up before.
+
+## The data it maintains
+
+One block in `index.html`, just below the `RELEASES` array:
+
+```js
+const EDGE_UPDATES = { through: "", entries: [] };
+```
+
+- **`through`** — full sha of the newest commit already summarized. This is the
+  high-water mark that makes re-runs incremental. Empty means "nothing summarized
+  yet; start from the last release tag".
+- **`entries`** — newest group first: `{ date: "YYYY-MM-DD", items: ["…", "…"] }`.
+
+`/release` resets this block to `{ through: "", entries: [] }` in the same commit
+that flips `APP_VERSION` back to `"edge"`, so each release cycle starts empty.
+
+## Preflight — abort on any failure, change nothing
+
+1. `git status --porcelain` must be **empty**. If anything is uncommitted, abort:
+   list the dirty files and tell the user to commit them first as small, focused
+   commits per the AGENTS.md commit rules. **Never commit their changes for them.**
+2. Current branch must be `main` (`git rev-parse --abbrev-ref HEAD`).
+3. `PREV=$(git describe --tags --abbrev=0)` — the newest release tag (e.g. `v21`).
+
+## Work out what is actually new
+
+4. Read `EDGE_UPDATES.through` out of `index.html`.
+5. Pick the range:
+   - `through` is empty → `RANGE=$PREV..HEAD`
+   - `through` is set and still valid → `RANGE=<through>..HEAD`
+   - `through` is set but **stale** — the sha is unknown to the repo, or it is not
+     an ancestor of HEAD (`git merge-base --is-ancestor <through> HEAD` fails), or
+     it is older than `$PREV` (history was rewritten, or a release happened since)
+     → fall back to `RANGE=$PREV..HEAD` and **rebuild `entries` from scratch**
+     rather than appending to a list that no longer matches the range. Say so in
+     the final report.
+6. List the commits: `git log $RANGE --format='%H %s'`. **Drop** any commit whose
+   subject starts with `edge updates:` or `back to edge after` — version
+   bookkeeping, not product changes. (`$PREV..HEAD` always contains a
+   `back to edge after v<N>` commit: `/release` tags the version commit and then
+   flips back to edge, so that flip sits just past the tag every cycle.)
+7. If nothing survives step 6, stop here: **make no edit and no commit**, and
+   report that the popup is already up to date.
+
+## Write the entries
+
+8. Read the real changes — `git log $RANGE` for the messages **and**
+   `git diff $RANGE -- index.html` for what actually changed. Don't summarize from
+   subject lines alone; they undersell multi-part commits.
+9. Turn them into **client-perspective** bullets: what a person using Better.Chat
+   would notice, not the mechanics. One bullet per user-visible change, so a single
+   commit may produce two bullets and a pure-refactor commit may produce none.
+   Match the voice of the existing release notes — plain, concrete, no version
+   numbers or shas, no trailing full stops on short bullets.
+10. Group by **commit date** (`%ad`, `--date=short`), newest group first, so a
+    daily run appends one dated group. If a group for that date already exists in
+    `entries`, **append the new bullets to it** instead of adding a second group
+    with the same date.
+11. Before writing, re-read the bullets already in `entries` and drop anything that
+    restates one of them. The `through` marker prevents re-reading old commits, but
+    a reworded follow-up commit can still describe a change that is already listed.
+12. Set `through` to `git rev-parse HEAD` — the sha as of **before** this skill's
+    own commit. Step 6's filter is what keeps that commit out of the next run.
+
+## Commit
+
+13. Commit `index.html` alone. Subject **exactly**:
+    ```
+    edge updates: <YYYY-MM-DD>
+    ```
+    (today's date), then a blank line and a one-line note of how many bullets were
+    added and the range covered. The `edge updates:` prefix is load-bearing —
+    step 6 filters on it.
+14. Do **not** push and do **not** tag. This is a `main`-local bookkeeping commit;
+    the user pushes it with their next batch, or `/release` carries it along.
+
+## Report
+
+15. Final report: the range covered, how many commits were summarized and how many
+    were filtered out, the bullets added, the new `through` sha, and the commit
+    hash. If step 5 hit the stale-marker fallback, say that `entries` was rebuilt
+    from `$PREV` rather than appended to.

@@ -34,8 +34,12 @@ release creation). Report a summary at the end.
    `git diff $PREV..HEAD`), don't guess. Client-perspective wording.
 8. Tag **annotated** (a lightweight tag would make GitHub title the release after
    the long commit headline): `git tag -a v<N> -m "v<N>"`
-9. Flip back to edge: set `APP_VERSION = "edge"` again and commit as
-   `back to edge after v<N>` (untagged `main` builds must show `edge` in the footer).
+9. Flip back to edge, in **one** commit named `back to edge after v<N>`
+   (untagged `main` builds must show `edge` in the footer):
+   - set `APP_VERSION = "edge"` again,
+   - reset the edge-updates block to `const EDGE_UPDATES = { through: "", entries: [] };`
+     — everything it listed just shipped in v<N>, so the popup behind the footer's
+     `edge` label starts the next cycle empty. `/edge-updates` refills it.
 10. Push everything in one go: `git push --follow-tags`
 
 ## Release notes + GitHub release
