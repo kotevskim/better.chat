@@ -13,5 +13,7 @@ COPY proxy.py index.html ./
 # 0.0.0.0 inside the container only — the -p 127.0.0.1:... mapping keeps it
 # loopback-only on the host.
 ENV BC_BIND=0.0.0.0
+# unbuffered so the startup banner reaches `docker logs` right away
+ENV PYTHONUNBUFFERED=1
 EXPOSE 9000
 CMD ["python", "proxy.py"]
