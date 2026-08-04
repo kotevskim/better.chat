@@ -1126,7 +1126,7 @@
   const customEmoji = {};   // populated from the server: name -> image url
 
 
-  const APP_VERSION = "22";   // set to "<N>" for a release commit+tag, then back to "edge" — main builds show edge
+  const APP_VERSION = "edge";   // set to "<N>" for a release commit+tag, then back to "edge" — main builds show edge
   const sig = { c:"#", p:"🔒", d:"@", s:"⤷" };
   const stripe = { c:"var(--t-channel)", p:"var(--t-private)", d:"var(--t-direct)", s:"var(--t-discuss)" };
   const layoutCount = { solo:1, duo:2, tri:3, trileft:3, quad:4, six:6 };
@@ -4429,16 +4429,7 @@
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
-  const EDGE_UPDATES = { through: "70716b8e4e984aa6a9d66862d499e121322bfa3b", entries: [
-    { date: "2026-08-04", items: [
-      "Link mode — press l on a focused message to highlight its links one at a time, Enter opens the highlighted one, Esc leaves; the chat header spells out the keys while it is on, and ? lists the shortcut",
-      "Click \"edge\" in the footer to see everything that has landed since the last release",
-      "New 1+2 layout — one full-height chat on the left, two stacked beside it",
-      "The three-dots menu in a chat header no longer draws a focus ring when you click it — the ring is for Tab navigation only",
-      "Starring a message no longer jumps the conversation toward the bottom",
-      "Tighter spacing between the keyboard-hint band and the chat name in tile headers",
-    ] },
-  ] };
+  const EDGE_UPDATES = { through: "", entries: [] };
   const edgeUpdateCount = () => (EDGE_UPDATES.entries || []).reduce((t, g) => t + ((g.items || []).length), 0);
   function openEdgeUpdates() {
     const groups = EDGE_UPDATES.entries || [], cnt = edgeUpdateCount(), since = RELEASES.length ? "v" + RELEASES[0].v : "the last release";
