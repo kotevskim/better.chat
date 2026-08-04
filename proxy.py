@@ -14,6 +14,11 @@ Run it from the folder that contains index.html:
 
 The server can also come from the BC_SERVER env var or a `server` file next
 to this script (setup.sh writes that file). Then open http://chat.localhost:9000.
+
+Env overrides (used by the Docker image): BC_PORT sets the port when no argv
+port is given; BC_BIND sets the bind address (default 127.0.0.1 — inside a
+container it must be 0.0.0.0, with `docker run -p 127.0.0.1:<port>:9000`
+restoring the loopback-only guarantee on the host).
 """
 import os, sys, ssl, urllib.request, urllib.error
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -34,7 +39,8 @@ def _server():
     sys.exit("No Rocket.Chat server configured. Run: python3 proxy.py <server-hostname>  (or set BC_SERVER, or write the hostname into a 'server' file next to proxy.py)")
 
 SERVER = _server()
-PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 9000
+PORT = int(sys.argv[2]) if len(sys.argv) > 2 else int(os.environ.get("BC_PORT", "").strip() or 9000)
+BIND = os.environ.get("BC_BIND", "").strip() or "127.0.0.1"
 
 def _ssl_ctx():
     """Verifying TLS context. python.org builds on macOS often ship without a CA
@@ -126,5 +132,6 @@ class Server(ThreadingHTTPServer):
 
 
 if __name__ == "__main__":
-    print("Better.Chat proxy → https://%s   serving http://chat.localhost:%d" % (SERVER, PORT))
-    Server(("127.0.0.1", PORT), Handler).serve_forever()
+    extra = "" if BIND == "127.0.0.1" else "   (bound to %s)" % BIND
+    print("Better.Chat proxy → https://%s   serving http://chat.localhost:%d%s" % (SERVER, PORT, extra))
+    Server((BIND, PORT), Handler).serve_forever()

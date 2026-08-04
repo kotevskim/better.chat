@@ -42,8 +42,11 @@ release creation). Report a summary at the end.
 
 11. Generate release-notes markdown covering **everything from `$PREV` to `v<N>`**:
     heading `## Better.Chat — v<N>`, sections **New / Improved / Fixed** (omit a
-    section if empty), based on the commit messages and code changes. Include the
-    markdown in the chat reply too, so the user has it either way.
+    section if empty), based on the commit messages and code changes. End with an
+    install/update line for the Docker channel:
+    `Docker: docker pull ghcr.io/kotevskim/better.chat:v<N>` (also available as
+    `:latest`). Include the markdown in the chat reply too, so the user has it
+    either way.
 12. Create the GitHub release — first check the CLI:
     - `gh auth status` succeeds → write the notes to a temp file and run
       `gh release create v<N> --title "v<N>" --notes-file <file>`
@@ -52,4 +55,6 @@ release creation). Report a summary at the end.
       (title must be `v<N>`).
 13. Final report: version, the two commit hashes, tag pushed, release URL
     (`https://github.com/kotevskim/better.chat/releases/tag/v<N>`), and a note that
-    `bc-update` now resolves `v<N>` (raw CDN may lag ~5 min).
+    `bc-update` now resolves `v<N>` (raw CDN may lag ~5 min) and that the tag push
+    also triggered the `docker` workflow — `ghcr.io/kotevskim/better.chat:v<N>`
+    and `:latest` appear on GHCR once it finishes (~2 min).

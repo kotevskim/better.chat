@@ -1,0 +1,4 @@
+# Only proxy.py and index.html go into the image — keep the build context tiny.
+*
+!proxy.py
+!index.html
