@@ -163,6 +163,8 @@
   .thh-m2 { display:none; grid-area:mid; flex-direction:column; align-items:center; gap:4px; line-height:1.2; font-family:ui-monospace,monospace; font-size:8.5px; color:var(--text-faint); pointer-events:none; white-space:nowrap; }
   .tile.kbhints .thh-m2 { display:flex; }
   .th-hints kbd, .thh-m2 kbd { font-family:ui-monospace,monospace; font-size:8px; border:1px solid var(--border); background:var(--tile-head); border-radius:3px; padding:0 2px; margin-right:1px; color:var(--text-dim); }
+  .th-hints .thh-hot, .th-hints .thh-hot kbd { color:var(--accent); }   /* the important next step from here */
+  .th-hints .thh-hot kbd { border-color:color-mix(in srgb,var(--accent) 55%,transparent); }
   .th-hints .thh > span, .thh-m2 > span { white-space:nowrap; }
   .tile-name { min-width:0; }
   .tile-title { min-width:0; }
@@ -1197,8 +1199,7 @@
     if (msgHere) { put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); return; }
     if (inputFocused) { put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-r", ["<kbd>Esc</kbd> unwatch"]); return; }
     put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> watch",
-                   watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close",
-                   "<kbd>Shift</kbd> switch"].concat(watched ? ["<kbd>↑</kbd> write"] : []));
+                   watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close"].concat(watched ? ['<span class="thh-hot"><kbd>↑</kbd> write</span>'] : []));
     put(".thh-m1", ["<kbd>u</kbd> unread"]);
     put(".thh-r", ["<kbd>Tab</kbd> actions"]);
     put(".thh-m2", ["<kbd>z</kbd> prev chat", `<kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swap with neighbour`]);
@@ -3244,7 +3245,7 @@
     const SECTIONS = [
       ["Shortcuts", [
         ["f", "Fast Nav mode — key tags light up over everything clickable; type one to trigger it ([[esc]] exits)"],
-        ["Shift", "Search and open a chat — in the focused tile, or the first empty one"],
+        ["Shift", "Search and open a chat — in the first empty tile, or replacing the focused one when the grid is full"],
         ["u", "Mark the focused chat unread — it moves to the unread bar"],
         ["z", "Bring back this tile’s previous chat (after closing or switching)"],
         [["⌘", "←", "→", "↑", "↓"], "Swap the focused chat with the neighbouring tile"],
@@ -3828,7 +3829,7 @@
         <div class="gw-eyebrow">Keyboard tour · 2 of 2</div>
         <h2>Keyboard wrap-up</h2>
         <p>Use <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> to move between your chat windows, the Favourites and Unread bars, and the top bar. <kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swaps the focused chat with its neighbour.</p>
-        <p>There are only three other keys to remember: <kbd>Shift</kbd> searches and opens a chat — in the focused tile, or the first empty one, <kbd>u</kbd> marks the focused chat unread, and <kbd>z</kbd> brings back a tile’s previous chat.</p>
+        <p>There are only three other keys to remember: <kbd>Shift</kbd> searches and opens a chat — in the first empty tile, or replacing the focused one when the grid is full, <kbd>u</kbd> marks the focused chat unread, and <kbd>z</kbd> brings back a tile’s previous chat.</p>
         <p>No need to memorise any of it now: keyboard hints are displayed on screen where needed.</p>
         <p class="gw-task">Give it a go — hit any arrow to close this dialog and see where you can get to from there.</p>
 
@@ -4079,7 +4080,9 @@
     const t = document.activeElement, typing = t && (/^(INPUT|TEXTAREA)$/.test(t.tagName) || t.isContentEditable);
     if (typing || !backdrop.hidden || navMode || urPop || tileMenu || kbMsgFocus) return;
     kbTileFocus = true;
-    openFinder(state.active >= 0 ? state.active : null);
+    const empty = firstEmptyTile();   // first empty tile wins; with a full grid the picker replaces the focused chat
+    if (empty >= 0) { setActive(empty); openFinder(empty); }
+    else openFinder(state.active >= 0 ? state.active : null);
   });
   let urPop = null;
   function hideUrPop() { if (urPop) { urPop.remove(); urPop = null; } }
