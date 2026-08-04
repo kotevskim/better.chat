@@ -4424,18 +4424,15 @@
   document.getElementById("releasesSub").innerHTML = RELEASES.map(r => `<a class="rel-row" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><b>Version ${esc(r.v)}</b><span>notes ↗</span></a>`).join("");
   // ---- edge updates ----
   // What has landed on main since the newest tag, shown when you click "edge" in the footer.
+  // Client-visible changes only — docs, Docker/packaging and proxy.py work never appear here.
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
   const EDGE_UPDATES = { through: "70716b8e4e984aa6a9d66862d499e121322bfa3b", entries: [
     { date: "2026-08-04", items: [
       "Link mode — press l on a focused message to highlight its links one at a time, Enter opens the highlighted one, Esc leaves; the chat header spells out the keys while it is on, and ? lists the shortcut",
-      "The Docker instructions now cover the released and edge channels separately, on different ports so you can run both side by side, plus a section on listing, logging and removing the containers",
-      "A container no longer points you at a chat.localhost URL built from its internal port — on -p 9999:9000 it used to send you to :9000, where nothing is listening",
       "Click \"edge\" in the footer to see everything that has landed since the last release",
       "New 1+2 layout — one full-height chat on the left, two stacked beside it",
-      "docker logs now shows the proxy's startup banner, including which Rocket.Chat server the container is pointed at",
-      "Docker is a second way to install now — a published image on GHCR, with the README covering both port-80 and custom-port setups",
       "The three-dots menu in a chat header no longer draws a focus ring when you click it — the ring is for Tab navigation only",
       "Starring a message no longer jumps the conversation toward the bottom",
       "Tighter spacing between the keyboard-hint band and the chat name in tile headers",
