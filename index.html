@@ -39,7 +39,7 @@
   .footer .flink, .footer .flink:visited { color:var(--text-faint); text-decoration:none; }
   .footer .flink:hover { color:var(--text-dim); text-decoration:underline; }
   /* on edge builds the version label doubles as the "what's landed since the last release" button */
-  .footer .verbtn { cursor:pointer; border-bottom:1px dotted currentColor; }
+  .footer .verbtn { justify-self:start; cursor:pointer; border-bottom:1px dotted currentColor; }   /* justify-self, or the grid column stretches the hit area across the whole footer */
   .footer .verbtn:hover { color:var(--text-dim); }
   .footer .verbtn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
   .footer .verbtn .eu-count { display:inline-grid; place-items:center; min-width:14px; height:14px; padding:0 4px; margin-left:5px; border-radius:14px; background:var(--accent); color:var(--accent-ink); font-size:9px; font-weight:700; vertical-align:1px; }
