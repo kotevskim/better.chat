@@ -13,16 +13,20 @@ by one command. Either way, use **Chrome or Firefox** — they resolve
 
 ## Install via Docker
 
-Needs only Docker — no Python. The image is public; your server hostname is
-passed at run time, never baked in:
+Needs only Docker — no Python. The image is public, so no login is needed, and
+your server hostname is passed at run time rather than baked into the image.
+Replace `your.rocketchat.host` in the commands below with your own.
+
+### The released version
 
 ```bash
 docker run -d --name better-chat --restart unless-stopped \
   -p 127.0.0.1:9000:9000 -e BC_SERVER=your.rocketchat.host \
-  ghcr.io/kotevskim/better.chat:latest
+  ghcr.io/kotevskim/better.chat
 ```
 
-Then open **http://chat.localhost:9000**.
+Then open **http://chat.localhost:9000**. An image name with no tag means
+`:latest`, which always points at the newest release.
 
 The container always listens on 9000 internally — the `-p host:container`
 mapping decides the URL, so pick any free host port:
@@ -36,22 +40,53 @@ Keep the `127.0.0.1:` prefix — it publishes the port to your machine only,
 the same nothing-on-your-network guarantee as the service install.
 `--restart unless-stopped` makes it start with Docker and survive crashes.
 
-Image tags mirror the release scheme: `:latest` (newest release), `:v22` (pin
-a version), `:edge` (latest development build — may break).
-
-Update to the newest release:
+Pulling a newer image never touches a running container, so an update is
+pull + replace. This is also the command to re-run any time you want the
+newest release:
 
 ```bash
-docker pull ghcr.io/kotevskim/better.chat:latest && docker rm -f better-chat && \
+docker pull ghcr.io/kotevskim/better.chat && \
+docker rm -f better-chat 2>/dev/null; \
 docker run -d --name better-chat --restart unless-stopped \
   -p 127.0.0.1:9000:9000 -e BC_SERVER=your.rocketchat.host \
-  ghcr.io/kotevskim/better.chat:latest
+  ghcr.io/kotevskim/better.chat
 ```
 
-Uninstall:
+To pin a specific version instead, add its tag — `ghcr.io/kotevskim/better.chat:v22`.
+
+### The edge version
+
+The latest development build — **may break**. It runs happily alongside the
+released container: different container name, different port, so neither
+disturbs the other.
 
 ```bash
-docker rm -f better-chat; docker rmi -f $(docker images -q ghcr.io/kotevskim/better.chat)
+docker pull ghcr.io/kotevskim/better.chat:edge && \
+docker rm -f better-chat-edge 2>/dev/null; \
+docker run -d --name better-chat-edge --restart unless-stopped \
+  -p 127.0.0.1:9999:9000 -e BC_SERVER=your.rocketchat.host \
+  ghcr.io/kotevskim/better.chat:edge
+```
+
+Then open **http://chat.localhost:9999**. Re-run the same command whenever you
+want the newest edge build — `:edge` is rebuilt on every push to `main`.
+
+Because `:9999` is a different origin from `:9000`, it keeps its own session,
+layout, and theme, so you can try edge without disturbing your released copy.
+
+### Managing the containers
+
+```bash
+docker ps --filter name=better-chat
+```
+
+`docker logs better-chat` (or `better-chat-edge`) shows the startup banner with
+the server it's proxying to, plus any errors — the Docker equivalent of `bc-logs`.
+
+Remove the containers and the image:
+
+```bash
+docker rm -f better-chat better-chat-edge 2>/dev/null; docker rmi -f $(docker images -q ghcr.io/kotevskim/better.chat)
 ```
 
 ## Install as a service on your PC (one command)
