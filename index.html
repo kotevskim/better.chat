@@ -217,6 +217,7 @@
   .msg .head b { font-weight:600; font-size:13px; } .msg .head time { color:var(--text-faint); font-size:10.5px; font-family:ui-monospace,monospace; }
   .msg .text { overflow-wrap:anywhere; }
   .msg .text a, .msg .bubble a, .msg .text a:visited, .msg .bubble a:visited { color:var(--t-channel); text-decoration:none; } .msg .text a:hover, .msg .bubble a:hover { text-decoration:underline; }
+  .msg a.xlink.lfocus { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; background:color-mix(in srgb,var(--accent) 16%,transparent); }   /* the link link mode is sitting on */
   .msg .ts { font-family:ui-monospace,monospace; font-size:9.5px; color:transparent; text-align:right; padding-right:2px; align-self:start; line-height:1.7; }
   .msg.cont:hover .ts { color:var(--text-faint); }
   code.inline { font-family:ui-monospace,Menlo,monospace; font-size:12px; background:color-mix(in srgb,var(--text) 11%,transparent); padding:1px 5px; border-radius:4px; }
@@ -1219,8 +1220,14 @@
     const msgHere = kbMsgFocus && focusedMsgEl && t.contains(focusedMsgEl);
     const watched = watchedSlot === state.active;
     t.classList.add("kbhints");
+    if (msgHere && linkModeEl) {   // link mode owns Enter, so say so instead of showing the action-bar hints
+      const cnt = msgLinks(focusedMsgEl).length;
+      put(".thh-m1", [`<span class="thh-hot">link mode</span>${cnt > 1 ? ` ${linkIdx + 1}/${cnt}` : ""}`]);
+      put(".thh-m2", ["<kbd>Enter</kbd> open link", cnt > 1 ? "<kbd>l</kbd> next · <kbd>Esc</kbd> exit" : "<kbd>Esc</kbd> exit"]);
+      return;
+    }
     if (msgHere && msgMenu && menuSel >= 0) { put(".thh-m1", ["<kbd>Tab</kbd> or <kbd>←</kbd><kbd>→</kbd> move"]); put(".thh-m2", ["<kbd>Enter</kbd> execute"]); return; }
-    if (msgHere) { put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); return; }
+    if (msgHere) { put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
     if (inputFocused) { put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-r", ["<kbd>Esc</kbd> unwatch"]); return; }
     put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> watch",
                    watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close"].concat(watched ? ['<span class="thh-hot"><kbd>↑</kbd> write</span>'] : []));
@@ -1298,7 +1305,7 @@
     const blocks = [], inls = [], links = [];
     raw = raw.replace(/```([a-z]*)[ \t]*\r?\n?([\s\S]*?)```/gi, (m, lang, c) => { blocks.push(`<pre class="code${lang ? " lang-" + lang.toLowerCase() : ""}">` + highlightCode(lang, c.replace(/\n$/, "")) + "</pre>"); return "\x02" + (blocks.length - 1) + "\x02"; });
     raw = raw.replace(/`([^`\n]+)`/g, (m, c) => { inls.push('<code class="inline">' + esc(c) + "</code>"); return "\x03" + (inls.length - 1) + "\x03"; });
-    raw = raw.replace(/(https?:\/\/[^\s]+)/g, u => { links.push('<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(u) + "</a>"); return "\x04" + (links.length - 1) + "\x04"; });
+    raw = raw.replace(/(https?:\/\/[^\s]+)/g, u => { links.push('<a class="xlink" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(u) + "</a>"); return "\x04" + (links.length - 1) + "\x04"; });   // .xlink = a real external link, what link mode walks — mentions and #channels are spans, not anchors
     // blockquotes: consecutive lines starting with ">" become one <blockquote>; other lines join with <br>
     const lines = esc(raw).split("\n"), parts = []; let quote = [];
     const flush = () => { if (quote.length) { parts.push(`<blockquote class="rquote">${fmtInline(quote.join("<br>"))}</blockquote>`); quote = []; } };
@@ -1797,7 +1804,31 @@
 
   // focus = keyboard (arrows) or click only; hover just shows the action toolbar
   let focusedMsgEl = null, kbMsgFocus = false, focusedBadgeEl = null;
-  function setFocusedBadge(el) { if (focusedBadgeEl) focusedBadgeEl.classList.remove("bfocus"); focusedBadgeEl = el; if (el) el.classList.add("bfocus"); }
+  // ---- link mode ----
+  // `l` on a keyboard-focused message walks the external links inside it; Enter opens the highlighted
+  // one, Esc drops back to plain message focus. It is a sub-focus of the message, mutually exclusive
+  // with the "N replies" badge — only one thing inside a message is ever selected.
+  let linkModeEl = null, linkIdx = -1;
+  const isTypingNow = () => /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName) || !!(document.activeElement && document.activeElement.isContentEditable);   // inputs + inline message editing
+  const msgLinks = el => el ? [...el.querySelectorAll("a.xlink")] : [];
+  function exitLinkMode(quiet) {
+    if (!linkModeEl && linkIdx < 0) return;
+    if (linkModeEl) linkModeEl.classList.remove("lfocus");
+    linkModeEl = null; linkIdx = -1;
+    if (!quiet) updateKeyHints();
+  }
+  function stepLinkMode() {   // first `l` lights the first link, each next one steps along, wrapping
+    const links = msgLinks(focusedMsgEl);
+    if (!links.length) return;   // no links in this message — `l` does nothing at all
+    setFocusedBadge(null);       // badge and link mode can't both own the message
+    if (linkModeEl) linkModeEl.classList.remove("lfocus");
+    linkIdx = (linkIdx + 1) % links.length;
+    linkModeEl = links[linkIdx];
+    linkModeEl.classList.add("lfocus");
+    linkModeEl.scrollIntoView({ block: "nearest" });
+    updateKeyHints();
+  }
+  function setFocusedBadge(el) { if (el) exitLinkMode(true); if (focusedBadgeEl) focusedBadgeEl.classList.remove("bfocus"); focusedBadgeEl = el; if (el) el.classList.add("bfocus"); }
   function focusDateShow(el, on) {   // focused message shows date + time in its header
     const ctx = msgCtx(el); if (!ctx || !ctx.m.tsMs) return;
     let t = el.querySelector(".head time"), ts = ctx.m.tsMs;
@@ -1816,6 +1847,7 @@
   }
   function setFocusedMsg(el, byKey) {
     setTimeout(() => { if (typeof updateKeyHints === "function") updateKeyHints(); }, 0);
+    exitLinkMode(true);   // link mode belongs to one message; moving the focus leaves it
     kbMsgFocus = !!byKey && !!el;
     if (focusedMsgEl !== el) {
       if (focusedMsgEl) { focusedMsgEl.classList.remove("mfocus"); focusDateShow(focusedMsgEl, false); }
@@ -2061,6 +2093,7 @@
   function firstEmptyTile() { for (let i = 0; i < n(); i++) if (!state.slots[i]) return i; return -1; }
 
   function renderTiles() {
+    exitLinkMode(true);   // the whole grid is rebuilt below
     const cnt = n();
     state.slots.forEach((id, i) => { const p = _prevSlots[i]; if (p && p !== id) lastClosed[i] = p; });   // any close/switch/replace remembers what the tile lost
     _prevSlots = state.slots.slice();
@@ -2280,6 +2313,7 @@
   function clearAcc(id) { const st = roomState[id]; if (st && st.pendingFiles) st.pendingFiles.forEach(p => { try { URL.revokeObjectURL(p.url); } catch (_) {} }); delete roomState[id]; renderComposerAcc(id); const inp = composerFor(id); if (inp) inp.value = ""; }
   function cancelPendingFile(id, idx) { const st = roomState[id]; if (!st || !st.pendingFiles) return; const p = st.pendingFiles[idx]; if (p) { try { URL.revokeObjectURL(p.url); } catch (_) {} st.pendingFiles.splice(idx, 1); } if (!st.pendingFiles.length) delete st.pendingFiles; renderComposerAcc(id); }
   function renderVisibleStream(id) {
+    exitLinkMode(true);   // the innerHTML swap below detaches the highlighted link
     const html = renderMsgs(rooms[id].msgs, rooms[id]);
     const upd = s => { if (!s) return; const atBottom = s.scrollHeight - s.scrollTop - s.clientHeight < 80; const top = s.scrollTop; s.innerHTML = html; s.scrollTop = atBottom ? s.scrollHeight : top; };   // keep the exact position (innerHTML swap would clamp it), pin only if already at the bottom
     const slot = visibleSlots().indexOf(id);
@@ -3457,6 +3491,7 @@
       if (inUr && ae.tagName === "INPUT") return;   // the form sends natively
       e.preventDefault(); const id = urPop.dataset.room; hideUrPop(); if (id) placeFavourite(id); return;
     }
+    if (e.key === "Escape" && linkModeEl) { e.preventDefault(); exitLinkMode(); return; }   // Esc leaves link mode first — the message stays focused
     if (e.key === "Escape") {   // Esc closes whichever popup is open (topmost first)
       if (msgMenu && !kbMsgFocus && !focusedMsgEl) hideMsgMenu();   // hover-only toolbar: dismiss silently, Esc continues to its real target
       else if (msgMenu || focusedMsgEl) { e.preventDefault(); return setFocusedMsg(null); }   // fully defocus (clears kbMsgFocus so hover works again)
@@ -3467,6 +3502,12 @@
       if (favCycleId || unreadCycleId) { e.preventDefault(); favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); setActive(Math.min(barReturnSlot, n() - 1)); return; }
       if (threadsBack) { e.preventDefault(); return hideThreadsList(); }
       if (threadPop) { e.preventDefault(); return hideThread(); }
+    }
+    // l walks the focused message's external links; while link mode is on, Enter opens the highlighted
+    // one instead of dropping into the actions/reactions bar below.
+    if (kbMsgFocus && focusedMsgEl && !isTypingNow() && !panelBack && !e.altKey && !e.metaKey && !e.ctrlKey) {
+      if (e.key === "l") { e.preventDefault(); stepLinkMode(); return; }
+      if (linkModeEl && e.key === "Enter") { e.preventDefault(); linkModeEl.click(); return; }   // the anchor is target="_blank" — the browser opens a new tab
     }
     if (focusedBadgeEl && e.key === "Enter") { e.preventDefault(); openThread(focusedMsgEl); return; }   // Enter on a focused "N replies" badge -> open the thread
     if (msgMenu && kbMsgFocus && !focusedBadgeEl) {   // keyboard-focused message: Tab/Enter select the emoji action first; then Tab/←→ cycle, Enter runs
@@ -3486,7 +3527,7 @@
       }
     }
     const inPopup = !backdrop.hidden && modalKind && modalKind !== "expand";
-    const typing = /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName) || !!(document.activeElement && document.activeElement.isContentEditable);   // inputs + inline message editing
+    const typing = isTypingNow();   // inputs + inline message editing
     if (e.key === "?" && backdrop.hidden && !typing) { e.preventDefault(); openHelp(); return; }
     if (avatarFocused && backdrop.hidden && !typing && !e.altKey && !e.metaKey && !e.ctrlKey) {   // avatar: Enter opens its menu, ↓ returns to the favourites, Esc lets go
       const um = document.getElementById("userMenu");
