@@ -132,6 +132,12 @@ class Server(ThreadingHTTPServer):
 
 
 if __name__ == "__main__":
-    extra = "" if BIND == "127.0.0.1" else "   (bound to %s)" % BIND
-    print("Better.Chat proxy → https://%s   serving http://chat.localhost:%d%s" % (SERVER, PORT, extra))
+    if BIND == "127.0.0.1":
+        where = "serving http://chat.localhost:%d" % PORT
+    else:
+        # In a container the host-side port mapping is invisible from in here, so
+        # naming a chat.localhost URL would be a guess — and a wrong one for any
+        # mapping that doesn't reuse the container's own port.
+        where = "listening on %s:%d — open the host port mapped to it (docker run -p 127.0.0.1:<port>:%d)" % (BIND, PORT, PORT)
+    print("Better.Chat proxy → https://%s   %s" % (SERVER, where))
     Server((BIND, PORT), Handler).serve_forever()
