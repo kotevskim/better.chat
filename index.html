@@ -97,6 +97,7 @@
   .glyph { display:grid; gap:1.5px; width:16px; }
   .glyph.solo{grid-template-columns:1fr;height:12px;} .glyph.duo{grid-template-columns:1fr 1fr;height:12px;}
   .glyph.tri{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.tri i:last-child{grid-column:1 / -1;}
+  .glyph.trileft{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.trileft i:first-child{grid-row:1 / -1;}
   .glyph i { display:block; background:var(--text-dim); border-radius:1px; }
   .glyph.quad{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:12px;} .glyph.six{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;height:12px;}
   .usualbtn { height:32px; width:34px; box-sizing:border-box; background:var(--tile); border:1px solid var(--border); border-radius:6px; display:grid; place-items:center; color:var(--text-dim); cursor:pointer; padding:0; }
@@ -131,6 +132,10 @@
   .workspace[data-layout="duo"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr;}
   .workspace[data-layout="tri"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
   .workspace[data-layout="tri"] .tile[data-slot="2"]{grid-column:1 / -1;}
+  .workspace[data-layout="trileft"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}   /* one tall chat on the left, two stacked beside it */
+  .workspace[data-layout="trileft"] .tile[data-slot="0"]{grid-column:1;grid-row:1 / -1;}
+  .workspace[data-layout="trileft"] .tile[data-slot="1"]{grid-column:2;grid-row:1;}
+  .workspace[data-layout="trileft"] .tile[data-slot="2"]{grid-column:2;grid-row:2;}
   .workspace[data-layout="quad"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
   .workspace[data-layout="six"]{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;}
 
@@ -993,6 +998,7 @@
         <button data-layout="solo" title="1-up" aria-pressed="false"><span class="glyph solo"><i></i></span></button>
         <button data-layout="duo" title="2-up" aria-pressed="false"><span class="glyph duo"><i></i><i></i></span></button>
         <button data-layout="tri" title="2+1" aria-pressed="false"><span class="glyph tri"><i></i><i></i><i></i></span></button>
+        <button data-layout="trileft" title="1+2" aria-pressed="false"><span class="glyph trileft"><i></i><i></i><i></i></span></button>
         <button data-layout="quad" title="2×2" aria-pressed="true"><span class="glyph quad"><i></i><i></i><i></i><i></i></span></button>
         <button data-layout="six" title="3×2" aria-pressed="false"><span class="glyph six"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
       </div>
@@ -1107,8 +1113,11 @@
   const APP_VERSION = "edge";   // set to "<N>" for a release commit+tag, then back to "edge" — main builds show edge
   const sig = { c:"#", p:"🔒", d:"@", s:"⤷" };
   const stripe = { c:"var(--t-channel)", p:"var(--t-private)", d:"var(--t-direct)", s:"var(--t-discuss)" };
-  const layoutCount = { solo:1, duo:2, tri:3, quad:4, six:6 };
-  const layoutCols = { solo:1, duo:2, tri:2, quad:2, six:3 };
+  const layoutCount = { solo:1, duo:2, tri:3, trileft:3, quad:4, six:6 };
+  const layoutCols = { solo:1, duo:2, tri:2, trileft:2, quad:2, six:3 };
+  // trileft isn't a rectangle (slot 0 is a full-height column), so the row/col maths can't derive its
+  // neighbours — spell them out. Directions left undefined fall back to the generic behaviour.
+  const layoutNav = { trileft: { adj: [{ ArrowRight:1 }, { ArrowLeft:0, ArrowDown:2 }, { ArrowLeft:0, ArrowUp:1 }], topRow: [0, 1] } };
   // ---- ⌥/Opt on macOS, Alt everywhere else ----
   const IS_MAC = /Mac|iPhone|iPad|iPod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent);
   const MODK = IS_MAC ? "Opt" : "Alt";
@@ -3300,7 +3309,7 @@
   backdrop.addEventListener("input", e => { if (!e.target.matches('[data-role="q"]')) return; modalResults = filterRooms(e.target.value); modalSel = 0; renderResults(); });
 
   // ---------- keyboard ----------
-  const LAYOUTS = ["solo", "duo", "tri", "quad", "six"];
+  const LAYOUTS = ["solo", "duo", "tri", "trileft", "quad", "six"];
   function cycleLayout() { setLayout(LAYOUTS[(LAYOUTS.indexOf(state.layout) + 1) % LAYOUTS.length]); }   // the layout switcher's own cycling
   function moveWindow(key) {   // arrow navigation between chat windows — edge-aware (no wrapping); ↑ from the top row climbs into the bars
     kbTileFocus = true;
@@ -3308,6 +3317,12 @@
     if (key === "ArrowUp" && state.active >= 0 && state.active === watchedSlot && state.slots[state.active]) { focusComposer(state.active); updateKeyHints(); return; }   // watched: ↑ drops into the input
     const cnt = n(); if (state.active < 0) { setActive(0); setFocusedMsg(null); return; }   // nothing focused -> the first press just focuses the first window
     const cols = layoutCols[state.layout] || 1, cur = state.active;
+    const nav = layoutNav[state.layout];
+    if (nav) {   // layouts with a spanning tile use a spelled-out neighbour map
+      const t = nav.adj[cur] && nav.adj[cur][key];
+      if (t === undefined) { if (key === "ArrowUp" && nav.topRow.includes(cur)) enterBarNav(); return; }
+      setActive(t); setFocusedMsg(null); return;
+    }
     const row = Math.floor(cur / cols), lastRow = Math.floor((cnt - 1) / cols);
     let t = cur;
     if (key === "ArrowLeft") { if (cur % cols === 0) return; t = cur - 1; }
@@ -3318,6 +3333,8 @@
   }
   function neighborSlot(cur, key) {
     const cnt = n(), cols = layoutCols[state.layout] || 1;
+    const nav = layoutNav[state.layout];   // honour the real geometry where it's spelled out; wrap for the rest, so every tile stays reachable
+    if (nav && nav.adj[cur] && nav.adj[cur][key] !== undefined) return nav.adj[cur][key];
     if (key === "ArrowLeft") return (cur - 1 + cnt) % cnt;
     if (key === "ArrowRight") return (cur + 1) % cnt;
     if (key === "ArrowUp") return cur - cols >= 0 ? cur - cols : (cur - 1 + cnt) % cnt;
@@ -3996,7 +4013,7 @@
     if (document.getElementById("meBtn")) items.push({ kind: "me", el: document.getElementById("meBtn"), word: meWord });
     addBtn(document.getElementById("focusBtn"), "fmode", "fm");   // plain f opens the mode itself
     addBtn(document.getElementById("starredBtn"), "allstarred", "as");
-    const LNUM = { solo: "1", duo: "2", tri: "3", quad: "4", six: "6" };
+    const LNUM = { solo: "1", duo: "2", tri: "31", trileft: "32", quad: "4", six: "6" };   // the two 3-tile layouts share the 3 prefix; keys must stay prefix-free, so neither can be a bare "3"
     document.querySelectorAll('.segmented button[data-layout]').forEach(b => { if (b.offsetParent) items.push({ kind: "btn", el: b, word: LNUM[b.dataset.layout] || "l", seed: LNUM[b.dataset.layout], fixed: true }); });
     addBtn(document.getElementById("usualGridBtn"), "usual");
     addBtn(document.getElementById("helpBtn"), "keyboard", "k");
