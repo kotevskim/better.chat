@@ -4385,7 +4385,17 @@
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
-  const EDGE_UPDATES = { through: "", entries: [] };
+  const EDGE_UPDATES = { through: "844db33d4fd730b14267a485900305e6f66d7911", entries: [
+    { date: "2026-08-04", items: [
+      "Click \"edge\" in the footer to see everything that has landed since the last release",
+      "New 1+2 layout — one full-height chat on the left, two stacked beside it",
+      "docker logs now shows the proxy's startup banner, including which Rocket.Chat server the container is pointed at",
+      "Docker is a second way to install now — a published image on GHCR, with the README covering both port-80 and custom-port setups",
+      "The three-dots menu in a chat header no longer draws a focus ring when you click it — the ring is for Tab navigation only",
+      "Starring a message no longer jumps the conversation toward the bottom",
+      "Tighter spacing between the keyboard-hint band and the chat name in tile headers",
+    ] },
+  ] };
   const edgeUpdateCount = () => (EDGE_UPDATES.entries || []).reduce((t, g) => t + ((g.items || []).length), 0);
   function openEdgeUpdates() {
     const groups = EDGE_UPDATES.entries || [], cnt = edgeUpdateCount(), since = RELEASES.length ? "v" + RELEASES[0].v : "the last release";
