@@ -15,7 +15,7 @@ by one command. Either way, use **Chrome or Firefox** — they resolve
 
 Needs only Docker — no Python. The image is public, so no login is needed, and
 your server hostname is passed at run time rather than baked into the image.
-Replace `your.rocketchat.host` in the commands below with your own.
+**Replace `your.rocketchat.host` in the commands below with your own.**
 
 ### The released version
 
