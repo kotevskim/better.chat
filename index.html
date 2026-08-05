@@ -254,6 +254,11 @@
   code.inline { font-family:ui-monospace,Menlo,monospace; font-size:12px; background:color-mix(in srgb,var(--text) 11%,transparent); padding:1px 5px; border-radius:4px; overflow-wrap:anywhere; }   /* long `code` wraps like text — never clipped */
   pre.code { font-family:ui-monospace,Menlo,monospace; font-size:12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:9px 11px; margin:5px 0 2px; overflow-x:auto; white-space:pre; line-height:1.5; }
   pre.code .tok-k, .bc-example .tok-k { color:#c792ea; font-weight:600; } pre.code .tok-s, .bc-example .tok-s { color:#8bd07a; } pre.code .tok-n, .bc-example .tok-n { color:#e5945c; } pre.code .tok-c, .bc-example .tok-c { color:var(--text-faint); font-style:italic; }
+  /* the copy button that follows the pointer onto code and links — one shared element, parked on whatever is hovered */
+  .copychip { position:fixed; z-index:353; width:22px; height:22px; padding:0; border:1px solid var(--border); border-radius:6px; background:var(--tile); color:var(--text-dim); cursor:pointer; display:grid; place-items:center; box-shadow:var(--shadow); }
+  .copychip:hover { color:var(--text); border-color:var(--text-dim); }
+  .copychip.ok { color:#34c759; border-color:#34c759; }
+  .copychip svg { width:13px; height:13px; }
   .mention { color:var(--t-channel); background:color-mix(in srgb,var(--t-channel) 16%,transparent); border-radius:4px; padding:0 3px; font-weight:600; }
   .mention.me { color:var(--accent); background:color-mix(in srgb,var(--accent) 18%,transparent); }
   .chanref { color:var(--t-channel); font-weight:600; }
@@ -2155,12 +2160,13 @@
   document.addEventListener("mousemove", e => {
     ptrX = e.clientX; ptrY = e.clientY;
     if (reactPop) { const u = document.elementFromPoint(ptrX, ptrY); if (!u || !u.closest || !u.closest(".react")) hideReactPop(); }   // chip vanished under the cursor (re-render) -> drop the popover
+    if (copyChipEl && !copyChipEl.isConnected) hideCopyChip();                                            // the stream re-rendered the code/link out from under the button
   }, { passive: true });
   function scheduleHideMenu() {   // decide at fire time from the real cursor position — relatedTarget is unreliable on fast moves
     clearTimeout(menuHideT);
     menuHideT = setTimeout(() => {
       const under = document.elementFromPoint(ptrX, ptrY);
-      if (under && under.closest && (msgHitEl(under) || under.closest(".actbar"))) return;   // still on the message / toolbar
+      if (under && under.closest && (msgHitEl(under) || under.closest(".actbar") || under.closest(".copychip"))) return;   // still on the message / toolbar / a copy button
       hideMsgMenu();
     }, 200);
   }
@@ -2168,10 +2174,65 @@
     if (kbMsgFocus) return;
     const hit = msgHitEl(e.target), m = hit && hit.closest(".msg");
     if (m && (m.closest('[data-role="stream"]') || m.closest(".threadpop"))) { clearTimeout(menuHideT); showActBar(m); }
-    else if (msgMenu && !e.target.closest(".actbar")) scheduleHideMenu();   // moved onto blank space / the name row
+    else if (msgMenu && !e.target.closest(".actbar") && !e.target.closest(".copychip")) scheduleHideMenu();   // moved onto blank space / the name row
   }
-  function onMsgOut(e) { const to = e.relatedTarget; if (to && to.closest && (msgHitEl(to) || to.closest(".actbar"))) return; if (!kbMsgFocus) scheduleHideMenu(); }
+  function onMsgOut(e) { const to = e.relatedTarget; if (to && to.closest && (msgHitEl(to) || to.closest(".actbar") || to.closest(".copychip"))) return; if (!kbMsgFocus) scheduleHideMenu(); }
   document.addEventListener("mouseover", onMsgHover); document.addEventListener("mouseout", onMsgOut);   // grid, expand AND thread popups
+  // ---- copy button on hovered code and links ----
+  // One floating button, parked on whichever `inline`, ``` block or link the pointer is on, and copying
+  // just that: the code's own text, or the link's URL. The message's own Copy action still takes the
+  // whole message. A block gets the button just inside its top-right corner; inline code and links get
+  // it just outside, since a 22px button dropped into a one-line span would cover the very thing it
+  // copies. The JSON editor's highlight mirror is not code you can copy from — it has a textarea for
+  // that — so it stays out.
+  const COPY_SEL = "pre.code:not(.bc-hl), code.inline, a.xlink";
+  let copyChip = null, copyChipEl = null, copyChipT = null;
+  const copyChipIsLink = () => !!copyChipEl && copyChipEl.tagName === "A";
+  function hideCopyChip() { clearTimeout(copyChipT); if (copyChip) { copyChip.remove(); copyChip = null; } copyChipEl = null; }
+  const scheduleHideCopyChip = () => {   // same trick as the action bar: decide from where the cursor really is
+    clearTimeout(copyChipT);
+    copyChipT = setTimeout(() => {
+      const u = document.elementFromPoint(ptrX, ptrY);
+      if (u && u.closest && (u.closest(".copychip") || u.closest(COPY_SEL) === copyChipEl)) return;
+      hideCopyChip();
+    }, 180);
+  };
+  function placeCopyChip() {
+    if (!copyChip || !copyChipEl) return;
+    if (!copyChipEl.isConnected) return hideCopyChip();
+    const r = copyChipEl.getClientRects()[0] || copyChipEl.getBoundingClientRect();   // inline code or a link that wrapped: the first line box is where its top-right corner actually is
+    const w = copyChip.offsetWidth, h = copyChip.offsetHeight;
+    const clip = copyChipEl.closest('[data-role="stream"], .pn-body, .threadpop, .up-body');   // scrolled out of its own chat -> the button has nothing to sit on
+    if (clip) { const cr = clip.getBoundingClientRect(); if (r.top < cr.top - 4 || r.top > cr.bottom - 8) return hideCopyChip(); }
+    const block = copyChipEl.tagName === "PRE";
+    const left = block ? r.right - w - 6 : r.right + 3, top = block ? r.top + 6 : r.top - 3;
+    copyChip.style.left = Math.max(6, Math.min(left, window.innerWidth - w - 6)) + "px";
+    copyChip.style.top = Math.max(6, Math.min(top, window.innerHeight - h - 6)) + "px";
+  }
+  function showCopyChip(el) {
+    if (copyChipEl === el) { placeCopyChip(); return; }
+    hideCopyChip(); copyChipEl = el;
+    const label = copyChipIsLink() ? "Copy this link" : "Copy this code";
+    copyChip = document.createElement("button");
+    copyChip.type = "button"; copyChip.className = "copychip"; copyChip.title = label; copyChip.setAttribute("aria-label", label);
+    copyChip.innerHTML = SVG_COPY;
+    document.body.appendChild(copyChip); placeCopyChip();
+    copyChip.addEventListener("mouseenter", () => clearTimeout(copyChipT));
+    copyChip.addEventListener("mouseleave", scheduleHideCopyChip);
+    copyChip.addEventListener("click", async e => {
+      e.preventDefault(); e.stopPropagation();   // never the link's own navigation
+      const btn = copyChip, link = copyChipIsLink(), txt = !copyChipEl ? "" : link ? (copyChipEl.getAttribute("href") || copyChipEl.href) : copyChipEl.textContent;
+      try { await navigator.clipboard.writeText(txt); } catch (err) { hint("Couldn't copy — the clipboard needs a secure context."); return; }
+      hint(link ? "Link copied to clipboard" : "Code copied to clipboard");
+      btn.classList.add("ok"); setTimeout(() => btn.classList.remove("ok"), 900);
+    });
+  }
+  document.addEventListener("mouseover", e => {
+    const hit = e.target.closest && e.target.closest(COPY_SEL);
+    if (hit) { clearTimeout(copyChipT); showCopyChip(hit); return; }
+    if (copyChip && !(e.target.closest && e.target.closest(".copychip"))) scheduleHideCopyChip();
+  });
+  document.addEventListener("scroll", () => { if (copyChip) placeCopyChip(); }, true);   // it is glued to content that scrolls with its chat
   document.addEventListener("keydown", e => {
     const t = e.target;
     if (emojiOpen || mentionOpen) return;   // let the @ / : pickers take Enter first
