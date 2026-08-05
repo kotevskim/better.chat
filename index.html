@@ -3739,20 +3739,21 @@
     showPlacePick();
   }
   let pendingPlaceId = null;   // a chat picked from the finder while the grid was full — the next digit says which window it replaces
-  const hideBigNote = () => { if (bigNoteEl) { bigNoteEl.remove(); bigNoteEl = null; clearTimeout(bigNoteT); } pendingPlaceId = null; clearPlacePick(); };
+  let pendingPlaceWatch = false;   // …and whether that window should be watched once picked (the quick-reply popup's Enter)
+  const hideBigNote = () => { if (bigNoteEl) { bigNoteEl.remove(); bigNoteEl = null; clearTimeout(bigNoteT); } pendingPlaceId = null; pendingPlaceWatch = false; clearPlacePick(); };
   document.addEventListener("keydown", e => {
     if (pendingPlaceId && (/^[1-9]$/.test(e.key) || e.key === "Shift")) return;   // digits are the note's own next step — let them through
     if (bigNoteEl && e.key === "Escape") { e.preventDefault(); e.stopPropagation(); }   // Esc only dismisses the note — it must not also close the chat behind it
     hideBigNote();
   }, true);
   document.addEventListener("mousedown", hideBigNote, true);
-  function placeFavourite(id, x, y) {
-    if (!rooms[id]) return;
+  function placeFavourite(id, x, y) {   // returns the window it landed in, or -1 when there was none to land in yet
+    if (!rooms[id]) return -1;
     const openSlot = visibleSlots().indexOf(id);
-    if (openSlot >= 0) { setActive(openSlot); setFocusedMsg(null); return; }   // already pinned -> jump to its window
+    if (openSlot >= 0) { setActive(openSlot); setFocusedMsg(null); return openSlot; }   // already pinned -> jump to its window
     const t = firstEmptyTile();
-    if (t >= 0) { state.slots[t] = id; rooms[id].manualUnread = false; markRead(id); renderTiles(); setActive(t); ensureHistory(id); persist(); }
-    else askWindowFor(id);   // click, Enter, or Fast Nav on a full grid — same picker as the Shift flow
+    if (t >= 0) { state.slots[t] = id; rooms[id].manualUnread = false; markRead(id); renderTiles(); setActive(t); ensureHistory(id); persist(); return t; }
+    askWindowFor(id); return -1;   // click, Enter, or Fast Nav on a full grid — same picker as the Shift flow
   }
   // clicking a user's avatar in a channel opens (or creates) the DM in the first free window
   async function openDmWith(username, display) {
@@ -3829,7 +3830,14 @@
       const ae = document.activeElement, inUr = ae && urPop.contains(ae);
       if (inUr && ae.matches('[data-role="ur-read"]')) { e.preventDefault(); ae.click(); return; }   // mark read only — never also open the chat
       if (inUr && ae.tagName === "INPUT") return;   // the form sends natively
-      e.preventDefault(); const id = urPop.dataset.room; hideUrPop(); if (id) placeFavourite(id); return;   // full grid -> placeFavourite raises the window picker
+      e.preventDefault(); const id = urPop.dataset.room; hideUrPop();
+      if (id) {   // Enter is "I'm going in": open the chat, watch it, land in its composer — the preview already showed you what was unread
+        kbTileFocus = true; setFocusedMsg(null);
+        const s = placeFavourite(id);                                           // full grid -> placeFavourite raises the window picker
+        if (s >= 0) { watch(s, true); refreshTopbar(); }                         // watching marks it read — the chip leaves the unread bar with it
+        else if (pendingPlaceId === id) pendingPlaceWatch = true;               // the digit that picks the window watches it too
+      }
+      return;
     }
     if (e.key === "Escape" && linkModeEl) { e.preventDefault(); exitLinkMode(); return; }   // Esc leaves link mode first — the message stays focused
     if (e.key === "Escape") {   // Esc closes whichever popup is open (topmost first)
@@ -3838,7 +3846,16 @@
       if (bigBack) { e.preventDefault(); return closeBigEditor(); }
       if (tileMenu) { e.preventDefault(); return hideTileMenu(); }
       if (panelBack) { e.preventDefault(); return closePanel(); }
-      if (urPop) { e.preventDefault(); hideUrPop(); if (unreadCycleId) { unreadCycleId = null; renderUnreadbar(); setActive(Math.min(barReturnSlot, n() - 1)); } return; }
+      if (urPop) {
+        e.preventDefault();
+        if (!unreadCycleId) { hideUrPop(); return; }                            // hover-opened: dismiss only, the focus was never in the bar
+        const inUr = document.activeElement && urPop.contains(document.activeElement);
+        if (!inUr) return;                                                      // walking the bar the preview belongs to the chip — Esc stays put until Tab takes you inside it
+        const cur = urPop.dataset.room, ul = unreadbarRooms();                  // inside it, Esc leaves the reply behind and moves on to the next unread
+        const i = ul.indexOf(cur) >= 0 ? ul.indexOf(cur) : ul.indexOf(unreadCycleId);
+        if (i >= 0 && ul.length > 1) { hideUrPop(); navOpenUnread(ul[(i + 1) % ul.length]); }
+        return;
+      }
       if (favCycleId || unreadCycleId) { e.preventDefault(); favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); setActive(Math.min(barReturnSlot, n() - 1)); return; }
       if (threadsBack) { e.preventDefault(); return hideThreadsList(); }
       if (threadPop) { e.preventDefault(); return hideThread(); }
@@ -3882,10 +3899,12 @@
     if (pendingPlaceId && /^[1-9]$/.test(e.key) && !e.altKey && !e.metaKey && !e.ctrlKey && !typing && backdrop.hidden) {
       const ti = +e.key - 1;
       if (ti < n()) {
-        e.preventDefault(); const id = pendingPlaceId; hideBigNote(); kbTileFocus = true; setFocusedMsg(null);
+        e.preventDefault(); const id = pendingPlaceId, wantWatch = pendingPlaceWatch; hideBigNote(); kbTileFocus = true; setFocusedMsg(null);
         const already = visibleSlots().indexOf(id); if (already >= 0 && already !== ti) state.slots[already] = null;   // no duplicates — it moves
         state.slots[ti] = id; if (rooms[id]) rooms[id].manualUnread = false; markRead(id);
         renderTiles(); setActive(ti); ensureHistory(id); persist();
+        if (wantWatch) watch(ti, true);
+        refreshTopbar();   // it was just marked read — drop its chip from the unread bar
       }
       return;
     }
@@ -4553,7 +4572,7 @@
     hideUrPop(); const r = rooms[id]; if (!r) return;
     setFocusedMsg(null);
     urPop = document.createElement("div"); urPop.className = "urpop"; urPop.dataset.room = id;
-    urPop.innerHTML = `<div class="up-head"><span class="sigil ${r.t}">${sig[r.t]}</span> ${esc(r.name)} <span style="color:var(--text-faint);font-weight:400;font-size:12px">${ru(r)} unread</span><span class="ur-navhint"><kbd>Tab</kbd> to navigate</span><button type="button" class="ur-read" data-role="ur-read" title="Mark as read">✓ Mark read</button></div>` +
+    urPop.innerHTML = `<div class="up-head"><span class="sigil ${r.t}">${sig[r.t]}</span> ${esc(r.name)} <span style="color:var(--text-faint);font-weight:400;font-size:12px">${ru(r)} unread</span><span class="ur-navhint"><kbd>Tab</kbd> actions</span><button type="button" class="ur-read" data-role="ur-read" title="Mark as read">✓ Mark read</button></div>` +
       `<div class="up-body" data-role="ur-body">${r.msgs.length ? urMsgsHtml(unreadMsgs(r)) : `<div class="tload" style="color:var(--text-faint);font-size:12px">loading messages…</div>`}</div>` +
       `<form class="up-reply" data-room="${id}"><input placeholder="Quick reply…" aria-label="Quick reply"><button class="send" type="submit">${ICON.send}</button></form>`;
     document.body.appendChild(urPop); placeUrPop(x, y);
