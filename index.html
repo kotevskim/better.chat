@@ -4856,7 +4856,15 @@
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
-  const EDGE_UPDATES = { through: "10d82255356e356c36728da4286a10608ba45364", entries: [
+  const EDGE_UPDATES = { through: "8b914f36eda45c1feabc489bcb5e9e43fbe36d61", entries: [
+    { date: "2026-08-06", items: [
+      { text: "Unread previews now hand you onward: Enter drops into the chat, Esc skips to the next unread", sub: [
+        "Enter opens the chat, watches it, and puts your cursor in its composer — and the chip leaves the unread bar with you",
+        "Esc skips to the next unread once Tab has taken you to Mark read or the reply box; on a freshly opened preview it stays put",
+      ] },
+      "The chat header's actions sit in a steadier order — mark unread, expand, more, close",
+      "The keyboard tour's last dialog sticks to the arrow keys and leaves the rest to the hints on screen",
+    ] },
     { date: "2026-08-05", items: [
       "Resize a chat window: hold Cmd/Ctrl+Shift and it lights up, then arrows grow it toward that edge — press the opposite arrow to take the growth back, and release to apply",
       "An arrow that cannot grow squeezes the window from the far side instead, so a merged window is taken apart with the same keys that built it",
