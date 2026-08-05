@@ -46,8 +46,19 @@ release creation). Report a summary at the end.
 
 11. Generate release-notes markdown covering **everything from `$PREV` to `v<N>`**:
     heading `## Better.Chat — v<N>`, sections **New / Improved / Fixed** (omit a
-    section if empty), based on the commit messages and code changes. End with an
-    install/update line for the Docker channel:
+    section if empty), based on the commit messages and code changes.
+    - **One bullet per feature, not per commit and not per change.** The unit is
+      what a user would name if asked what's new — "you can resize chat windows
+      now". A feature built over five commits is one bullet; don't let the commit
+      log dictate the shape of the notes. Where a feature really has two or three
+      distinct things worth calling out, nest them as sub-bullets under it rather
+      than flattening them into siblings.
+    - **Leave out the mechanics.** How state is stored, which internal rule fires
+      when, what a helper is named, edge cases only a reader of the diff would
+      care about — cut them. A bullet that needs the diff to make sense doesn't
+      belong in release notes.
+    - Client-perspective wording throughout; no shas, no file names.
+    End with an install/update line for the Docker channel:
     `Docker: docker pull ghcr.io/kotevskim/better.chat:v<N>` (also available as
     `:latest`). Include the markdown in the chat reply too, so the user has it
     either way.

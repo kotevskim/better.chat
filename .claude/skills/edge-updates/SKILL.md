@@ -75,11 +75,20 @@ that flips `APP_VERSION` back to `"edge"`, so each release cycle starts empty.
    A commit that touches both sides gets a bullet for its `index.html` half only. A
    commit that touches none of `index.html` gets nothing — that is the normal
    outcome for infrastructure work, not a sign the skill missed something.
-10. Turn what is left into **client-perspective** bullets: what a person using
-    Better.Chat would notice, not the mechanics. One bullet per user-visible change,
-    so a single commit may produce two bullets, and a refactor behind unchanged UI
-    produces none. Match the voice of the existing release notes — plain, concrete,
-    no version numbers or shas, no trailing full stops on short bullets.
+10. Turn what is left into **client-perspective** entries: what a person using
+    Better.Chat would notice, not the mechanics.
+    - **One entry per feature, not per commit and not per change.** The unit is
+      what a user would name if asked what's new — "you can resize chat windows
+      now". A feature built over five commits is still one entry; several commits
+      collapse into one, and a refactor behind unchanged UI produces none.
+    - Only when a feature genuinely has a couple of distinct things worth calling
+      out, use `{ text: "…", sub: ["…", "…"] }` and keep sub-points to two or
+      three. Otherwise a plain string.
+    - **Leave out the mechanics.** Which preset lights up, how state is stored,
+      what a helper is named, why an edge case behaves as it does — cut it. If a
+      line only makes sense to someone who read the diff, it doesn't belong.
+    - Match the voice of the existing release notes — plain, concrete, no version
+      numbers or shas, no trailing full stops on short entries.
 11. Group by **commit date** (`%ad`, `--date=short`), newest group first, so a
     daily run appends one dated group. If a group for that date already exists in
     `entries`, **append the new bullets to it** instead of adding a second group

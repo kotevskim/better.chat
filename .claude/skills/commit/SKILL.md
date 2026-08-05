@@ -46,11 +46,22 @@ invoking this skill is the explicit ask that AGENTS.md requires. Report at the e
 11. Otherwise update the `EDGE_UPDATES` block in `index.html` (just below
     `RELEASES`) in the **same run**, so the popup behind the footer's `edge` label
     never lags the commits:
-    - one bullet per user-visible change, matching the voice of the release notes
-      — plain, concrete, no version numbers or shas, no trailing full stops
+    - **One entry per feature, not per change.** The unit is what a person would
+      name if asked what's new — "you can resize chat windows now" — not the
+      pieces it took to build. A feature that touched ten things is still one
+      entry. The reader is counting features, and the badge counts entries.
+    - Only when a feature genuinely has a couple of distinct things worth calling
+      out, use `{ text: "…", sub: ["…", "…"] }` and keep the sub-points to two or
+      three. Otherwise a plain string.
+    - **Leave out the mechanics.** Which preset lights up, how state is stored,
+      what a helper is named, why an edge case behaves as it does — none of that
+      belongs here. If a line only makes sense to someone who read the diff, cut
+      it. Ask of every line: would a user care, or is this me showing my work?
+    - Match the voice of the release notes — plain, concrete, no version numbers
+      or shas, no trailing full stops
     - newest group first, grouped by today's date (`YYYY-MM-DD`); if a group for
       today already exists, **append to it** rather than adding a second group
-    - re-read the bullets already there and drop anything that restates one
+    - re-read the entries already there and drop anything that restates one
     - set `through` to `git rev-parse HEAD` **after** the content commits land, so
       the next `/edge-updates` run starts from the right place
 12. Commit that edit separately, subject exactly `edge updates: <YYYY-MM-DD>`.

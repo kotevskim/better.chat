@@ -870,6 +870,9 @@
   .eu-list { margin:0; padding-left:17px; display:flex; flex-direction:column; gap:5px; }
   .eu-list li { font-size:13px; line-height:1.5; color:var(--text); }
   .eu-list li::marker { color:var(--accent); }
+  .eu-sublist { margin:4px 0 0; padding-left:16px; display:flex; flex-direction:column; gap:3px; }
+  .eu-sublist li { font-size:12.5px; color:var(--text-dim); }
+  .eu-sublist li::marker { color:var(--text-faint); }
   .pn-result.pn-star { display:flex; gap:10px; align-items:flex-start; }
   .pn-result.pn-star .avatar { width:28px; height:28px; flex:none; } .pn-star-main { flex:1; min-width:0; }
   .pn-room { display:inline-flex; align-items:center; gap:4px; color:var(--accent); font-size:11px; font-weight:600; margin:0 6px; }
@@ -4843,13 +4846,20 @@
       "The 2+1 and 1+2 layouts are gone: merge a row or a column to get them, and the Fast Nav layout keys are single digits again",
     ] },
   ] };
+  // One entry per feature. An entry is a string, or { text, sub: [...] } when the feature genuinely
+  // needs a couple of supporting points — the count is of features, so sub-points never inflate it.
   const edgeUpdateCount = () => (EDGE_UPDATES.entries || []).reduce((t, g) => t + ((g.items || []).length), 0);
+  const euItemHtml = i => {
+    if (typeof i === "string") return `<li>${esc(i)}</li>`;
+    const sub = (i.sub || []).map(x => `<li>${esc(x)}</li>`).join("");
+    return `<li>${esc(i.text || "")}${sub ? `<ul class="eu-sublist">${sub}</ul>` : ""}</li>`;
+  };
   function openEdgeUpdates() {
     const groups = EDGE_UPDATES.entries || [], cnt = edgeUpdateCount(), since = RELEASES.length ? "v" + RELEASES[0].v : "the last release";
     const body = cnt
       ? `<div class="up-body eu-body">` + groups.map(g =>
           `<div class="eu-group"><div class="eu-date">${esc(g.date || "")}</div><ul class="eu-list">` +
-          (g.items || []).map(i => `<li>${esc(i)}</li>`).join("") + `</ul></div>`).join("") + `</div>`
+          (g.items || []).map(euItemHtml).join("") + `</ul></div>`).join("") + `</div>`
       : `<div class="up-body eu-body"><div class="pn-hint">Nothing new since ${esc(since)} — this build matches the last release.</div></div>`;
     openPanel(`<b>Edge updates</b><span class="eu-sub">${cnt ? `${cnt} change${cnt === 1 ? "" : "s"} since ${esc(since)}` : `since ${esc(since)}`}</span>`, body, "eupop");
   }
