@@ -1451,7 +1451,7 @@
       return;
     }
     if (msgHere && msgMenu && menuSel >= 0) { put(".thh-m1", ["<kbd>Tab</kbd> or <kbd>←</kbd><kbd>→</kbd> move"]); put(".thh-m2", ["<kbd>Enter</kbd> execute"]); return; }
-    if (msgHere) { put(".thh-l", ["<kbd>Esc</kbd> stop watching"]); put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
+    if (msgHere) { put(".thh-l", ["<kbd>Esc</kbd> write"]); put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
     // one layout for every state: Enter/Esc on the left, unread + swap in the middle, Tab on the right —
     // a key that works in more than one state never moves around
     const uHint = `<kbd>${IS_MAC ? "Cmd" : "Ctrl"}</kbd><kbd>u</kbd> unread`;
@@ -3890,7 +3890,15 @@
     if (e.key === "Escape" && linkModeEl) { e.preventDefault(); exitLinkMode(); return; }   // Esc leaves link mode first — the message stays focused
     if (e.key === "Escape") {   // Esc closes whichever popup is open (topmost first)
       if (msgMenu && !kbMsgFocus && !focusedMsgEl) hideMsgMenu();   // hover-only toolbar: dismiss silently, Esc continues to its real target
-      else if (msgMenu || focusedMsgEl) { e.preventDefault(); setFocusedMsg(null); if (backdrop.hidden && watchedSlot >= 0) unwatch(); return; }   // Esc on a focused message defocuses AND unwatches in one go
+      else if (msgMenu || focusedMsgEl) {   // Esc on a focused message hands you to the composer — reading a message and answering it are one motion
+        e.preventDefault();
+        const cont = focusedMsgEl && (focusedMsgEl.closest(".tile") || focusedMsgEl.closest(".modal") || focusedMsgEl.closest(".threadpop"));
+        setFocusedMsg(null);
+        const inp = cont && cont.querySelector('[data-role="composer"] .cinput, [data-role="thread-reply"] input');
+        if (inp) { const st = cont.querySelector('[data-role="stream"]'); if (st) st.scrollTop = st.scrollHeight; inp.focus(); return; }   // back at the bottom, where what you type will land
+        if (backdrop.hidden && watchedSlot >= 0) unwatch();   // nowhere to write (a panel's message list) — let go instead
+        return;
+      }
       if (bigBack) { e.preventDefault(); return closeBigEditor(); }
       if (tileMenu) { e.preventDefault(); return hideTileMenu(); }
       if (panelBack) { e.preventDefault(); return closePanel(); }
