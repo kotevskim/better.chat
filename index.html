@@ -3660,8 +3660,8 @@
         ["Shift", "Search and open a chat — in the first empty tile, or replacing the focused one when the grid is full"],
         [[IS_MAC ? "Cmd" : "Ctrl", "u"], "Mark the focused chat unread — it moves to the unread bar (works while writing too)"],
         ["l", "Link mode on the focused message — highlights its first link, again for the next; [[enter]] opens it, [[esc]] exits"],
-        [[IS_MAC ? "Cmd" : "Ctrl", "⇧", "←", "→", "↑", "↓"], "Resize the focused window — each arrow grows it that way, or gives back growth from the other side; the shape is previewed and applies when you let go ([[esc]] cancels)"],
         [["⌘", "←", "→", "↑", "↓"], "Swap the focused chat with the neighbouring tile"],
+        [[IS_MAC ? "Cmd" : "Ctrl", "Shift", "←", "→", "↑", "↓"], "Resize the focused window — each arrow grows it that way, or gives back growth from the other side; the shape is previewed and applies when you let go"],
       ]],
     ];
     const rowH = ([k, d]) => {   // string keys split on " · " into alternatives; an array renders adjacent badges
