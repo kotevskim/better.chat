@@ -603,8 +603,6 @@
   .head-dot[data-status="online"] { background:var(--live); } .head-dot[data-status="away"] { background:#e0a44c; } .head-dot[data-status="busy"] { background:#e5555f; } .head-dot[data-status="offline"] { background:#8a97a6; }
   .head-status-text { color:var(--text-faint); font-size:11px; font-weight:400; margin-left:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
   /* info popup — brighter/more noticeable */
-  .infopop { position:fixed; z-index:340; background:var(--accent); color:var(--accent-ink); border:none; border-radius:10px; box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 45%,transparent); padding:10px 14px; max-width:280px; font-size:13px; font-weight:600; }
-  @media (prefers-reduced-motion: no-preference){ .infopop { animation:pop .16s ease; } }
   /* unread preview popup (double-click an unread person) */
   .urpop { position:fixed; z-index:340; width:min(520px,94vw); background:var(--tile); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
   .urpop .up-head { display:flex; align-items:center; gap:8px; padding:10px 13px; border-bottom:1px solid var(--border-soft); font-weight:650; }
@@ -1247,14 +1245,14 @@
       return;
     }
     if (msgHere && msgMenu && menuSel >= 0) { put(".thh-m1", ["<kbd>Tab</kbd> or <kbd>←</kbd><kbd>→</kbd> move"]); put(".thh-m2", ["<kbd>Enter</kbd> execute"]); return; }
-    if (msgHere) { put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
+    if (msgHere) { put(".thh-l", ["<kbd>Esc</kbd> unwatch"]); put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
     // one layout for every state: Enter/Esc on the left, unread + swap in the middle, Tab on the right —
     // a key that works in more than one state never moves around
     const uHint = `<kbd>${IS_MAC ? "Cmd" : "Ctrl"}</kbd><kbd>u</kbd> unread`;
     const swapHint = `<kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swap with neighbour`;
     if (inputFocused) { put(".thh-l", ["<kbd>Esc</kbd> unwatch"]); put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-m2", [uHint]); put(".thh-r", ["<kbd>Tab</kbd> actions"]); return; }
     put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> write",
-                   watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close"].concat(watched ? ['<span class="thh-hot"><kbd>↑</kbd> write</span>'] : []));
+                   watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close"]);
     put(".thh-m1", [swapHint]);
     put(".thh-m2", [uHint]);   // second row, same place watched or not
     put(".thh-r", ["<kbd>Tab</kbd> actions"]);
@@ -3426,12 +3424,7 @@
     if (existing >= 0 && existing !== modalTarget) { closeModal(); setActive(existing); hint("Already open — focused that window."); return; }   // no duplicates: focus the existing one
     if (modalTarget < 0) {
       const t = firstEmptyTile();
-      if (t < 0) {   // no target and no room: the chat is chosen — ask which window it takes, AFTER the search
-        closeModal(); pendingPlaceId = id;
-        bigNote("No empty window", `Press <kbd>1</kbd>–<kbd>${n()}</kbd> to open <b>${esc(rooms[id] ? rooms[id].name : "it")}</b> there — it replaces that window's chat.`, true);   // sticky: waits for the digit
-        showPlacePick();
-        return;
-      }
+      if (t < 0) { closeModal(); askWindowFor(id); return; }   // no target and no room: the chat is chosen — ask which window it takes, AFTER the search
       modalTarget = t;
     }
     state.slots[modalTarget] = id; markRead(id);
@@ -3508,6 +3501,12 @@
     ws.querySelectorAll(".tile").forEach(t => { const b = document.createElement("div"); b.className = "place-num"; b.textContent = +t.dataset.slot + 1; t.appendChild(b); });
   }
   const clearPlacePick = () => { ws.classList.remove("placepick"); ws.querySelectorAll(".place-num").forEach(x => x.remove()); };
+  function askWindowFor(id) {   // grid full, chat chosen — one picker for every entry point: finder, chips, quick-reply popup
+    hideUrPop(); favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar();
+    pendingPlaceId = id;
+    bigNote("No empty window", `Press <kbd>1</kbd>–<kbd>${n()}</kbd> to open <b>${esc(rooms[id] ? rooms[id].name : "it")}</b> there — it replaces that window's chat.`, true);
+    showPlacePick();
+  }
   let pendingPlaceId = null;   // a chat picked from the finder while the grid was full — the next digit says which window it replaces
   const hideBigNote = () => { if (bigNoteEl) { bigNoteEl.remove(); bigNoteEl = null; clearTimeout(bigNoteT); } pendingPlaceId = null; clearPlacePick(); };
   document.addEventListener("keydown", e => {
@@ -3516,19 +3515,13 @@
     hideBigNote();
   }, true);
   document.addEventListener("mousedown", hideBigNote, true);
-  function showInfoPop(x, y, text) {
-    const p = document.createElement("div"); p.className = "infopop"; p.textContent = text; document.body.appendChild(p);
-    p.style.left = Math.max(8, Math.min(x, window.innerWidth - p.offsetWidth - 10)) + "px"; p.style.top = (y + 14) + "px";
-    setTimeout(() => p.remove(), 2600);
-  }
   function placeFavourite(id, x, y) {
     if (!rooms[id]) return;
     const openSlot = visibleSlots().indexOf(id);
     if (openSlot >= 0) { setActive(openSlot); setFocusedMsg(null); return; }   // already pinned -> jump to its window
     const t = firstEmptyTile();
     if (t >= 0) { state.slots[t] = id; rooms[id].manualUnread = false; markRead(id); renderTiles(); setActive(t); ensureHistory(id); persist(); }
-    else if (x != null) showInfoPop(x, y, "No empty window — drag onto a chat to replace it.");
-    else bigNote("No empty window", `Press <kbd>1</kbd>–<kbd>${n()}</kbd> to replace the chat in that position, or drag the chip onto a window.`);
+    else askWindowFor(id);   // click, Enter, or Fast Nav on a full grid — same picker as the Shift flow
   }
   // clicking a user's avatar in a channel opens (or creates) the DM in the first free window
   async function openDmWith(username, display) {
@@ -3605,17 +3598,12 @@
       const ae = document.activeElement, inUr = ae && urPop.contains(ae);
       if (inUr && ae.matches('[data-role="ur-read"]')) { e.preventDefault(); ae.click(); return; }   // mark read only — never also open the chat
       if (inUr && ae.tagName === "INPUT") return;   // the form sends natively
-      e.preventDefault(); const id = urPop.dataset.room;
-      if (id && visibleSlots().indexOf(id) < 0 && firstEmptyTile() < 0) {   // keep the popup + highlight — a digit can still replace
-        bigNote("No empty window", `Press <kbd>1</kbd>–<kbd>${n()}</kbd> to replace the chat in that position, or drag the chip onto a window.`);
-        return;
-      }
-      hideUrPop(); if (id) placeFavourite(id); return;
+      e.preventDefault(); const id = urPop.dataset.room; hideUrPop(); if (id) placeFavourite(id); return;   // full grid -> placeFavourite raises the window picker
     }
     if (e.key === "Escape" && linkModeEl) { e.preventDefault(); exitLinkMode(); return; }   // Esc leaves link mode first — the message stays focused
     if (e.key === "Escape") {   // Esc closes whichever popup is open (topmost first)
       if (msgMenu && !kbMsgFocus && !focusedMsgEl) hideMsgMenu();   // hover-only toolbar: dismiss silently, Esc continues to its real target
-      else if (msgMenu || focusedMsgEl) { e.preventDefault(); return setFocusedMsg(null); }   // fully defocus (clears kbMsgFocus so hover works again)
+      else if (msgMenu || focusedMsgEl) { e.preventDefault(); setFocusedMsg(null); if (backdrop.hidden && watchedSlot >= 0) unwatch(); return; }   // Esc on a focused message defocuses AND unwatches in one go
       if (bigBack) { e.preventDefault(); return closeBigEditor(); }
       if (tileMenu) { e.preventDefault(); return hideTileMenu(); }
       if (panelBack) { e.preventDefault(); return closePanel(); }
@@ -3657,20 +3645,26 @@
       if (e.key === "ArrowUp") { e.preventDefault(); return; }   // nothing above
       if (e.key === "Escape") { e.preventDefault(); blurAvatar(); um.hidden = true; kbTileFocus = true; setActive(Math.min(barReturnSlot, n() - 1)); return; }
     }
+    // a window pick is pending (grid was full when the chat was chosen): the digit works no matter
+    // where the focus sits — bar navigation leaves no tile active, so this cannot live with the
+    // tile digits below
+    if (pendingPlaceId && /^[1-9]$/.test(e.key) && !e.altKey && !e.metaKey && !e.ctrlKey && !typing && backdrop.hidden) {
+      const ti = +e.key - 1;
+      if (ti < n()) {
+        e.preventDefault(); const id = pendingPlaceId; hideBigNote(); kbTileFocus = true; setFocusedMsg(null);
+        const already = visibleSlots().indexOf(id); if (already >= 0 && already !== ti) state.slots[already] = null;   // no duplicates — it moves
+        state.slots[ti] = id; if (rooms[id]) rooms[id].manualUnread = false; markRead(id);
+        renderTiles(); setActive(ti); ensureHistory(id); persist();
+      }
+      return;
+    }
     if ((favCycleId || unreadCycleId) && backdrop.hidden && !typing && !e.altKey && !e.metaKey && /^Arrow/.test(e.key)) { e.preventDefault(); barArrow(e.key); return; }
     if ((favCycleId || unreadCycleId) && backdrop.hidden && !typing) {   // a bar chip is highlighted
       if (e.key === "Enter" && e.altKey && unreadCycleId) {   // ⌥Enter -> preview & quick-reply the highlighted unread (legacy combo)
         e.preventDefault(); const id = unreadCycleId, chip = unreadbarEl.querySelector(`.favchip[data-room="${id}"]`), rct = chip ? chip.getBoundingClientRect() : null;
         unreadCycleId = null; renderUnreadbar(); openUnreadPreview(id, rct ? rct.left : window.innerWidth / 2, rct ? rct.bottom : 120); return;
       }
-      if (e.key === "Enter") {
-        e.preventDefault(); const id = favCycleId || unreadCycleId;
-        if (visibleSlots().indexOf(id) < 0 && firstEmptyTile() < 0) {   // nowhere to put it — say so, and KEEP the chip highlighted so a digit can replace
-          bigNote("No empty window", `Press <kbd>1</kbd>–<kbd>${n()}</kbd> to replace the chat in that position, or drag the chip onto a window.`);
-          return;
-        }
-        favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); placeFavourite(id); return;
-      }
+      if (e.key === "Enter") { e.preventDefault(); const id = favCycleId || unreadCycleId; favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); placeFavourite(id); return; }   // full grid -> placeFavourite raises the window picker
       if (/^[1-9]$/.test(e.key) && !e.ctrlKey) {   // digit: put the highlighted chat into that window — occupied or not
         const ti = +e.key - 1;
         if (ti < n()) {
@@ -3766,13 +3760,7 @@
           const ti = +e.key - 1;
           if (ti < n()) {
             e.preventDefault(); kbTileFocus = true; setFocusedMsg(null);
-            if (pendingPlaceId) {
-              const id = pendingPlaceId; hideBigNote();
-              const already = visibleSlots().indexOf(id); if (already >= 0 && already !== ti) state.slots[already] = null;   // no duplicates — it moves
-              state.slots[ti] = id; if (rooms[id]) rooms[id].manualUnread = false; markRead(id);
-              renderTiles(); setActive(ti); ensureHistory(id); persist();
-            }
-            else if (state.slots[ti]) watch(ti, false);
+            if (state.slots[ti]) watch(ti, false);
             else { setActive(ti); openFinder(ti); }
           }
           return;
