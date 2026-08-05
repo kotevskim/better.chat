@@ -218,6 +218,9 @@
   .msg .text { overflow-wrap:anywhere; }
   .msg .text a, .msg .bubble a, .msg .text a:visited, .msg .bubble a:visited { color:var(--t-channel); text-decoration:none; } .msg .text a:hover, .msg .bubble a:hover { text-decoration:underline; }
   .msg a.xlink.lfocus { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; background:color-mix(in srgb,var(--accent) 16%,transparent); }   /* the link link mode is sitting on */
+  /* an emoji-only message is basically a gesture — let it land like one (img.rem is em-sized, so custom emoji grow along) */
+  .msg .text.emojionly, .msg .bubble.emojionly { font-size:30px; line-height:1.25; }
+  .msg.mine .bubble.emojionly { background:none; border:none; padding:0; }   /* no bubble around a bare emoji */
   .msg .ts { font-family:ui-monospace,monospace; font-size:9.5px; color:transparent; text-align:right; padding-right:2px; align-self:start; line-height:1.7; }
   .msg.cont:hover .ts { color:var(--text-faint); }
   code.inline { font-family:ui-monospace,Menlo,monospace; font-size:12px; background:color-mix(in srgb,var(--text) 11%,transparent); padding:1px 5px; border-radius:4px; overflow-wrap:anywhere; }   /* long `code` wraps like text — never clipped */
@@ -1277,6 +1280,14 @@
   function shortToEmoji(name) {   // used in menus/reactions — always renders something
     return knownEmoji(name) || `<span class="shortemoji" title=":${esc(normEmojiKey(name))}:">:${esc(normEmojiKey(name))}:</span>`;
   }
+  function isEmojiOnly(t) {   // nothing but emoji (unicode or resolvable :shortcodes:) -> the message renders big
+    t = String(t == null ? "" : t).trim(); if (!t || t.length > 120) return false;
+    let n = 0;
+    t = t.replace(/:([a-z0-9_+.\-]+):/gi, (m, name) => knownEmoji(name) ? (n++, "") : m);
+    // flag pairs · pictograph clusters (skin tone / VS16 / ZWJ joins) · keycaps
+    t = t.replace(/[\u{1F1E6}-\u{1F1FF}]{2}|\p{Extended_Pictographic}(?:[\u{1F3FB}-\u{1F3FF}\uFE0F])?(?:\u200D\p{Extended_Pictographic}(?:[\u{1F3FB}-\u{1F3FF}\uFE0F])?)*|[#*0-9]\uFE0F?\u20E3/gu, () => (n++, ""));
+    return n > 0 && n <= 12 && !t.trim();   // a wall of 30 emoji reads better at text size
+  }
   // lightweight code highlighter for a few languages (used in ``` blocks)
   const HL_KW = {
     js: "const let var function return if else for while do switch case break continue new class extends super this typeof instanceof in of try catch finally throw async await yield import export from default null undefined true false void delete",
@@ -1315,7 +1326,7 @@
   function renderText(raw) {
     raw = String(raw == null ? "" : raw);
     const blocks = [], inls = [], links = [];
-    raw = raw.replace(/```([a-z]*)[ \t]*\r?\n?([\s\S]*?)```/gi, (m, lang, c) => { blocks.push(`<pre class="code${lang ? " lang-" + lang.toLowerCase() : ""}">` + highlightCode(lang, c.replace(/\n$/, "")) + "</pre>"); return "\x02" + (blocks.length - 1) + "\x02"; });
+    raw = raw.replace(/```(?:([a-z0-9]*)[ \t]*\r?\n)?([\s\S]*?)```/gi, (m, lang, c) => { blocks.push(`<pre class="code${lang ? " lang-" + lang.toLowerCase() : ""}">` + highlightCode(lang || "", c.replace(/\n$/, "")) + "</pre>"); return "\x02" + (blocks.length - 1) + "\x02"; });   // a word counts as the language tag only when its line ends there — "```docker pull x" is content, not lang "docker"
     raw = raw.replace(/`([^`\n]+)`/g, (m, c) => { inls.push('<code class="inline">' + esc(c) + "</code>"); return "\x03" + (inls.length - 1) + "\x03"; });
     raw = raw.replace(/(https?:\/\/[^\s]+)/g, u => { links.push('<a class="xlink" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(u) + "</a>"); return "\x04" + (links.length - 1) + "\x04"; });   // .xlink = a real external link, what link mode walks — mentions and #channels are spans, not anchors
     // blockquotes: consecutive lines starting with ">" become one <blockquote>; other lines join with <br>
@@ -1549,15 +1560,15 @@
   function msgAttrs(m) { if (!m._uid) m._uid = ++_uid; return `data-user="${esc(m.user)}" data-uid="${m._uid}" data-day="${dayKey(m)}"`; }
   function fullRow(m, mine, unread) {
     const cls = "msg" + (mine ? " mine" : "") + (unread ? " unread" : "") + (m.starred ? " starred" : "");
-    const dt = displayText(m), qh = quotesHtml(m);
-    if (mine) return `<div class="${cls}" ${msgAttrs(m)}><div class="body"><div class="head"><time>${m.time}</time></div>${replyTagHtml(m)}${qh}${dt ? `<div class="bubble">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
-    return `<div class="${cls}" ${msgAttrs(m)}>${avatarHtml(m)}<div class="body"><div class="head"><b>${esc(m.user)}</b><time>${m.time}</time></div>${replyTagHtml(m)}${qh}${dt ? `<div class="text">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
+    const dt = displayText(m), qh = quotesHtml(m), eo = !qh && isEmojiOnly(dt) ? " emojionly" : "";
+    if (mine) return `<div class="${cls}" ${msgAttrs(m)}><div class="body"><div class="head"><time>${m.time}</time></div>${replyTagHtml(m)}${qh}${dt ? `<div class="bubble${eo}">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
+    return `<div class="${cls}" ${msgAttrs(m)}>${avatarHtml(m)}<div class="body"><div class="head"><b>${esc(m.user)}</b><time>${m.time}</time></div>${replyTagHtml(m)}${qh}${dt ? `<div class="text${eo}">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
   }
   function contRow(m, mine, unread) {
     const cls = "msg cont" + (mine ? " mine" : "") + (unread ? " unread" : "") + (m.starred ? " starred" : "");
-    const dt = displayText(m), qh = quotesHtml(m);
-    if (mine) return `<div class="${cls}" ${msgAttrs(m)}><div class="body">${replyTagHtml(m)}${qh}${dt ? `<div class="bubble">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
-    return `<div class="${cls}" ${msgAttrs(m)}><span class="ts">${m.time}</span><div class="body">${replyTagHtml(m)}${qh}${dt ? `<div class="text">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
+    const dt = displayText(m), qh = quotesHtml(m), eo = !qh && isEmojiOnly(dt) ? " emojionly" : "";
+    if (mine) return `<div class="${cls}" ${msgAttrs(m)}><div class="body">${replyTagHtml(m)}${qh}${dt ? `<div class="bubble${eo}">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
+    return `<div class="${cls}" ${msgAttrs(m)}><span class="ts">${m.time}</span><div class="body">${replyTagHtml(m)}${qh}${dt ? `<div class="text${eo}">${renderText(dt)}</div>` : ""}${attachmentsHtml(m)}${reactionsHtml(m)}${threadHtml(m)}</div></div>`;
   }
   function renderMsgs(msgs, r) {
     let h = "", prev = null, prevDay = null; const start = r ? unreadStartIndex(r) : msgs.length;
@@ -3119,11 +3130,16 @@
     const f = e.target.closest('[data-role="thread-reply"]'); if (!f || !threadPop) return; e.preventDefault();
     const inp = f.querySelector(".crow input"), t = inp.value.trim(); if (!t) return;
     const rid = threadPop.dataset.room, pid = threadPop.dataset.parent; const tshow = !!(f.querySelector('[data-role="tshow"]') || {}).checked; inp.value = "";
-    rc("sendMessage", [{ rid, msg: t, tmid: pid, tshow }], "reply");
+    rc("sendMessage", [{ rid, msg: closeFences(t), tmid: pid, tshow }], "reply");
     readOneThread(rid, pid);   // replying means you've seen it -> clear this thread's unread
   });
 
+  // An unclosed ``` fence must be balanced BEFORE the optimistic copy is drawn: the server closes it
+  // on its side, so the echo comes back with different text, the pending-send match misses, and the
+  // same message shows twice — once raw, once as a code block.
+  const closeFences = t => { t = String(t == null ? "" : t); return (t.split("```").length % 2 === 0) ? t + "\n```" : t; };
   function mySend(id, text) {
+    text = closeFences(text);
     const st = roomState[id] || {};
     if (st.pendingFiles && st.pendingFiles.length) {     // staged files -> upload on Send (text becomes the first file's caption)
       const pend = st.pendingFiles; delete st.pendingFiles; renderComposerAcc(id); const inp = composerFor(id); if (inp) inp.value = "";
@@ -3175,7 +3191,7 @@
     ta.value = initial || ""; setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); bigGrow(ta); }, 0);
     function doBigSend() {
       const val = ta.value.replace(/\s+$/, ""); closeBigEditor(); if (!val) return;
-      if (threadParent) { const parent = rooms[roomId].msgs.find(x => x.id === threadParent); const first = !(parent && parent.tcount > 0); rc("sendMessage", [{ rid: roomId, msg: val, tmid: threadParent, tshow: first }], "reply"); readOneThread(roomId, threadParent); const ti = threadPop && threadPop.querySelector(".crow input"); if (ti) ti.value = ""; return; }
+      if (threadParent) { const parent = rooms[roomId].msgs.find(x => x.id === threadParent); const first = !(parent && parent.tcount > 0); rc("sendMessage", [{ rid: roomId, msg: closeFences(val), tmid: threadParent, tshow: first }], "reply"); readOneThread(roomId, threadParent); const ti = threadPop && threadPop.querySelector(".crow input"); if (ti) ti.value = ""; return; }
       mySend(roomId, val); const inp = composerFor(roomId); if (inp) inp.value = "";
     }
     ta.addEventListener("input", () => bigGrow(ta));
