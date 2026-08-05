@@ -219,7 +219,7 @@
   .msg .text a, .msg .bubble a, .msg .text a:visited, .msg .bubble a:visited { color:var(--t-channel); text-decoration:none; } .msg .text a:hover, .msg .bubble a:hover { text-decoration:underline; }
   .msg a.xlink.lfocus { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; background:color-mix(in srgb,var(--accent) 16%,transparent); }   /* the link link mode is sitting on */
   /* an emoji-only message is basically a gesture — let it land like one (img.rem is em-sized, so custom emoji grow along) */
-  .msg .text.emojionly, .msg .bubble.emojionly { font-size:30px; line-height:1.25; }
+  .msg .text.emojionly, .msg .bubble.emojionly { font-size:40px; line-height:1.2; }
   .msg.mine .bubble.emojionly { background:none; border:none; padding:0; }   /* no bubble around a bare emoji */
   .msg .ts { font-family:ui-monospace,monospace; font-size:9.5px; color:transparent; text-align:right; padding-right:2px; align-self:start; line-height:1.7; }
   .msg.cont:hover .ts { color:var(--text-faint); }
@@ -1244,10 +1244,11 @@
     // a key that works in more than one state never moves around
     const uHint = `<kbd>${IS_MAC ? "Cmd" : "Ctrl"}</kbd><kbd>u</kbd> unread`;
     const swapHint = `<kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swap with neighbour`;
-    if (inputFocused) { put(".thh-l", ["<kbd>Esc</kbd> unwatch"]); put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages", uHint]); put(".thh-r", ["<kbd>Tab</kbd> actions"]); return; }
+    if (inputFocused) { put(".thh-l", ["<kbd>Esc</kbd> unwatch"]); put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-m2", [uHint]); put(".thh-r", ["<kbd>Tab</kbd> actions"]); return; }
     put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> write",
                    watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close"].concat(watched ? ['<span class="thh-hot"><kbd>↑</kbd> write</span>'] : []));
-    put(".thh-m1", [uHint, swapHint]);
+    put(".thh-m1", [swapHint]);
+    put(".thh-m2", [uHint]);   // second row, same place watched or not
     put(".thh-r", ["<kbd>Tab</kbd> actions"]);
   }
 
@@ -3354,8 +3355,9 @@
     const focusName = state.slots[modalTarget] ? rooms[state.slots[modalTarget]].name : "empty";
     const favs = order().filter(id => rooms[id].fav);
     modalResults = filterRooms(""); modalNumbered = favs;
+    const title = firstEmptyTile() < 0 ? `Open a chat` : `Open a chat in <span class="mfocus">${tname}</span><span style="color:var(--text-faint);font-weight:400"> &middot; now ${esc(focusName)}</span>`;   // full grid: the foot still names the target tile
     modal.innerHTML =
-      `<div class="mhead"><div class="mtitle">Open a chat in <span class="mfocus">${tname}</span><span style="color:var(--text-faint);font-weight:400"> &middot; now ${esc(focusName)}</span></div><span class="mkbd">Shift</span><button class="mclose" data-role="close">✕</button></div>` +
+      `<div class="mhead"><div class="mtitle">${title}</div><span class="mkbd">Shift</span><button class="mclose" data-role="close">✕</button></div>` +
       `<div class="mchips"><span class="clabel label">★ Favorites</span>${favs.map((id)=>`<button class="chip" data-room="${id}"><span class="sigil ${rooms[id].t}">${sig[rooms[id].t]}</span>${esc(rooms[id].name)}</button>`).join("")}</div>` +
       searchBar("Search name or initials (try &ldquo;js&rdquo; for john.smith or &ldquo;pt&rdquo; for pinga-team)") +
       `<div class="mbody" data-role="results">${modalResults.map((id,i)=>roomRow(id,null,i===0)).join("")}</div>` +
@@ -3474,10 +3476,15 @@
     bigNoteEl = document.createElement("div"); bigNoteEl.className = "bignote";
     bigNoteEl.innerHTML = `<b>${esc(title)}</b><span class="bn-sub">${subHtml}</span>`;
     document.body.appendChild(bigNoteEl);
-    bigNoteT = setTimeout(() => { if (bigNoteEl) bigNoteEl.remove(); bigNoteEl = null; }, 5000);
+    bigNoteT = setTimeout(() => hideBigNote(), 5000);
   }
-  const hideBigNote = () => { if (bigNoteEl) { bigNoteEl.remove(); bigNoteEl = null; clearTimeout(bigNoteT); } };
-  document.addEventListener("keydown", hideBigNote, true);   // the next keystroke (say, a digit) or click dismisses it
+  let shiftReplaceArmed = false;   // Shift found no empty tile — the next digit opens the picker for that tile instead of watching it
+  const hideBigNote = () => { if (bigNoteEl) { bigNoteEl.remove(); bigNoteEl = null; clearTimeout(bigNoteT); } shiftReplaceArmed = false; };
+  document.addEventListener("keydown", e => {
+    if (shiftReplaceArmed && (/^[1-9]$/.test(e.key) || e.key === "Shift")) return;   // digits are the note's own next step — let them through
+    if (bigNoteEl && e.key === "Escape") { e.preventDefault(); e.stopPropagation(); }   // Esc only dismisses the note — it must not also close the chat behind it
+    hideBigNote();
+  }, true);
   document.addEventListener("mousedown", hideBigNote, true);
   function showInfoPop(x, y, text) {
     const p = document.createElement("div"); p.className = "infopop"; p.textContent = text; document.body.appendChild(p);
@@ -3725,7 +3732,16 @@
         return;
       }
       if (!e.altKey && !e.metaKey && !e.ctrlKey && !kbMsgFocus && backdrop.hidden && !panelBack && state.active >= 0) {   // single-key actions on the focused chat
-        if (/^[1-9]$/.test(e.key)) { const ti = +e.key - 1; if (ti < n()) { e.preventDefault(); kbTileFocus = true; setFocusedMsg(null); if (state.slots[ti]) watch(ti, false); else { setActive(ti); openFinder(ti); } } return; }   // digits watch that tile — an empty one opens the chat picker
+        if (/^[1-9]$/.test(e.key)) {   // digits watch that tile — an empty one opens the chat picker; after Shift hit a full grid, the digit picks a replacement for that tile
+          const ti = +e.key - 1;
+          if (ti < n()) {
+            e.preventDefault(); kbTileFocus = true; setFocusedMsg(null);
+            if (shiftReplaceArmed) { hideBigNote(); setActive(ti); openFinder(ti); }
+            else if (state.slots[ti]) watch(ti, false);
+            else { setActive(ti); openFinder(ti); }
+          }
+          return;
+        }
       }
     }
     if (e.key === "Escape" && backdrop.hidden) {   // Esc: unwatch first; on a passive chat — close it (the empty tile keeps the passive focus)
@@ -4258,9 +4274,9 @@
     const t = document.activeElement, typing = t && (/^(INPUT|TEXTAREA)$/.test(t.tagName) || t.isContentEditable);
     if (typing || !backdrop.hidden || navMode || urPop || tileMenu || kbMsgFocus) return;
     kbTileFocus = true;
-    const empty = firstEmptyTile();   // first empty tile wins; with a full grid the picker replaces the focused chat
+    const empty = firstEmptyTile();   // the focused tile plays no part: an empty tile takes the pick, a full grid asks which chat to replace
     if (empty >= 0) { setActive(empty); openFinder(empty); }
-    else openFinder(state.active >= 0 ? state.active : null);
+    else { shiftReplaceArmed = true; bigNote("No empty window", `Press <kbd>1</kbd>–<kbd>${n()}</kbd> to replace the chat in that position.`); }
   });
   let urPop = null;
   function hideUrPop() { if (urPop) { urPop.remove(); urPop = null; } }
