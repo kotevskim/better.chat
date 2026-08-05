@@ -1,8 +1,8 @@
 # Agent instructions — better.chat
 
-Single-file web client for Rocket.Chat (`index.html`) + local proxy (`proxy.py`) +
-installer (`setup.sh`). No build step; `index.html` is both source and artifact.
-Also distributed as a Docker image (`Dockerfile`, published to
+Single-file web client for Rocket.Chat (`index.html`) + local proxy
+(`docker/proxy.py`). No build step; `index.html` is both source and artifact.
+Distributed as a Docker image (`docker/Dockerfile`, published to
 `ghcr.io/kotevskim/better.chat` by `.github/workflows/docker.yml` on tag/main pushes).
 
 ## Commit messages (every commit)

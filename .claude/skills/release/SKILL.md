@@ -59,6 +59,6 @@ release creation). Report a summary at the end.
       (title must be `v<N>`).
 13. Final report: version, the two commit hashes, tag pushed, release URL
     (`https://github.com/kotevskim/better.chat/releases/tag/v<N>`), and a note that
-    `bc-update` now resolves `v<N>` (raw CDN may lag ~5 min) and that the tag push
-    also triggered the `docker` workflow — `ghcr.io/kotevskim/better.chat:v<N>`
-    and `:latest` appear on GHCR once it finishes (~2 min).
+    the tag push also triggered the `docker` workflow —
+    `ghcr.io/kotevskim/better.chat:v<N>` and `:latest` appear on GHCR once it
+    finishes (~2 min).

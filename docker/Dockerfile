@@ -7,9 +7,12 @@
 #
 # The container always listens on 9000 internally; pick the host port with -p
 # (e.g. -p 127.0.0.1:80:9000 for a port-less http://chat.localhost URL).
+#
+# Build from the REPO ROOT (index.html lives there):
+#   docker build -f docker/Dockerfile -t better-chat-dev .
 FROM python:3.12-alpine
 WORKDIR /app
-COPY proxy.py index.html ./
+COPY docker/proxy.py index.html ./
 # 0.0.0.0 inside the container only — the -p 127.0.0.1:... mapping keeps it
 # loopback-only on the host.
 ENV BC_BIND=0.0.0.0

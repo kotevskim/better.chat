@@ -70,7 +70,7 @@ that flips `APP_VERSION` back to `"edge"`, so each release cycle starts empty.
    - `README.md` and any other docs
    - `Dockerfile`, `.dockerignore`, packaging, install and update instructions,
      published images
-   - `proxy.py` — its console output, ports and banners are not the client UI
+   - `docker/proxy.py` — its console output, ports and banners are not the client UI
    - `.github/` workflows, `.claude/` skills, build and release tooling
    A commit that touches both sides gets a bullet for its `index.html` half only. A
    commit that touches none of `index.html` gets nothing — that is the normal

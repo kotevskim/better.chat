@@ -7,13 +7,14 @@ Serves the app (index.html at "/") AND forwards REST calls (/api/*, /avatar/*,
 sidesteps the browser CORS block on cross-origin REST. The DDP WebSocket still
 connects directly to wss://<server>/websocket — WebSockets aren't subject to CORS.
 
-Run it from the folder that contains index.html:
+index.html is found next to this script, or one directory up (a repo checkout,
+where this file lives in docker/):
 
-    python3 proxy.py chat.example.com        # port defaults to 9000
-    python3 proxy.py chat.example.com 8080
+    python3 docker/proxy.py chat.example.com        # port defaults to 9000
+    python3 docker/proxy.py chat.example.com 8080
 
-The server can also come from the BC_SERVER env var or a `server` file next
-to this script (setup.sh writes that file). Then open http://chat.localhost:9000.
+The server can also come from the BC_SERVER env var. Then open
+http://chat.localhost:9000.
 
 Env overrides (used by the Docker image): BC_PORT sets the port when no argv
 port is given; BC_BIND sets the bind address (default 127.0.0.1 — inside a
@@ -28,15 +29,7 @@ def _server():
         return sys.argv[1].strip()
     if os.environ.get("BC_SERVER", "").strip():
         return os.environ["BC_SERVER"].strip()
-    cfg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server")
-    try:
-        with open(cfg) as f:
-            v = f.read().strip()
-            if v:
-                return v
-    except OSError:
-        pass
-    sys.exit("No Rocket.Chat server configured. Run: python3 proxy.py <server-hostname>  (or set BC_SERVER, or write the hostname into a 'server' file next to proxy.py)")
+    sys.exit("No Rocket.Chat server configured. Run: python3 docker/proxy.py <server-hostname>  (or set BC_SERVER)")
 
 SERVER = _server()
 
@@ -77,7 +70,17 @@ def _ssl_ctx():
     return ssl.create_default_context()
 
 CTX = _ssl_ctx()
-HTML_FILE = "index.html"
+def _html_path():
+    """index.html sits next to this script in the image (/app), but one directory
+    up in a repo checkout (this file lives in docker/)."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    for d in (here, os.path.dirname(here)):
+        p = os.path.join(d, "index.html")
+        if os.path.exists(p):
+            return p
+    return os.path.join(here, "index.html")   # let the 500 name the expected place
+
+HTML_PATH = _html_path()
 PROXIED_PREFIXES = ("/api/", "/avatar/", "/emoji-custom/", "/file-upload/", "/file/")
 # User-Agent is forwarded so WAFs (e.g. Cloudflare) see the real browser, not "Python-urllib" — which they block with 403
 FORWARD_HEADERS = ("Content-Type", "X-Auth-Token", "X-User-Id", "Authorization", "Accept", "User-Agent")
@@ -118,7 +121,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _serve_app(self):
         try:
-            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), HTML_FILE), "rb") as f:
+            with open(HTML_PATH, "rb") as f:
                 data = f.read()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -128,7 +131,7 @@ class Handler(SimpleHTTPRequestHandler):
         except OSError:
             self.send_response(500)
             self.end_headers()
-            self.wfile.write(b"index.html not found next to proxy.py")
+            self.wfile.write(("index.html not found at " + HTML_PATH).encode())
 
     def do_GET(self):
         if self.path.startswith(PROXIED_PREFIXES):
