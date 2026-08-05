@@ -195,7 +195,7 @@
 
   .stream { flex:1; overflow-y:auto; overflow-x:hidden; padding:12px 12px 6px; display:flex; flex-direction:column; gap:9px; }
   .msg .bubble, .msg .text { max-width:100%; min-width:0; }
-  .tile pre.code { overflow:hidden; }                 /* in a tile: clip wide code (no window scroll) — expand the chat to read it */
+  .tile pre.code { white-space:pre-wrap; overflow-wrap:anywhere; overflow:hidden; }   /* in a tile: wrap wide code (newlines/indentation kept) — nothing gets cut off */
   .modal.lg pre.code, .threadpop pre.code { overflow-x:auto; }   /* in the big/thread view: scroll within the block */
   .stream::-webkit-scrollbar,.mbody::-webkit-scrollbar{width:8px;} .stream::-webkit-scrollbar-thumb,.mbody::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
   .daymark { display:flex; align-items:center; gap:10px; color:var(--text-faint); font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; margin:3px 0; }
@@ -220,7 +220,7 @@
   .msg a.xlink.lfocus { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; background:color-mix(in srgb,var(--accent) 16%,transparent); }   /* the link link mode is sitting on */
   .msg .ts { font-family:ui-monospace,monospace; font-size:9.5px; color:transparent; text-align:right; padding-right:2px; align-self:start; line-height:1.7; }
   .msg.cont:hover .ts { color:var(--text-faint); }
-  code.inline { font-family:ui-monospace,Menlo,monospace; font-size:12px; background:color-mix(in srgb,var(--text) 11%,transparent); padding:1px 5px; border-radius:4px; }
+  code.inline { font-family:ui-monospace,Menlo,monospace; font-size:12px; background:color-mix(in srgb,var(--text) 11%,transparent); padding:1px 5px; border-radius:4px; overflow-wrap:anywhere; }   /* long `code` wraps like text — never clipped */
   pre.code { font-family:ui-monospace,Menlo,monospace; font-size:12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:9px 11px; margin:5px 0 2px; overflow-x:auto; white-space:pre; line-height:1.5; }
   pre.code .tok-k, .bc-example .tok-k { color:#c792ea; font-weight:600; } pre.code .tok-s, .bc-example .tok-s { color:#8bd07a; } pre.code .tok-n, .bc-example .tok-n { color:#e5945c; } pre.code .tok-c, .bc-example .tok-c { color:var(--text-faint); font-style:italic; }
   .mention { color:var(--t-channel); background:color-mix(in srgb,var(--t-channel) 16%,transparent); border-radius:4px; padding:0 3px; font-weight:600; }
@@ -1232,10 +1232,10 @@
     }
     if (msgHere && msgMenu && menuSel >= 0) { put(".thh-m1", ["<kbd>Tab</kbd> or <kbd>←</kbd><kbd>→</kbd> move"]); put(".thh-m2", ["<kbd>Enter</kbd> execute"]); return; }
     if (msgHere) { put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
-    if (inputFocused) { put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-r", ["<kbd>Esc</kbd> unwatch"]); return; }
-    put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> watch",
+    if (inputFocused) { put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-r", [`<kbd>${IS_MAC ? "Cmd" : "Ctrl"}</kbd><kbd>Enter</kbd> expand`, "<kbd>Esc</kbd> unwatch"]); return; }
+    put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> write",
                    watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close"].concat(watched ? ['<span class="thh-hot"><kbd>↑</kbd> write</span>'] : []));
-    put(".thh-m1", ["<kbd>u</kbd> unread"]);
+    put(".thh-m1", ["<kbd>u</kbd> unread", "<kbd>x</kbd> expand"]);
     put(".thh-r", ["<kbd>Tab</kbd> actions"]);
     put(".thh-m2", ["<kbd>z</kbd> prev chat", `<kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swap with neighbour`]);
   }
@@ -1295,7 +1295,7 @@
   }
   // inline formatting on already-escaped text (placeholders \x02-\x04 stay intact)
   function fmtInline(s) {
-    s = s.replace(/:([a-z0-9_+\-]+):/gi, (m, name) => knownEmoji(name) || m);          // :shortcode: emoji
+    s = s.replace(/:([a-z0-9_+.\-]+):/gi, (m, name) => knownEmoji(name) || m);          // :shortcode: emoji — dots included, RC allows them in custom emoji names
     s = s.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");                          // **bold**
     s = s.replace(/(^|[^\w*])\*([^*\n]+)\*(?!\w)/g, "$1<strong>$2</strong>");            // *bold* (RC)
     s = s.replace(/(^|[^\w~])~~?([^~\n]+)~~?(?!\w)/g, "$1<del>$2</del>");                 // ~strike~ / ~~strike~~
@@ -1934,7 +1934,13 @@
   document.addEventListener("keydown", e => {
     const t = e.target;
     if (emojiOpen || mentionOpen) return;   // let the @ / : pickers take Enter first
-    if (t.classList && t.classList.contains("cinput") && e.key === "Enter" && !e.shiftKey) { e.preventDefault(); const f = t.closest("form"); if (f) (f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))); }
+    if (t.classList && t.classList.contains("cinput") && e.key === "Enter" && (e.metaKey || e.ctrlKey) && t.closest(".tile")) {   // ⌘/Ctrl+Enter while writing: expand this chat, keep writing there
+      e.preventDefault();
+      const room = (t.closest('[data-role="composer"]') || {}).dataset && t.closest('[data-role="composer"]').dataset.room;
+      if (room) { const caret = t.selectionStart; openExpandById(room); const big = composerFor(room); if (big) { big.focus(); try { big.setSelectionRange(caret, caret); } catch (_) {} } }
+      return;
+    }
+    if (t.classList && t.classList.contains("cinput") && e.key === "Enter" && !e.shiftKey && !e.metaKey && !e.ctrlKey) { e.preventDefault(); const f = t.closest("form"); if (f) (f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))); }
   });
   document.addEventListener("focusin", e => { if (e.target.closest && e.target.closest('[data-role="composer"] .crow') && focusedMsgEl) setFocusedMsg(null); });   // input focus and message focus are exclusive
 
@@ -2138,6 +2144,12 @@
 
   function renderTiles() {
     exitLinkMode(true);   // the whole grid is rebuilt below
+    // The rebuild destroys the composer mid-keystroke: an incoming message that lands in an empty
+    // tile re-renders the grid, and without this your cursor silently leaves the chat you were
+    // writing in. Drafts survive on their own (saved per input); carry the focus + caret too.
+    const ae = document.activeElement;
+    const typingIn = ae && ae.classList && ae.classList.contains("cinput") && ae.closest(".tile")
+      ? { room: (ae.closest('[data-role="composer"]') || {}).dataset && ae.closest('[data-role="composer"]').dataset.room, start: ae.selectionStart, end: ae.selectionEnd } : null;
     const cnt = n();
     state.slots.forEach((id, i) => { const p = _prevSlots[i]; if (p && p !== id) lastClosed[i] = p; });   // any close/switch/replace remembers what the tile lost
     _prevSlots = state.slots.slice();
@@ -2180,6 +2192,10 @@
       }
       ws.appendChild(tile);
       if (r) { const s = tile.querySelector('[data-role="stream"]'); s.scrollTop = s.scrollHeight; attachScroll(s, id); restoreDraft(tile, id); if (focusMode && !uncovered.has(id)) { const cv = document.createElement("div"); cv.className = "tile-cover"; cv.innerHTML = '<span class="cover-label">Click to uncover</span>'; tile.appendChild(cv); } }
+    }
+    if (typingIn && typingIn.room) {   // put the caret back where it was
+      const inp = composerFor(typingIn.room);
+      if (inp) { inp.focus(); try { inp.setSelectionRange(typingIn.start, typingIn.end); } catch (_) {} }
     }
     refreshTopbar(); refreshDmStatuses(); updateKeyHints();
     setTimeout(refocusMore, 0);
@@ -3352,6 +3368,7 @@
         ["f", "Fast Nav mode — key tags light up over everything clickable; type one to trigger it ([[esc]] exits)"],
         ["Shift", "Search and open a chat — in the first empty tile, or replacing the focused one when the grid is full"],
         ["u", "Mark the focused chat unread — it moves to the unread bar"],
+        ["x", `Expand the focused chat to full screen (while writing: [[${IS_MAC ? "Cmd" : "Ctrl"} Enter]])`],
         ["z", "Bring back this tile’s previous chat (after closing or switching)"],
         ["l", "Link mode on the focused message — highlights its first link, again for the next; [[enter]] opens it, [[esc]] exits"],
         [["⌘", "←", "→", "↑", "↓"], "Swap the focused chat with the neighbouring tile"],
@@ -3588,6 +3605,18 @@
         unreadCycleId = null; renderUnreadbar(); openUnreadPreview(id, rct ? rct.left : window.innerWidth / 2, rct ? rct.bottom : 120); return;
       }
       if (e.key === "Enter") { e.preventDefault(); const id = favCycleId || unreadCycleId; favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); placeFavourite(id); return; }
+      if (/^[1-9]$/.test(e.key) && !e.ctrlKey) {   // digit: put the highlighted chat into that window — occupied or not
+        const ti = +e.key - 1;
+        if (ti < n()) {
+          e.preventDefault();
+          const id = favCycleId || unreadCycleId;
+          favCycleId = unreadCycleId = null; hideUrPop(); renderFavbar(); renderUnreadbar();
+          const already = visibleSlots().indexOf(id); if (already >= 0 && already !== ti) state.slots[already] = null;   // no duplicates — it moves
+          state.slots[ti] = id; if (rooms[id]) rooms[id].manualUnread = false; markRead(id);
+          renderTiles(); kbTileFocus = true; setActive(ti); ensureHistory(id); persist();
+        }
+        return;
+      }
       if (e.key === "Escape") { e.preventDefault(); favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); return; }
     }
 
@@ -3657,16 +3686,17 @@
         setFocusedMsg(msgs[idx], true); msgs[idx].scrollIntoView({ block: "nearest" }); e.preventDefault(); return;
       }
       if (e.key === "Enter" && document.activeElement && document.activeElement.closest && document.activeElement.closest(".tile-head") && document.activeElement.matches('[data-role="name"], .thead-btn')) { e.preventDefault(); if (document.activeElement.dataset.role === "more") menuViaKb = true; document.activeElement.click(); return; }   // Enter runs the Tab-focused header control
-      if (e.key === "Enter" && !kbMsgFocus && backdrop.hidden && !panelBack && state.active >= 0) {   // Enter: watch the chat; again to expand — empty tile starts one
+      if (e.key === "Enter" && !kbMsgFocus && backdrop.hidden && !panelBack && state.active >= 0) {   // Enter: watch the chat and drop into its input — empty tile starts one
         e.preventDefault(); kbTileFocus = true;
         if (!state.slots[state.active]) openFinder(state.active);
-        else if (watchedSlot === state.active) openExpand(state.active);
-        else watch(state.active, false);
+        else if (watchedSlot === state.active) openExpand(state.active);   // still reachable: Esc out of the input first, then Enter
+        else watch(state.active, true);   // straight to writing — no Enter-then-↑ dance
         return;
       }
       if (!e.altKey && !e.metaKey && !e.ctrlKey && !kbMsgFocus && backdrop.hidden && !panelBack && state.active >= 0) {   // single-key actions on the focused chat
         if (/^[1-9]$/.test(e.key)) { const ti = +e.key - 1; if (ti < n()) { e.preventDefault(); kbTileFocus = true; setFocusedMsg(null); if (state.slots[ti]) watch(ti, false); else { setActive(ti); openFinder(ti); } } return; }   // digits watch that tile — an empty one opens the chat picker
         if (e.key === "u" && state.slots[state.active]) { e.preventDefault(); markUnread(state.slots[state.active]); return; }
+        if (e.key === "x" && state.slots[state.active]) { e.preventDefault(); openExpand(state.active); return; }   // x = expand the focused chat (Enter now goes to the input)
         if (e.key === "z") { e.preventDefault(); reopenLastClosed(); return; }   // z = bring back this tile's previous chat
 
       }
@@ -4613,10 +4643,14 @@
       starred: Array.isArray(m.starred) && m.starred.some(s => (s && (s._id || s)) === myUserId), sys: sysText(m) };
   }
   async function loadCustomEmoji() {
-    try {
+    const take = list => (list || []).forEach(e => { if (!e || !e.name) return; const url = `https://${serverHost}/emoji-custom/${encodeURIComponent(e.name)}.${e.extension || "png"}`; customEmoji[String(e.name).toLowerCase()] = url; (e.aliases || []).forEach(a => customEmoji[String(a).toLowerCase()] = url); });
+    // REST first: Rocket.Chat 7 removed the listEmojiCustom meteor method, so on any current server
+    // the DDP call rejects and the map stayed empty — every custom emoji rendered as :shortcode:.
+    try { const res = await apiGet("/api/v1/emoji-custom.list"); take(res && res.emojis && (Array.isArray(res.emojis) ? res.emojis : res.emojis.update)); } catch (_) {}
+    if (Object.keys(customEmoji).length) return;
+    try {   // older servers that still speak the meteor method
       const res = await ddp.call("listEmojiCustom", []);
-      const arr = Array.isArray(res) ? res : (res && res.update) || [];
-      arr.forEach(e => { const url = `https://${serverHost}/emoji-custom/${encodeURIComponent(e.name)}.${e.extension||"png"}`; customEmoji[String(e.name).toLowerCase()] = url; (e.aliases||[]).forEach(a => customEmoji[String(a).toLowerCase()] = url); });
+      take(Array.isArray(res) ? res : (res && res.update));
     } catch (_) {}
   }
 
