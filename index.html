@@ -1419,7 +1419,7 @@
     if (focusInput) { focusComposer(slot); updateKeyHints(); }   // refresh directly — focus events don't fire in unfocused documents
   }
   const HEAD_CTLS = '[data-role="more"], [data-role="unread"], [data-role="expand"]';   // name has Esc+Enter, ✕ has Esc — Tab only offers what lacks a shortcut
-  function tabHeaderCycle(back) {   // Tab: chat name → ⋮ → mark unread → ✕, wrapping
+  function tabHeaderCycle(back) {   // Tab walks the header controls in the order they sit: mark unread → expand → ⋮, wrapping
     const t = ws.querySelector(`.tile[data-slot="${state.active}"]`); if (!t) return;
     const els = [...t.querySelectorAll(HEAD_CTLS)]; if (!els.length) return;
     const cur = els.indexOf(document.activeElement);
@@ -2407,9 +2407,9 @@
             <span class="head-hint"><span>Double-click to expand</span></span>
             <div class="tools">
               <span class="tile-unread" data-role="badge" title="Jump to next unread" ${showUnread?"":"hidden"}>${ru(r)}</span>
-              <button class="thead-btn" data-role="more" title="More actions">${ICON.dots}</button>
               <button class="thead-btn" data-role="unread" title="Mark unread (${IS_MAC ? "Cmd" : "Ctrl"}+U)">${ICON.eyeoff}</button>
               <button class="thead-btn" data-role="expand" title="Expand">${ICON.expand}</button>
+              <button class="thead-btn" data-role="more" title="More actions">${ICON.dots}</button>
               <button class="thead-btn" data-role="clear" title="Close chat (Esc)">${ICON.close}</button>
             </div>
             </div>
