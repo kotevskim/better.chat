@@ -4834,7 +4834,15 @@
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
-  const EDGE_UPDATES = { through: "", entries: [] };
+  const EDGE_UPDATES = { through: "10d82255356e356c36728da4286a10608ba45364", entries: [
+    { date: "2026-08-05", items: [
+      "Resize a chat window: hold Cmd/Ctrl+Shift and it lights up, then arrows grow it toward that edge — press the opposite arrow to take the growth back, and release to apply",
+      "An arrow that cannot grow squeezes the window from the far side instead, so a merged window is taken apart with the same keys that built it",
+      "Windows about to be swallowed dim before anything moves, so a merge that closes three chats shows you all three first",
+      "The layout switcher lights whichever preset your shape actually matches — merge both columns of a 2×2 and it lights 2-up; a shape matching no preset keeps a dot, and clicking a preset resets to it",
+      "The 2+1 and 1+2 layouts are gone: merge a row or a column to get them, and the Fast Nav layout keys are single digits again",
+    ] },
+  ] };
   const edgeUpdateCount = () => (EDGE_UPDATES.entries || []).reduce((t, g) => t + ((g.items || []).length), 0);
   function openEdgeUpdates() {
     const groups = EDGE_UPDATES.entries || [], cnt = edgeUpdateCount(), since = RELEASES.length ? "v" + RELEASES[0].v : "the last release";
