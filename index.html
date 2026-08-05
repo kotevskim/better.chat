@@ -48,10 +48,11 @@
   .topbar .left { display:flex; align-items:center; gap:11px; }
   .topbar .right { display:flex; align-items:center; gap:10px; margin-left:auto; }
   .cluster { position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:6px; }
-  /* discoverability nudge in the dead space between the avatar and the centred search */
-  .tb-hint { margin-left:14px; color:var(--text-faint); font-size:11px; font-family:ui-monospace,monospace; white-space:nowrap; }
+  /* discoverability nudge, centred in the gap between the avatar block and the search.
+     The search cluster is positioned absolutely, so its edges aren't knowable in CSS —
+     placeTbHint() measures both sides and sets left (and hides it when the gap is too small). */
+  .tb-hint { position:absolute; top:50%; transform:translate(-50%,-50%); color:var(--text-faint); font-size:11px; font-family:ui-monospace,monospace; white-space:nowrap; pointer-events:none; }
   .tb-hint kbd { font-family:inherit; font-size:10px; border:1px solid var(--border); background:var(--tile); border-radius:4px; padding:1px 5px; }
-  @media (max-width:1220px) { .tb-hint { display:none; } }   /* the cluster is centred absolutely — get out of its way instead of colliding */
   .meBtn { border:none; background:none; padding:0; cursor:pointer; border-radius:8px; line-height:0; }
   .meBtn .avatar { width:30px; height:30px; border-radius:8px; }
   .meBtn:hover .avatar { box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent); }
@@ -196,6 +197,25 @@
   .thead-btn { border:none; background:none; color:var(--text-faint); cursor:pointer; width:24px; height:24px; border-radius:5px; display:grid; place-items:center; }
   .thead-btn:hover { color:var(--text); background:color-mix(in srgb,var(--text) 8%,transparent); }
   .thead-btn.on { color:var(--accent); }
+  /* watched chat: the header goes accent so "this one is live" reads at a glance.
+     Everything inside flips to accent-ink — the ring, the hint band, the unread pill. */
+  /* a touch deeper than raw --accent: the dark theme's accent is light enough that white text on it
+     lands at 3.3:1, under the 4.5:1 needed for body-size text. This keeps it unmistakably blue. */
+  .tile.watched .tile-head { background:color-mix(in srgb,#000 16%,var(--accent)); border-bottom-color:color-mix(in srgb,#000 34%,var(--accent)); }
+  .tile.watched .tile-head:hover { background:color-mix(in srgb,#000 24%,var(--accent)); }
+  .tile.watched .tile-head, .tile.watched .tile-head .tile-title b, .tile.watched .tile-head .sigil,
+  .tile.watched .tile-head .name-switch, .tile.watched .tile-head .head-hint { color:var(--accent-ink); }
+  .tile.watched .tile-head .tile-title .meta, .tile.watched .tile-head .head-status-text { color:color-mix(in srgb,var(--accent-ink) 72%,transparent); }
+  .tile.watched .th-hints, .tile.watched .thh-m2 { color:color-mix(in srgb,var(--accent-ink) 80%,transparent); }
+  .tile.watched .th-hints kbd, .tile.watched .thh-m2 kbd { color:var(--accent-ink); border-color:color-mix(in srgb,var(--accent-ink) 42%,transparent); background:color-mix(in srgb,#000 16%,transparent); }
+  .tile.watched .th-hints .thh-hot, .tile.watched .th-hints .thh-hot kbd { color:var(--accent-ink); }
+  .tile.watched .th-hints .thh-hot kbd { border-color:var(--accent-ink); }
+  .tile.watched .tile-head .thead-btn { color:color-mix(in srgb,var(--accent-ink) 82%,transparent); }
+  .tile.watched .tile-head .thead-btn:hover { color:var(--accent-ink); background:color-mix(in srgb,#000 18%,transparent); }
+  .tile.watched .tile-head .tile-unread { background:var(--accent-ink); color:color-mix(in srgb,#000 30%,var(--accent)); }   /* the accent pill would vanish on accent */
+  .tile.watched .tile-head .head-avwrap .head-dot { box-shadow:0 0 0 2px color-mix(in srgb,#000 16%,var(--accent)); }
+  .tile.watched .tile-head .muted-tag { color:var(--accent-ink); border-color:color-mix(in srgb,var(--accent-ink) 60%,transparent); }
+  .tile.watched .tile-head .tile-name:focus-visible, .tile.watched .tile-head .thead-btn:focus-visible { outline-color:var(--accent-ink); }
 
   .stream { flex:1; overflow-y:auto; overflow-x:hidden; padding:12px 12px 6px; display:flex; flex-direction:column; gap:9px; }
   .msg .bubble, .msg .text { max-width:100%; min-width:0; }
@@ -1020,7 +1040,7 @@
       <div class="me-meta"><span class="me-name" id="meTopName">You</span><span class="my-status" id="myStatus">available</span></div>
       <span class="focus-badge" id="focusBadge" hidden>&#9679; Focus mode</span>
     </div>
-    <span class="tb-hint" aria-hidden="true">Press <kbd>f</kbd> for Fast Nav</span>
+    <span class="tb-hint" id="tbHint" aria-hidden="true">Press <kbd>f</kbd> for Fast Nav</span>
     <div class="cluster">
       <button class="tb-search" id="finderBtn" title="Search / open a chat — Shift" aria-label="Search chats"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search (Shift)</span></button>
       <button class="tb-flat" id="focusBtn" title="Focus mode — cover all chats but one or two (sets you Busy)" aria-label="Focus mode" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5a8 8 0 0 1 16 0"/><path d="M4 13.5v4.2a1.8 1.8 0 0 0 1.8 1.8H7a1 1 0 0 0 1-1v-3.6a1 1 0 0 0-1-1z"/><path d="M20 13.5v4.2a1.8 1.8 0 0 1-1.8 1.8H17a1 1 0 0 1-1-1v-3.6a1 1 0 0 1 1-1z"/></svg><span>Focus Mode</span></button>
@@ -1245,14 +1265,14 @@
       return;
     }
     if (msgHere && msgMenu && menuSel >= 0) { put(".thh-m1", ["<kbd>Tab</kbd> or <kbd>←</kbd><kbd>→</kbd> move"]); put(".thh-m2", ["<kbd>Enter</kbd> execute"]); return; }
-    if (msgHere) { put(".thh-l", ["<kbd>Esc</kbd> unwatch"]); put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
+    if (msgHere) { put(".thh-l", ["<kbd>Esc</kbd> stop watching"]); put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
     // one layout for every state: Enter/Esc on the left, unread + swap in the middle, Tab on the right —
     // a key that works in more than one state never moves around
     const uHint = `<kbd>${IS_MAC ? "Cmd" : "Ctrl"}</kbd><kbd>u</kbd> unread`;
     const swapHint = `<kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swap with neighbour`;
-    if (inputFocused) { put(".thh-l", ["<kbd>Esc</kbd> unwatch"]); put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-m2", [uHint]); put(".thh-r", ["<kbd>Tab</kbd> actions"]); return; }
+    if (inputFocused) { put(".thh-l", ["<kbd>Esc</kbd> stop watching"]); put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-m2", [uHint]); put(".thh-r", ["<kbd>Tab</kbd> actions"]); return; }
     put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> write",
-                   watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close"]);
+                   watched ? "<kbd>Esc</kbd> stop watching" : "<kbd>Esc</kbd> close"]);
     put(".thh-m1", [swapHint]);
     put(".thh-m2", [uHint]);   // second row, same place watched or not
     put(".thh-r", ["<kbd>Tab</kbd> actions"]);
@@ -4434,6 +4454,24 @@
     restoreGrid(); setConn("demo", "demo data"); enterApp(); startDemoFeed();
   }
   document.getElementById("demoBtn").addEventListener("click", e => { e.preventDefault(); startDemo(); });
+
+  // Centre the Fast Nav hint in the gap between the avatar block and the search cluster. Both edges
+  // move — the avatar block grows with the username/status, the cluster is centred on the window —
+  // so observe them rather than guessing, and step aside entirely when the gap gets too tight.
+  function placeTbHint() {
+    const h = document.getElementById("tbHint"), bar = document.querySelector(".topbar");
+    if (!h || !bar) return;
+    const left = bar.querySelector(".left"), cl = bar.querySelector(".cluster");
+    if (!left || !cl) return;
+    h.style.visibility = "hidden"; h.style.display = "";                       // measure at full width, unseen
+    const br = bar.getBoundingClientRect(), l = left.getBoundingClientRect().right, c = cl.getBoundingClientRect().left;
+    if (c - l < h.offsetWidth + 28) { h.style.display = "none"; return; }      // no room — hide rather than collide
+    h.style.left = ((l + c) / 2 - br.left) + "px";
+    h.style.visibility = "";
+  }
+  { const bar = document.querySelector(".topbar");
+    if (bar && window.ResizeObserver) { const ro = new ResizeObserver(() => placeTbHint()); [bar, bar.querySelector(".left"), bar.querySelector(".cluster")].forEach(el => el && ro.observe(el)); }
+    window.addEventListener("resize", placeTbHint); }
 
   function stopFeed() { if (feedTimer) { clearInterval(feedTimer); feedTimer = null; } }
   function boot() { restorePrefs(); applyFont(); syncLayoutButtons(); setMeAvatar(); renderFavbar(); state.active = -1; renderTiles(); updateFavicon(); if (bcConfig.focusMode && !focusMode) setFocusMode(true, false); if (connection !== "real") maybeTour(); }   // real logins wait for the config (welcomeTourPassed) to load
