@@ -2325,7 +2325,17 @@
     r.msgs.push(m); if (m.tsMs) r.lm = Math.max(r.lm || 0, m.tsMs);
     const slots = visibleSlots(); let idx = slots.indexOf(roomId);
     const read = fromMe || roomId === watchedRoomId() || roomId === expandRoomId;
-    if (!read && !r.muted) { r.unread = (r.unread || 0) + 1; r.alert = true; r._walk = null; }   // muted chats never count unread
+    if (!read && !r.muted) {   // muted chats never count unread
+      // Never blind-increment when we can recount: the message event and the subscriptions-changed
+      // event race, and when the server's count lands first the +1 double-counts on top of it —
+      // a badge stuck one too high until the next reload. Recounting from lastSeen (what the
+      // highlights already use) is idempotent whichever event arrives first.
+      const oldest = r.msgs[0];
+      r.unread = (r.lastSeen && oldest && oldest.tsMs && oldest.tsMs <= r.lastSeen)
+        ? (r.msgs.filter(x => (x.tsMs || 0) > r.lastSeen && !isMine(x) && !x.sys).length || 1)
+        : (r.unread || 0) + 1;   // unread span not fully loaded — count the old way, the subscription event corrects it
+      r.alert = true; r._walk = null;
+    }
     if (!fromMe && read && roomId === watchedRoomId()) queueWatchRead(roomId);
     if (idx >= 0) { appendToTile(idx, m, !read); refreshTileBadge(idx); }
     else if (!fromMe) { const target = firstEmptyTile(); if (target >= 0) { state.slots[target] = roomId; renderTiles(); ensureHistory(roomId); persist(); } }
