@@ -1252,7 +1252,7 @@
   // ---- grid mode (Cmd/Ctrl+G) ----
   // Arrows grow the focused tile, Shift+arrows shrink it. Nothing is applied until Enter: the pending
   // carve is only drawn, so a grow that would swallow three chats shows you all three first.
-  let gridMode = false, gridIdx = -1, gridOrig = null, gridPending = null, gridDrop = [], gridReturn = null;
+  let gridMode = false, gridIdx = -1, gridOrig = null, gridPending = null, gridDrop = [];
   function enterGridMode() {
     if (gridMode) return false;
     if (navMode || !backdrop.hidden || panelBack || urPop || tileMenu || bigBack) return false;   // one capture gesture at a time
@@ -1260,26 +1260,14 @@
     if (!state.rects[idx]) return false;
     gridMode = true; gridIdx = idx; gridOrig = { ...state.rects[idx] }; gridPending = { ...state.rects[idx] }; gridDrop = [];
     exitLinkMode(true); setFocusedMsg(null); hideMsgMenu();
-    const ae = document.activeElement;   // came in mid-sentence? remember exactly where, and put it back on the way out
-    if (ae && ae.classList && ae.classList.contains("cinput") && ae.closest('[data-role="composer"]')) {
-      const f = ae.closest('[data-role="composer"]');
-      gridReturn = { room: f.dataset.room, start: ae.selectionStart, end: ae.selectionEnd };
-      ae.blur();                                                     // arrows must carve, not move the caret
-    } else gridReturn = null;
     kbTileFocus = true; setActive(idx);
     return true;
   }
   function exitGridMode(quiet) {
     if (!gridMode) return;
-    const ret = gridReturn;
-    gridMode = false; gridIdx = -1; gridOrig = null; gridPending = null; gridDrop = []; gridReturn = null;
+    gridMode = false; gridIdx = -1; gridOrig = null; gridPending = null; gridDrop = [];
     clearGridPaint(); placeTbHint();
-    if (!quiet) { updateKeyHints(); restoreGridReturn(ret); }
-  }
-  function restoreGridReturn(ret) {   // back to the exact caret we interrupted
-    if (!ret || !ret.room) return;
-    const inp = composerFor(ret.room); if (!inp) return;
-    inp.focus(); try { inp.setSelectionRange(ret.start, ret.end); } catch (_) {}
+    if (!quiet) updateKeyHints();
   }
   const OPP = { ArrowLeft:"ArrowRight", ArrowRight:"ArrowLeft", ArrowUp:"ArrowDown", ArrowDown:"ArrowUp" };
   // Pull the edge opposite `dir` one cell toward `dir` — the single mechanic behind both undo and
@@ -1361,11 +1349,10 @@
     const changed = box && (box.c !== cur.c || box.r !== cur.r || box.w !== cur.w || box.h !== cur.h);
     if (!changed) { exitGridMode(); return; }
     const keep = applyCarve(idx, box);
-    const ret = gridReturn;
     exitGridMode(true);
     if (watchedSlot >= 0 && !state.slots[watchedSlot]) watchedSlot = -1;
     renderTiles(); setActive(keep >= 0 ? keep : 0); persist();
-    updateKeyHints(); restoreGridReturn(ret);
+    updateKeyHints();
   }
   // ---- ⌥/Opt on macOS, Alt everywhere else ----
   const IS_MAC = /Mac|iPhone|iPad|iPod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent);
@@ -3992,7 +3979,10 @@
     }
 
     // ---- Cmd/Ctrl+Shift+arrows reshape the focused window; releasing the modifier applies it ----
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && !e.altKey && backdrop.hidden) {
+    // Not while you are typing: there the chord is the OS's own "select by word/line", and taking it
+    // would cost you the selection you asked for. Esc out of the composer first — which is why the
+    // chord is only advertised in the header states where the caret is not in an input.
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && !e.altKey && backdrop.hidden && !typing) {
       // Holding the chord alone arms it: the focused window lights up and lists its arrows straight
       // away, so you can see what is possible before committing to a direction.
       if (/^(Meta|Control|Shift)$/.test(e.key)) { if (!gridMode) { if (enterGridMode()) { paintGridMode(); updateKeyHints(); } } return; }
