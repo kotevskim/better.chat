@@ -15,15 +15,20 @@ by one command. Either way, use **Chrome or Firefox** — they resolve
 
 Needs only Docker — no Python. The image is public, so no login is needed, and
 your server hostname is passed at run time rather than baked into the image.
-**Replace `your.rocketchat.host` in the commands below with your own.**
 
-### The released version
+### The latest version
 
+**Replace `your.rocketchat.host` in the commands below with your own RC server:**
 ```bash
 docker run -d --name better-chat --restart unless-stopped \
   -p 127.0.0.1:9000:9000 -e BC_SERVER=your.rocketchat.host \
-  ghcr.io/kotevskim/better.chat
+  ghcr.io/kotevskim/better.chat && sleep 1 && docker logs better-chat
 ```
+
+The `docker logs` at the end prints the startup banner — or the reason the
+container refused to start, e.g. when `BC_SERVER` was left as the placeholder
+above (the proxy exits immediately rather than serve a client whose avatars
+and attachments can never load).
 
 Then open **http://chat.localhost:9000**. An image name with no tag means
 `:latest`, which always points at the newest release.
@@ -49,7 +54,7 @@ docker pull ghcr.io/kotevskim/better.chat && \
 docker rm -f better-chat 2>/dev/null; \
 docker run -d --name better-chat --restart unless-stopped \
   -p 127.0.0.1:9000:9000 -e BC_SERVER=your.rocketchat.host \
-  ghcr.io/kotevskim/better.chat
+  ghcr.io/kotevskim/better.chat && sleep 1 && docker logs better-chat
 ```
 
 To pin a specific version instead, add its tag — `ghcr.io/kotevskim/better.chat:v22`.
@@ -65,7 +70,7 @@ docker pull ghcr.io/kotevskim/better.chat:edge && \
 docker rm -f better-chat-edge 2>/dev/null; \
 docker run -d --name better-chat-edge --restart unless-stopped \
   -p 127.0.0.1:9999:9000 -e BC_SERVER=your.rocketchat.host \
-  ghcr.io/kotevskim/better.chat:edge
+  ghcr.io/kotevskim/better.chat:edge && sleep 1 && docker logs better-chat-edge
 ```
 
 Then open **http://chat.localhost:9999**. Re-run the same command whenever you
