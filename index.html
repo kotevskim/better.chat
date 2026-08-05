@@ -123,7 +123,7 @@
   .tb-flat span { font-size:9px; letter-spacing:.02em; color:var(--text-faint); }
   .tb-flat:hover { color:var(--text); } .tb-flat:hover span { color:var(--text-dim); }
   .tb-flat[aria-pressed="true"] { color:var(--accent); } .tb-flat[aria-pressed="true"] span { color:var(--accent); }
-  .thread-ind.bfocus { outline:2px solid var(--accent); outline-offset:1px; }
+  .thread-ind.bfocus, .reply-ref.bfocus, .mquote.bfocus { outline:2px solid var(--accent); outline-offset:1px; border-radius:5px; }
   .tmenu { position:fixed; z-index:345; display:flex; flex-direction:column; min-width:190px; background:var(--tile); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:5px; }
   .tmenu-item.tmsel, .um-item.tmsel { background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent); }
   .um-sub .tmsel, .um-sub a.tmsel, .um-sub button.tmsel { background:color-mix(in srgb,var(--accent) 16%,transparent); outline:1px solid color-mix(in srgb,var(--accent) 45%,transparent); border-radius:6px; }
@@ -245,7 +245,11 @@
   .msg .head b { font-weight:600; font-size:13px; } .msg .head time { color:var(--text-faint); font-size:10.5px; font-family:ui-monospace,monospace; }
   .msg .text { overflow-wrap:anywhere; }
   .msg .text a, .msg .bubble a, .msg .text a:visited, .msg .bubble a:visited { color:var(--t-channel); text-decoration:none; } .msg .text a:hover, .msg .bubble a:hover { text-decoration:underline; }
-  .msg a.xlink.lfocus { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; background:color-mix(in srgb,var(--accent) 16%,transparent); }   /* the link link mode is sitting on */
+  /* the part of the message you have stepped onto — one look for links, code and reaction chips */
+  .msg .efocus { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; background:color-mix(in srgb,var(--accent) 16%,transparent); }
+  .msg pre.code { position:relative; }
+  .msg pre.code.efocus { outline-offset:1px; }
+  .code-copy { position:absolute; top:5px; right:6px; font-family:ui-monospace,monospace; font-size:9.5px; letter-spacing:.02em; background:color-mix(in srgb,#000 16%,var(--accent)); color:var(--accent-ink); border-radius:4px; padding:2px 6px; pointer-events:none; }
   /* an emoji-only message is basically a gesture — let it land like one (img.rem is em-sized, so custom emoji grow along) */
   .msg .text.emojionly, .msg .bubble.emojionly { font-size:40px; line-height:1.2; }
   .msg.mine .bubble.emojionly { background:none; border:none; padding:0; }   /* no bubble around a bare emoji */
@@ -1259,7 +1263,7 @@
     let idx = state.active; if (idx < 0 || !state.rects[idx]) idx = 0;
     if (!state.rects[idx]) return false;
     gridMode = true; gridIdx = idx; gridOrig = { ...state.rects[idx] }; gridPending = { ...state.rects[idx] }; gridDrop = [];
-    exitLinkMode(true); setFocusedMsg(null); hideMsgMenu();
+    exitElemMode(true); setFocusedMsg(null); hideMsgMenu();
     kbTileFocus = true; setActive(idx);
     return true;
   }
@@ -1340,8 +1344,11 @@
     ws.appendChild(g);
   }
   // Letting go of the chord is the apply. Watch both halves: whichever you lift first ends the gesture.
-  window.addEventListener("keyup", e => { if (gridMode && (e.key === "Meta" || e.key === "Control" || e.key === "Shift")) commitGridMode(); }, true);
-  window.addEventListener("blur", () => { if (gridMode) commitGridMode(); });   // tabbing away must not strand a half-drawn carve
+  window.addEventListener("keyup", e => {
+    if (gridMode && (e.key === MODEVKEY || e.key === "Shift")) commitGridMode();
+    else if (swapMode && e.key === MODEVKEY) exitSwapMode();
+  }, true);
+  window.addEventListener("blur", () => { if (gridMode) commitGridMode(); exitSwapMode(); });   // tabbing away must not strand a half-drawn carve
 
   function commitGridMode() {
     if (!gridMode) return;
@@ -1357,7 +1364,13 @@
   // ---- ⌥/Opt on macOS, Alt everywhere else ----
   const IS_MAC = /Mac|iPhone|iPad|iPod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent);
   const MODK = IS_MAC ? "Opt" : "Alt";
-  const osKeys = v => String(v).replace(/⌥\s?/g, MODK + " + ").replace(/⌘\s?/g, (IS_MAC ? "Cmd" : "Win") + " + ").replace(/\bOpt\b/g, MODK);   // glyphs are never shown — they become "Opt/Alt + " and "Cmd/Win + "
+  // The command modifier: Cmd on a Mac, Ctrl everywhere else — one definition so no shortcut can
+  // drift onto the Windows key (which the OS itself claims for window snapping).
+  const MODNAME = IS_MAC ? "Cmd" : "Ctrl";
+  const MODEVKEY = IS_MAC ? "Meta" : "Control";        // what e.key reads when the modifier itself is pressed
+  const hasMod = e => IS_MAC ? e.metaKey : e.ctrlKey;
+  const otherMod = e => IS_MAC ? e.ctrlKey : e.metaKey;   // the one we deliberately do not use
+  const osKeys = v => String(v).replace(/⌥\s?/g, MODK + " + ").replace(/⌘\s?/g, MODNAME + " + ").replace(/\bOpt\b/g, MODK);   // glyphs are never shown — they become "Opt/Alt + " and "Cmd/Ctrl + "
   const helpKeys = osKeys;
   {   // static markup is authored with ⌥/Opt; rewrite it once for the detected OS
     document.querySelectorAll("[title],[placeholder],[aria-label]").forEach(el => {
@@ -1432,36 +1445,54 @@
   }
   // Row 2 of the centre stack: just the chord. Which arrows do what is answered by the popup that
   // appears the moment you hold it, so the header stays short and never goes stale.
-  const carveHint = () => `<kbd>${IS_MAC ? "Cmd" : "Ctrl"}</kbd><kbd>Shift</kbd> grow/shrink`;
+  const carveHint = () => `<kbd>${MODNAME}</kbd><kbd>Shift</kbd> grow/shrink`;
+  const TAB_HINT = "<kbd>Tab</kbd> unread · expand · more";   // exactly what Tab walks, in order
   function updateKeyHints() {   // on-screen key hints in the focused tile's header
     document.querySelectorAll(".tile.kbhints").forEach(t => t.classList.remove("kbhints"));
     document.querySelectorAll(".thh-l, .thh-m1, .thh-r, .thh-m2").forEach(x => x.innerHTML = "");
     if (!kbTileFocus || state.active < 0) return;
     const t = ws.querySelector(`.tile[data-slot="${state.active}"]`); if (!t || !state.slots[state.active]) return;
-    if (gridMode) { t.classList.add("kbhints"); return; }   // resizing: the on-grid popup is the only instruction
+    if (gridMode || swapMode) { t.classList.add("kbhints"); return; }   // resizing or moving: the on-grid popup is the only instruction
     const put = (sel, rows) => { const el = t.querySelector(sel); if (el) el.innerHTML = rows.map(r => `<span>${r}</span>`).join(""); };
     const inputFocused = document.activeElement && t.contains(document.activeElement) && document.activeElement.classList.contains("cinput");
     const msgHere = kbMsgFocus && focusedMsgEl && t.contains(focusedMsgEl);
     const watched = watchedSlot === state.active;
     t.classList.add("kbhints");
-    if (msgHere && linkModeEl) {   // link mode owns Enter, so say so instead of showing the action-bar hints
-      const cnt = msgLinks(focusedMsgEl).length;
-      put(".thh-m1", [`<span class="thh-hot">link mode</span>${cnt > 1 ? ` ${linkIdx + 1}/${cnt}` : ""}`]);
-      put(".thh-m2", ["<kbd>Enter</kbd> open link", cnt > 1 ? "<kbd>l</kbd> next · <kbd>Esc</kbd> exit" : "<kbd>Esc</kbd> exit"]);
+    if (msgHere && inElemMode()) {   // inside the message: say what the selection does and how to move
+      const e = elemEls[elemIdx], many = elemEls.length > 1;
+      const act = e && e.kind === "link" ? "<kbd>Enter</kbd> open link"
+                : e && e.kind === "code" ? "<kbd>Enter</kbd> copy to clipboard"
+                : "<kbd>Enter</kbd> react";
+      const move = [];
+      if (e && e.kind === "reacts" && e.chips.length > 1) move.push("<kbd>←</kbd><kbd>→</kbd> reactions");
+      if (many) move.push("<kbd>↑</kbd><kbd>↓</kbd> message elements");
+      put(".thh-l", ["<kbd>Esc</kbd> back to message"]);
+      put(".thh-m1", [act]);
+      if (move.length) put(".thh-m2", move);
       return;
     }
-    if (msgHere && msgMenu && menuSel >= 0) { put(".thh-m1", ["<kbd>Tab</kbd> or <kbd>←</kbd><kbd>→</kbd> move"]); put(".thh-m2", ["<kbd>Enter</kbd> execute"]); return; }
-    if (msgHere) { put(".thh-l", ["<kbd>Esc</kbd> write"]); put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
+    if (msgHere && msgMenu && menuSel >= 0) { put(".thh-l", ["<kbd>Esc</kbd> back to message"]); put(".thh-m1", ["<kbd>Tab</kbd> or <kbd>←</kbd><kbd>→</kbd> move"]); put(".thh-m2", ["<kbd>Enter</kbd> execute"]); return; }
+    if (msgHere && focusedBadgeEl) {   // sitting on a quote or a replies badge, not the message body
+      put(".thh-l", ["<kbd>Esc</kbd> write"]);
+      put(".thh-m1", [isQuotePart(focusedBadgeEl) ? "<kbd>Enter</kbd> go to message" : "<kbd>Enter</kbd> open thread"]);
+      put(".thh-m2", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]);
+      return;
+    }
+    if (msgHere) {
+      put(".thh-l", ["<kbd>Esc</kbd> write"]);
+      if (msgElements(focusedMsgEl).length) put(".thh-m1", ["<kbd>Enter</kbd> message elements"]);   // only offered when there is something to step into
+      put(".thh-r", ["<kbd>Tab</kbd> message actions"]);
+      return;
+    }
     // one layout for every state: Enter/Esc on the left, unread + swap in the middle, Tab on the right —
     // a key that works in more than one state never moves around
-    const uHint = `<kbd>${IS_MAC ? "Cmd" : "Ctrl"}</kbd><kbd>u</kbd> unread`;
-    const swapHint = `<kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swap with neighbour`;
-    if (inputFocused) { put(".thh-l", ["<kbd>Esc</kbd> stop watching"]); put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-m2", [uHint]); put(".thh-r", ["<kbd>Tab</kbd> actions"]); return; }
+    const swapHint = `<kbd>${MODNAME}</kbd> swap with neighbour`;
+    if (inputFocused) { put(".thh-l", ["<kbd>Esc</kbd> stop watching"]); put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-r", [TAB_HINT]); return; }
     put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> write",
                    watched ? "<kbd>Esc</kbd> stop watching" : "<kbd>Esc</kbd> close"]);
     put(".thh-m1", [swapHint]);
-    put(".thh-m2", [carveHint(), uHint].filter(Boolean));   // rows 2 and 3, same place watched or not
-    put(".thh-r", ["<kbd>Tab</kbd> actions"]);
+    put(".thh-m2", [carveHint()].filter(Boolean));
+    put(".thh-r", [TAB_HINT]);
   }
 
   ws.addEventListener("mousedown", e => {   // clicking into a chat watches it; header buttons only move the passive focus (✕ must not mark read)
@@ -1541,7 +1572,7 @@
     const blocks = [], inls = [], links = [];
     raw = raw.replace(/```(?:([a-z0-9]*)[ \t]*\r?\n)?([\s\S]*?)```/gi, (m, lang, c) => { blocks.push(`<pre class="code${lang ? " lang-" + lang.toLowerCase() : ""}">` + highlightCode(lang || "", c.replace(/\n$/, "")) + "</pre>"); return "\x02" + (blocks.length - 1) + "\x02"; });   // a word counts as the language tag only when its line ends there — "```docker pull x" is content, not lang "docker"
     raw = raw.replace(/`([^`\n]+)`/g, (m, c) => { inls.push('<code class="inline">' + esc(c) + "</code>"); return "\x03" + (inls.length - 1) + "\x03"; });
-    raw = raw.replace(/(https?:\/\/[^\s]+)/g, u => { links.push('<a class="xlink" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(u) + "</a>"); return "\x04" + (links.length - 1) + "\x04"; });   // .xlink = a real external link, what link mode walks — mentions and #channels are spans, not anchors
+    raw = raw.replace(/(https?:\/\/[^\s]+)/g, u => { links.push('<a class="xlink" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(u) + "</a>"); return "\x04" + (links.length - 1) + "\x04"; });   // .xlink = a real external link, a stop in the message element cycle — mentions and #channels are spans, not anchors
     // blockquotes: consecutive lines starting with ">" become one <blockquote>; other lines join with <br>
     const lines = esc(raw).split("\n"), parts = []; let quote = [];
     const flush = () => { if (quote.length) { parts.push(`<blockquote class="rquote">${fmtInline(quote.join("<br>"))}</blockquote>`); quote = []; } };
@@ -2081,31 +2112,104 @@
 
   // focus = keyboard (arrows) or click only; hover just shows the action toolbar
   let focusedMsgEl = null, kbMsgFocus = false, focusedBadgeEl = null;
-  // ---- link mode ----
-  // `l` on a keyboard-focused message walks the external links inside it; Enter opens the highlighted
-  // one, Esc drops back to plain message focus. It is a sub-focus of the message, mutually exclusive
-  // with the "N replies" badge — only one thing inside a message is ever selected.
-  let linkModeEl = null, linkIdx = -1;
+  // ---- message elements ----
+  // Enter steps INTO the focused message and selects its first interactive part; up/down cycle the
+  // parts, left/right move between reaction chips (the whole reactions row is one stop, so ten
+  // reactions don't become ten stops). Enter acts on what's selected: open a link, copy a code block,
+  // toggle a reaction. Esc steps back out to the whole message. A sub-focus of the message, mutually
+  // exclusive with the "N replies" badge — only one thing inside a message is ever selected.
+  let elemEls = [], elemIdx = -1, reactIdx = 0;
   const isTypingNow = () => /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName) || !!(document.activeElement && document.activeElement.isContentEditable);   // inputs + inline message editing
-  const msgLinks = el => el ? [...el.querySelectorAll("a.xlink")] : [];
-  function exitLinkMode(quiet) {
-    if (!linkModeEl && linkIdx < 0) return;
-    if (linkModeEl) linkModeEl.classList.remove("lfocus");
-    linkModeEl = null; linkIdx = -1;
-    if (!quiet) updateKeyHints();
+  const inElemMode = () => elemIdx >= 0;
+  // Stops in document order. The reactions row is a single stop carrying its chips.
+  function msgElements(el) {
+    if (!el) return [];
+    const out = [];
+    el.querySelectorAll("a.xlink, pre.code, code.inline").forEach(n => out.push({ kind: n.tagName === "A" ? "link" : "code", node: n }));
+    const reacts = [...el.querySelectorAll('[data-role="react"]')];
+    if (reacts.length) out.push({ kind: "reacts", node: reacts[0].parentElement, chips: reacts });
+    return out;
   }
-  function stepLinkMode() {   // first `l` lights the first link, each next one steps along, wrapping
-    const links = msgLinks(focusedMsgEl);
-    if (!links.length) return;   // no links in this message — `l` does nothing at all
-    setFocusedBadge(null);       // badge and link mode can't both own the message
-    if (linkModeEl) linkModeEl.classList.remove("lfocus");
-    linkIdx = (linkIdx + 1) % links.length;
-    linkModeEl = links[linkIdx];
-    linkModeEl.classList.add("lfocus");
-    linkModeEl.scrollIntoView({ block: "nearest" });
+  const elemChip = e => e && e.kind === "reacts" ? e.chips[Math.min(reactIdx, e.chips.length - 1)] : (e && e.node);
+  function paintElem() {
+    document.querySelectorAll(".efocus").forEach(n => n.classList.remove("efocus"));
+    document.querySelectorAll(".code-copy").forEach(n => n.remove());
+    const e = elemEls[elemIdx]; if (!e) return;
+    const target = elemChip(e); if (!target) return;
+    target.classList.add("efocus");
+    if (e.kind === "code") {   // a selected block offers the thing Enter will do
+      const tag = document.createElement("span"); tag.className = "code-copy"; tag.textContent = "⧉ copy";
+      e.node.appendChild(tag);   // pre.code is position:relative in CSS, so no inline style to clean up
+    }
+    target.scrollIntoView({ block: "nearest" });
+  }
+  // Enter on a quote/reply stop: find the message it points at, in the same window, and focus it.
+  // A thread reply carries its parent's id; an RC quote carries a permalink ending in ?msg=<id>.
+  function jumpToQuoted(node) {
+    const mel = node.closest(".msg"), ctx = mel ? msgCtx(mel) : null; if (!ctx) return;
+    let pid = node.dataset.pid || "";
+    if (!pid) { const link = node.dataset.link || ""; const mt = link.match(/[?&]msg=([A-Za-z0-9_-]+)/); if (mt) pid = mt[1]; }
+    if (!pid) { const q = msgQuotes(ctx.m).find(x => x.mid); pid = q ? q.mid : ""; }
+    const target = pid && (rooms[ctx.roomId].msgs || []).find(x => x.id === pid);
+    const stream = mel.closest('[data-role="stream"]');
+    const el = target && stream && stream.querySelector(`.msg[data-uid="${target._uid}"]`);
+    if (!el) { hint("That message isn't loaded here — scroll up to load it."); return; }
+    exitElemMode(true);
+    setFocusedMsg(el, true); el.scrollIntoView({ block: "center" });
+    el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1600);
     updateKeyHints();
   }
-  function setFocusedBadge(el) { if (el) exitLinkMode(true); if (focusedBadgeEl) focusedBadgeEl.classList.remove("bfocus"); focusedBadgeEl = el; if (el) el.classList.add("bfocus"); }
+  function exitElemMode(quiet) {
+    if (elemIdx < 0 && !elemEls.length) return;
+    elemEls = []; elemIdx = -1; reactIdx = 0;
+    document.querySelectorAll(".efocus").forEach(n => n.classList.remove("efocus"));
+    document.querySelectorAll(".code-copy").forEach(n => n.remove());
+    if (!quiet) { if (focusedMsgEl) showActBar(focusedMsgEl); updateKeyHints(); }   // the floating actions come back
+  }
+  function enterElemMode() {   // Enter on a message with nothing to step into does nothing at all
+    if (!focusedMsgEl) return false;
+    const els = msgElements(focusedMsgEl); if (!els.length) return false;
+    setFocusedBadge(null);
+    elemEls = els; elemIdx = 0; reactIdx = 0;
+    hideMsgMenu();                       // the floating actions get out of the way while you are inside
+    paintElem(); updateKeyHints();
+    return true;
+  }
+  function stepElem(d) {
+    if (!inElemMode()) return;
+    elemIdx = (elemIdx + d + elemEls.length) % elemEls.length; reactIdx = 0;
+    paintElem(); updateKeyHints();
+  }
+  function stepChip(d) {
+    const e = elemEls[elemIdx]; if (!e || e.kind !== "reacts") return;
+    reactIdx = (reactIdx + d + e.chips.length) % e.chips.length;
+    paintElem(); updateKeyHints();
+  }
+  async function runElem() {
+    const e = elemEls[elemIdx]; if (!e) return;
+    if (e.kind === "link") { e.node.click(); return; }
+    if (e.kind === "code") {
+      const chip = e.node.querySelector(".code-copy"); if (chip) chip.remove();   // the affordance must not end up in the clipboard
+      const text = e.node.textContent || "";
+      if (chip) e.node.appendChild(chip);
+      try { await navigator.clipboard.writeText(text); hint("Code copied to clipboard"); } catch (_) { hintLong("Couldn't copy — the browser blocked clipboard access."); }
+      return;
+    }
+    if (e.kind === "reacts") {   // toggling re-renders the message, so re-find the parts afterwards
+      const chip = elemChip(e), mel = chip && chip.closest(".msg"), ctx = mel ? msgCtx(mel) : null;
+      if (!ctx) return;
+      const keepIdx = elemIdx, keepChip = reactIdx;
+      await toggleReactionAt(ctx, +chip.dataset.ri);
+      const els = msgElements(focusedMsgEl);
+      if (!els.length) { exitElemMode(); return; }                         // last reaction gone
+      elemEls = els;
+      elemIdx = Math.min(keepIdx, els.length - 1);
+      const cur = elemEls[elemIdx];
+      reactIdx = cur && cur.kind === "reacts" ? Math.min(keepChip, cur.chips.length - 1) : 0;
+      paintElem(); updateKeyHints();
+    }
+  }
+  function setFocusedBadge(el) { if (el) exitElemMode(true); if (focusedBadgeEl) focusedBadgeEl.classList.remove("bfocus"); focusedBadgeEl = el; if (el) el.classList.add("bfocus"); }
   function focusDateShow(el, on) {   // focused message shows date + time in its header
     const ctx = msgCtx(el); if (!ctx || !ctx.m.tsMs) return;
     let t = el.querySelector(".head time"), ts = ctx.m.tsMs;
@@ -2124,7 +2228,7 @@
   }
   function setFocusedMsg(el, byKey) {
     setTimeout(() => { if (typeof updateKeyHints === "function") updateKeyHints(); }, 0);
-    exitLinkMode(true);   // link mode belongs to one message; moving the focus leaves it
+    exitElemMode(true);   // the element cycle belongs to one message; moving the focus leaves it
     kbMsgFocus = !!byKey && !!el;
     if (focusedMsgEl !== el) {
       if (focusedMsgEl) { focusedMsgEl.classList.remove("mfocus"); focusDateShow(focusedMsgEl, false); }
@@ -2135,6 +2239,22 @@
     if (el) { showActBar(el); applyMenuSel(); if (document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"] .crow')) document.activeElement.blur(); }
     else hideMsgMenu();
   }
+  // Stops the up/down walk visits, in screen order: a message's quote, the message itself, its badge.
+  function msgStops(streamEl) {
+    const out = [];
+    [...streamEl.querySelectorAll(".msg")].forEach(m => {
+      const q = m.querySelector(".reply-ref, .mquote"); if (q) out.push({ msg: m, part: q });
+      out.push({ msg: m, part: null });
+      const b = m.querySelector(".thread-ind"); if (b) out.push({ msg: m, part: b });
+    });
+    return out;
+  }
+  function gotoStop(st) {
+    setFocusedMsg(st.msg, true);
+    if (st.part) { setFocusedBadge(st.part); hideMsgMenu(); st.part.scrollIntoView({ block: "nearest" }); }
+    else { setFocusedBadge(null); showActBar(st.msg); st.msg.scrollIntoView({ block: "nearest" }); }
+  }
+  const isQuotePart = el => !!el && (el.classList.contains("reply-ref") || el.classList.contains("mquote"));
   const MSG_HIT = ".bubble, .text, .mquote, .thread-ind, .reply-ref, .reply-tag";   // the message itself — not the name/time row, avatar, reactions or blank filler
   function msgHitEl(t) {   // attachments count only when the message has no text (image-only messages still need a hover target)
     if (!t || !t.closest) return null;
@@ -2416,7 +2536,7 @@
   function firstEmptyTile() { for (let i = 0; i < n(); i++) if (!state.slots[i]) return i; return -1; }
 
   function renderTiles() {
-    exitLinkMode(true);   // the whole grid is rebuilt below
+    exitElemMode(true);   // the whole grid is rebuilt below
     // The rebuild destroys the composer mid-keystroke: an incoming message that lands in an empty
     // tile re-renders the grid, and without this your cursor silently leaves the chat you were
     // writing in. Drafts survive on their own (saved per input); carry the focus + caret too.
@@ -2441,7 +2561,7 @@
           `<span class="ew-or ew-hover">or</span><span class="ew-row ew-hover">Double-click to open chat</span>` +
           `<span class="ew-or ew-hover">or</span><span class="ew-row ew-hover">Drop a favourite</span>` +
           `<span class="ew-or ew-foc">or</span><span class="ew-row ew-foc">Press <kbd>Enter</kbd> to start a chat</span>` +
-          `<span class="ew-or ew-foc">or</span><span class="ew-row ew-foc">Press <kbd>${IS_MAC ? "Cmd" : "Ctrl"}</kbd><kbd>Shift</kbd> to grow/shrink</span>` +
+          `<span class="ew-or ew-foc">or</span><span class="ew-row ew-foc">Press <kbd>${MODNAME}</kbd><kbd>Shift</kbd> to grow/shrink</span>` +
           `</div></div>`;
       } else {
         const showUnread = ru(r) > 0;
@@ -2455,7 +2575,7 @@
             <span class="head-hint"><span>Double-click to expand</span></span>
             <div class="tools">
               <span class="tile-unread" data-role="badge" title="Jump to next unread" ${showUnread?"":"hidden"}>${ru(r)}</span>
-              <button class="thead-btn" data-role="unread" title="Mark unread (${IS_MAC ? "Cmd" : "Ctrl"}+U)">${ICON.eyeoff}</button>
+              <button class="thead-btn" data-role="unread" title="Mark unread">${ICON.eyeoff}</button>
               <button class="thead-btn" data-role="expand" title="Expand">${ICON.expand}</button>
               <button class="thead-btn" data-role="more" title="More actions">${ICON.dots}</button>
               <button class="thead-btn" data-role="clear" title="Close chat (Esc)">${ICON.close}</button>
@@ -2659,7 +2779,7 @@
   function clearAcc(id) { const st = roomState[id]; if (st && st.pendingFiles) st.pendingFiles.forEach(p => { try { URL.revokeObjectURL(p.url); } catch (_) {} }); delete roomState[id]; renderComposerAcc(id); const inp = composerFor(id); if (inp) inp.value = ""; }
   function cancelPendingFile(id, idx) { const st = roomState[id]; if (!st || !st.pendingFiles) return; const p = st.pendingFiles[idx]; if (p) { try { URL.revokeObjectURL(p.url); } catch (_) {} st.pendingFiles.splice(idx, 1); } if (!st.pendingFiles.length) delete st.pendingFiles; renderComposerAcc(id); }
   function renderVisibleStream(id) {
-    exitLinkMode(true);   // the innerHTML swap below detaches the highlighted link
+    exitElemMode(true);   // the innerHTML swap below detaches the selected element
     const html = renderMsgs(rooms[id].msgs, rooms[id]);
     const upd = s => { if (!s) return; const atBottom = s.scrollHeight - s.scrollTop - s.clientHeight < 80; const top = s.scrollTop; s.innerHTML = html; s.scrollTop = atBottom ? s.scrollHeight : top; };   // keep the exact position (innerHTML swap would clamp it), pin only if already at the bottom
     const slot = visibleSlots().indexOf(id);
@@ -2709,7 +2829,8 @@
     if (!threadPop || (m.id && threadMsgsCache.some(x => x.id && x.id === m.id))) return;
     threadMsgsCache.push(m); threadMsgsCache.sort(byTs); renderThreadBody();
   }
-  function hideThread() { if (threadPop) { if (threadBack) { threadBack.remove(); threadBack = null; } else threadPop.remove(); threadPop = null; } threadMsgsCache = []; threadParentId = null; document.querySelectorAll(".thread-item.open").forEach(x => x.classList.remove("open")); if (threadsBack) threadsBack.classList.remove("has-thread"); }
+  let threadReturnUid = null;   // the message whose badge opened the current thread
+  function hideThread() { threadReturnUid = null; if (threadPop) { if (threadBack) { threadBack.remove(); threadBack = null; } else threadPop.remove(); threadPop = null; } threadMsgsCache = []; threadParentId = null; document.querySelectorAll(".thread-item.open").forEach(x => x.classList.remove("open")); if (threadsBack) threadsBack.classList.remove("has-thread"); }
   function buildThreadCard(roomId, m) {
     const card = document.createElement("div"); card.className = "urpop threadpop"; card.dataset.parent = m.id || ""; card.dataset.room = roomId;
     threadParentId = m.id || null; threadMsgsCache = [m];   // root shown once, at the top
@@ -3466,7 +3587,7 @@
     const who = r.t === "d" ? r.name : sig[r.t] + r.name;
     card.innerHTML =
       `<div class="up-head">${threadParent ? "Reply in thread ·&nbsp;" : "Send message to&nbsp;"}<b>${esc(who)}</b><button class="mclose" data-role="be-close" style="margin-left:auto">&#10005;</button></div>` +
-      `<div class="be-modebar"><button type="button" class="be-mode on" data-mode="write">Write</button><button type="button" class="be-mode" data-mode="preview">Preview</button><span class="be-hint">Enter = new line · click Send (or ⌘/Ctrl+Enter) to send</span></div>` +
+      `<div class="be-modebar"><button type="button" class="be-mode on" data-mode="write">Write</button><button type="button" class="be-mode" data-mode="preview">Preview</button><span class="be-hint">Enter = new line · click Send (or ${MODNAME}+Enter) to send</span></div>` +
       `<textarea class="be-input" placeholder="Write your message… **bold**, _italic_, \`code\`, > quote, :emoji:"></textarea>` +
       `<div class="be-preview" hidden></div>` +
       `<div class="be-foot"><button type="button" class="btn primary be-send">${ICON.send}<span>Send</span></button></div>`;
@@ -3479,7 +3600,7 @@
       mySend(roomId, val); const inp = composerFor(roomId); if (inp) inp.value = "";
     }
     ta.addEventListener("input", () => bigGrow(ta));
-    ta.addEventListener("keydown", ev => { if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); doBigSend(); } });   // Enter = newline; ⌘/Ctrl+Enter sends
+    ta.addEventListener("keydown", ev => { if (ev.key === "Enter" && hasMod(ev)) { ev.preventDefault(); doBigSend(); } });   // Enter = newline; the command modifier + Enter sends
     card.querySelectorAll(".be-mode").forEach(b => b.addEventListener("click", () => {
       card.querySelectorAll(".be-mode").forEach(x => x.classList.toggle("on", x === b));
       if (b.dataset.mode === "preview") { pv.innerHTML = ta.value.trim() ? renderText(ta.value) : `<span style="color:var(--text-faint)">Nothing to preview yet.</span>`; pv.hidden = false; ta.hidden = true; }
@@ -3658,15 +3779,13 @@
       ["Shortcuts", [
         ["f", "Fast Nav mode — key tags light up over everything clickable; type one to trigger it ([[esc]] exits)"],
         ["Shift", "Search and open a chat — in the first empty tile, or replacing the focused one when the grid is full"],
-        [[IS_MAC ? "Cmd" : "Ctrl", "u"], "Mark the focused chat unread — it moves to the unread bar (works while writing too)"],
-        ["l", "Link mode on the focused message — highlights its first link, again for the next; [[enter]] opens it, [[esc]] exits"],
         [["⌘", "←", "→", "↑", "↓"], "Swap the focused chat with the neighbouring tile"],
-        [[IS_MAC ? "Cmd" : "Ctrl", "Shift", "←", "→", "↑", "↓"], "Resize the focused window — each arrow grows it that way, or gives back growth from the other side; the shape is previewed and applies when you let go"],
+        [[MODNAME, "Shift", "←", "→", "↑", "↓"], "Resize the focused window — each arrow grows it that way, or gives back growth from the other side; the shape is previewed and applies when you let go"],
       ]],
     ];
     const rowH = ([k, d]) => {   // string keys split on " · " into alternatives; an array renders adjacent badges
       const keys = Array.isArray(k)
-        ? k.map(p => `<kbd>${p === "⌘" ? (IS_MAC ? "Cmd" : "Win") : p === "⌥" ? MODK : helpKeys(p)}</kbd>`).join("")
+        ? k.map(p => `<kbd>${p === "⌘" ? MODNAME : p === "⌥" ? MODK : helpKeys(p)}</kbd>`).join("")
         : k.split(/\s·\s|\s\/\s/).map(p => `<kbd>${helpKeys(p)}</kbd>`).join('<i class="kb-or">or</i>');
       return `<div class="kbrow"><span class="kbkeys">${keys}</span><div class="kbd-desc">${helpKeys(d).replace(/\[\[(.+?)\]\]/g, "<kbd>$1</kbd>")}</div></div>`;
     };
@@ -3756,10 +3875,35 @@
     const cnt = n();
     return (key === "ArrowLeft" || key === "ArrowUp") ? (cur - 1 + cnt) % cnt : (cur + 1) % cnt;
   }
+  // ---- swap gesture ----
+  // Holding Cmd/Win lights the focused window and lists the directions it can actually move, the same
+  // way the resize chord does. Unlike resize there is nothing to preview: each arrow swaps at once.
+  let swapMode = false;
+  function enterSwapMode() {
+    if (swapMode || gridMode) return;
+    if (navMode || !backdrop.hidden || panelBack || urPop || tileMenu || bigBack) return;
+    if (state.active < 0 || !state.rects[state.active] || n() <= 1) return;
+    swapMode = true; paintSwapMode(); updateKeyHints();
+  }
+  function exitSwapMode() {
+    if (!swapMode) return;
+    swapMode = false; clearGridPaint(); updateKeyHints();
+  }
+  function paintSwapMode() {
+    clearGridPaint(); if (!swapMode) return;
+    const t = ws.querySelector(`.tile[data-slot="${state.active}"]`); if (!t) return;
+    ws.classList.add("gridmode"); t.classList.add("gm-src");
+    const rc = state.rects[state.active]; if (!rc) return;
+    const dirs = DIRS.filter(d => neighborTile(state.active, d) >= 0);
+    const g = document.createElement("div"); g.className = "gm-ghost";
+    g.style.gridArea = `${rc.r + 1}/${rc.c + 1}/${rc.r + 1 + rc.h}/${rc.c + 1 + rc.w}`;
+    g.innerHTML = `<span class="gm-bar">${dirs.length ? `<span>${dirs.map(d => `<kbd>${ARROW[d]}</kbd>`).join("")} move</span>` : `<span>nowhere to move</span>`}</span>`;
+    ws.appendChild(g);
+  }
   function swapWindow(key) {   // ⌘arrow: swap the focused tile's chat with its neighbour (either may be empty)
     if (n() <= 1) return;
-    const cur = state.active >= 0 ? state.active : 0, t = neighborSlot(cur, key);
-    if (t === cur) return;
+    const cur = state.active >= 0 ? state.active : 0, t = neighborTile(cur, key);   // geometric only: never wrap off the edge
+    if (t < 0 || t === cur) return;
     const wasWatching = watchedSlot === cur;
     const tmp = state.slots[cur]; state.slots[cur] = state.slots[t]; state.slots[t] = tmp;
     setFocusedMsg(null); renderTiles(); setActive(t);
@@ -3887,8 +4031,17 @@
       }
       return;
     }
-    if (e.key === "Escape" && linkModeEl) { e.preventDefault(); exitLinkMode(); return; }   // Esc leaves link mode first — the message stays focused
+    if (e.key === "Escape" && inElemMode()) { e.preventDefault(); exitElemMode(); return; }   // Esc steps out of the message first — the message stays focused
     if (e.key === "Escape") {   // Esc closes whichever popup is open (topmost first)
+      // A thread opened from a "N replies" badge closes back onto that badge — the message defocus
+      // below would otherwise fire first and leave the thread standing open behind you.
+      if (threadPop && threadReturnUid) {
+        e.preventDefault();
+        const uid = threadReturnUid; hideThread();
+        const mel = document.querySelector(`.msg[data-uid="${uid}"]`), badge = mel && mel.querySelector(".thread-ind");
+        if (badge) { setFocusedMsg(mel, true); hideMsgMenu(); setFocusedBadge(badge); badge.scrollIntoView({ block: "nearest" }); }
+        updateKeyHints(); return;
+      }
       if (msgMenu && !kbMsgFocus && !focusedMsgEl) hideMsgMenu();   // hover-only toolbar: dismiss silently, Esc continues to its real target
       else if (msgMenu || focusedMsgEl) {   // Esc on a focused message hands you to the composer — reading a message and answering it are one motion
         e.preventDefault();
@@ -3916,28 +4069,34 @@
       if (threadsBack) { e.preventDefault(); return hideThreadsList(); }
       if (threadPop) { e.preventDefault(); return hideThread(); }
     }
-    // l walks the focused message's external links; while link mode is on, Enter opens the highlighted
-    // one instead of dropping into the actions/reactions bar below.
-    if (kbMsgFocus && focusedMsgEl && !isTypingNow() && !panelBack && !e.altKey && !e.metaKey && !e.ctrlKey) {
-      if (e.key === "l") { e.preventDefault(); stepLinkMode(); return; }
-      if (linkModeEl && e.key === "Enter") { e.preventDefault(); linkModeEl.click(); return; }   // the anchor is target="_blank" — the browser opens a new tab
+    // Inside a message: up/down walk its parts, left/right the reaction chips, Enter acts on the
+    // selection, Esc steps back out to the whole message. Owns these keys ahead of everything else.
+    if (inElemMode() && !isTypingNow() && !panelBack && !e.altKey && !e.metaKey && !e.ctrlKey) {
+      if (e.key === "ArrowDown") { e.preventDefault(); stepElem(1); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); stepElem(-1); return; }
+      if (e.key === "ArrowRight") { e.preventDefault(); stepChip(1); return; }
+      if (e.key === "ArrowLeft") { e.preventDefault(); stepChip(-1); return; }
+      if (e.key === "Enter") { e.preventDefault(); runElem(); return; }
+      if (e.key === "Tab") { e.preventDefault(); return; }
     }
-    if (focusedBadgeEl && e.key === "Enter") { e.preventDefault(); openThread(focusedMsgEl); return; }   // Enter on a focused "N replies" badge -> open the thread
+    // Enter steps into the focused message; Tab is the way to its floating actions.
+    if (kbMsgFocus && focusedMsgEl && !focusedBadgeEl && !inElemMode() && !(msgMenu && menuSel >= 0) && !isTypingNow() && !panelBack && !e.altKey && !e.metaKey && !e.ctrlKey) {
+      if (e.key === "Enter") { e.preventDefault(); enterElemMode(); return; }   // nothing to step into -> nothing happens
+    }
+    if (focusedBadgeEl && e.key === "Enter") {
+      e.preventDefault();
+      if (isQuotePart(focusedBadgeEl)) { jumpToQuoted(focusedBadgeEl); return; }   // a quote -> go to the message it points at
+      threadReturnUid = focusedMsgEl && focusedMsgEl.dataset.uid; openThread(focusedMsgEl); return;   // a badge -> open the thread, remembering the way back
+    }
     if (msgMenu && kbMsgFocus && !focusedBadgeEl) {   // keyboard-focused message: Tab/Enter select the emoji action first; then Tab/←→ cycle, Enter runs
       const items = [...msgMenu.querySelectorAll(".mm-react,.mm-act")];
       const entrySel = () => { const i = items.findIndex(b => b.dataset && b.dataset.act === "emoji"); return i >= 0 ? i : 0; };   // land on the emoji action first, wherever it sits ("other" bars are reversed)
-      if ((e.key === "Tab" && menuSel >= 0) || ((e.key === "ArrowLeft" || e.key === "ArrowRight") && menuSel >= 0)) {
+      if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && menuSel >= 0) {
         e.preventDefault(); if (!items.length) return;
-        const fwd = isMine(msgMenuCtx.m) ? 1 : -1;   // "next" = toward reply, copy, … on both sides (other bars are mirrored)
-        if (e.key === "Tab") menuSel = (menuSel + (e.shiftKey ? -fwd : fwd) + items.length) % items.length;
-        else menuSel = (menuSel + (e.key === "ArrowLeft" ? -1 : 1) + items.length) % items.length;
+        menuSel = (menuSel + (e.key === "ArrowLeft" ? -1 : 1) + items.length) % items.length;
         applyMenuSel(); return;
       }
-      if (e.key === "Enter") {
-        e.preventDefault(); if (!items.length) return;
-        if (menuSel < 0) { menuSel = entrySel(); applyMenuSel(); return; }   // Enter enters the action bar on the emoji action
-        const b = items[menuSel]; if (b) b.click(); return;
-      }
+      if (e.key === "Enter" && menuSel >= 0) { e.preventDefault(); const b = items[menuSel]; if (b) b.click(); return; }
     }
     const inPopup = !backdrop.hidden && modalKind && modalKind !== "expand";
     const typing = isTypingNow();   // inputs + inline message editing
@@ -3990,10 +4149,10 @@
     // Not while you are typing: there the chord is the OS's own "select by word/line", and taking it
     // would cost you the selection you asked for. Esc out of the composer first — which is why the
     // chord is only advertised in the header states where the caret is not in an input.
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && !e.altKey && backdrop.hidden && !typing) {
+    if (hasMod(e) && e.shiftKey && !e.altKey && backdrop.hidden && !typing) {
       // Holding the chord alone arms it: the focused window lights up and lists its arrows straight
       // away, so you can see what is possible before committing to a direction.
-      if (/^(Meta|Control|Shift)$/.test(e.key)) { if (!gridMode) { if (enterGridMode()) { paintGridMode(); updateKeyHints(); } } return; }
+      if (e.key === MODEVKEY || e.key === "Shift") { exitSwapMode(); if (!gridMode) { if (enterGridMode()) { paintGridMode(); updateKeyHints(); } } return; }
       if (/^Arrow(Left|Right|Up|Down)$/.test(e.key)) {
         e.preventDefault();
         if (!gridMode && !enterGridMode()) return;
@@ -4002,8 +4161,8 @@
     }
     if (gridMode && e.key === "Escape") { e.preventDefault(); exitGridMode(); return; }   // abandon without applying
     // ⌘/Ctrl+U marks the focused chat unread — no typing gate, so it works from a watched chat too (where the focus sits in the composer)
-    if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key === "u" && backdrop.hidden && !panelBack && state.active >= 0 && state.slots[state.active]) { e.preventDefault(); markUnread(state.slots[state.active]); return; }
-    if (e.metaKey && !e.altKey && !e.ctrlKey && /^Arrow(Left|Right|Up|Down)$/.test(e.key) && !typing && backdrop.hidden) { e.preventDefault(); swapWindow(e.key); return; }
+    if (hasMod(e) && !e.shiftKey && !e.altKey && !otherMod(e) && e.key === MODEVKEY && !typing && backdrop.hidden) { enterSwapMode(); return; }   // holding the modifier shows where this window can go
+    if (hasMod(e) && !e.shiftKey && !e.altKey && !otherMod(e) && /^Arrow(Left|Right|Up|Down)$/.test(e.key) && !typing && backdrop.hidden) { e.preventDefault(); swapWindow(e.key); if (swapMode) paintSwapMode(); return; }
     if (e.key === "f" && !typing && backdrop.hidden && !urPop && !kbMsgFocus && !gridMode && !e.altKey && !e.metaKey && !e.ctrlKey) { e.preventDefault(); enterNavMode(); return; }   // f = Fast Nav mode (one capture mode at a time)
     if (e.key === "Tab") {
       if (inPopup) { if (!modalResults.length) return; e.preventDefault(); modalSel = (modalSel + (e.shiftKey ? -1 : 1) + modalResults.length) % modalResults.length; renderResults(); return; }
@@ -4011,6 +4170,16 @@
       const ae = document.activeElement;
       const inTileComposer = ae && ae.classList && ae.classList.contains("cinput") && ae.closest(".tile");
       if (typing && !inTileComposer) return;   // editors in popups keep Tab inert
+      // Tab always means "cycle the controls of whatever is focused": a focused message hands it the
+      // message's own actions, otherwise it walks the chat header's controls.
+      if (kbMsgFocus && focusedMsgEl && !focusedBadgeEl && backdrop.hidden && !panelBack) {
+        const items = msgMenu ? [...msgMenu.querySelectorAll(".mm-react,.mm-act")] : [];
+        if (!msgMenu || !items.length) { showActBar(focusedMsgEl); return; }
+        const fwd = isMine(msgMenuCtx.m) ? 1 : -1;
+        if (menuSel < 0) { const i = items.findIndex(x => x.dataset && x.dataset.act === "emoji"); menuSel = i >= 0 ? i : 0; }
+        else menuSel = (menuSel + (e.shiftKey ? -fwd : fwd) + items.length) % items.length;
+        applyMenuSel(); return;
+      }
       if (backdrop.hidden && !panelBack && state.active >= 0 && state.slots[state.active]) { kbTileFocus = true; setFocusedMsg(null); tabHeaderCycle(e.shiftKey); }
       return;
     }
@@ -4049,24 +4218,23 @@
     if (!inPopup && !typing) {
       const streamEl = focusedMsgEl ? focusedMsgEl.closest('[data-role="stream"]') : (modalKind === "expand" ? modal.querySelector('[data-role="stream"]') : ws.querySelector(`.tile[data-slot="${state.active}"] [data-role="stream"]`));
       if ((e.key === "ArrowDown" || e.key === "ArrowUp") && streamEl) {
-        const msgs = [...streamEl.querySelectorAll(".msg")]; if (!msgs.length) { e.preventDefault(); return; }
-        let idx = focusedMsgEl ? msgs.indexOf(focusedMsgEl) : -1;
-        if (e.key === "ArrowUp") {
-          if (focusedBadgeEl) { setFocusedBadge(null); showActBar(focusedMsgEl); e.preventDefault(); return; }   // badge -> back up to its message
-          if (idx < 0) idx = msgs.length - 1;
-          else {
-            idx = Math.max(0, idx - 1);
-            const pb = msgs[idx] !== focusedMsgEl && msgs[idx].querySelector(".thread-ind");
-            if (pb) { setFocusedMsg(msgs[idx], true); setFocusedBadge(pb); hideMsgMenu(); pb.scrollIntoView({ block: "nearest" }); e.preventDefault(); return; }   // land on the badge first when coming from below
-          }
-        } else {
-          if (idx < 0) { e.preventDefault(); return; }
-          if (!focusedBadgeEl) { const badge = focusedMsgEl.querySelector(".thread-ind"); if (badge) { setFocusedBadge(badge); hideMsgMenu(); badge.scrollIntoView({ block: "nearest" }); e.preventDefault(); return; } }   // message -> its "N replies" badge
-          else setFocusedBadge(null);
-          if (idx >= msgs.length - 1) { const cont = streamEl.closest(".tile") || streamEl.closest(".modal"); const inp = cont && cont.querySelector('[data-role="composer"] .crow .cinput'); if (inp) { setFocusedMsg(null); inp.focus(); e.preventDefault(); return; } }   // ↓ past the last message focuses the input
-          idx = Math.min(msgs.length - 1, idx + 1);
+        // One flat list of stops for the whole stream: a message's quote sits just above it and its
+        // "N replies" badge just below, so up/down walk them in the order they appear on screen.
+        const stops = msgStops(streamEl); if (!stops.length) { e.preventDefault(); return; }
+        const here = stops.findIndex(x => x.msg === focusedMsgEl && (x.part || null) === (focusedBadgeEl || null));
+        const down = e.key === "ArrowDown";
+        if (here < 0) {   // nothing focused yet: ↑ enters at the end, ↓ does nothing
+          if (down) { e.preventDefault(); return; }
+          const s0 = stops[stops.length - 1]; gotoStop(s0); e.preventDefault(); return;
         }
-        setFocusedMsg(msgs[idx], true); msgs[idx].scrollIntoView({ block: "nearest" }); e.preventDefault(); return;
+        if (down && here >= stops.length - 1) {   // ↓ past the last stop focuses the input
+          const cont = streamEl.closest(".tile") || streamEl.closest(".modal");
+          const inp = cont && cont.querySelector('[data-role="composer"] .crow .cinput');
+          if (inp) { setFocusedMsg(null); inp.focus(); e.preventDefault(); return; }
+          e.preventDefault(); return;
+        }
+        const nxt = stops[Math.max(0, Math.min(stops.length - 1, here + (down ? 1 : -1)))];
+        gotoStop(nxt); e.preventDefault(); return;
       }
       if (e.key === "Enter" && document.activeElement && document.activeElement.closest && document.activeElement.closest(".tile-head") && document.activeElement.matches('[data-role="name"], .thead-btn')) { e.preventDefault(); if (document.activeElement.dataset.role === "more") menuViaKb = true; document.activeElement.click(); return; }   // Enter runs the Tab-focused header control
       if (e.key === "Enter" && !kbMsgFocus && backdrop.hidden && !panelBack && state.active >= 0) {   // Enter: watch the chat and drop into its input — empty tile starts one
@@ -4762,7 +4930,7 @@
   function placeTbHint() {
     const h = document.getElementById("tbHint"), bar = document.querySelector(".topbar");
     if (!h || !bar) return;
-    const gk = document.getElementById("tbHintG"); if (gk) gk.textContent = IS_MAC ? "Cmd" : "Ctrl";
+    const gk = document.getElementById("tbHintG"); if (gk) gk.textContent = MODNAME;
     if (gridMode || navMode) { h.style.display = "none"; return; }             // already in a mode — these keys aren't the ones that matter now
     const left = bar.querySelector(".left"), cl = bar.querySelector(".cluster");
     if (!left || !cl) return;
