@@ -405,6 +405,11 @@
   .note b { color:var(--text-dim); }
   .hint { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:var(--accent); border:none; color:var(--accent-ink); padding:9px 15px; border-radius:9px; box-shadow:var(--shadow); font-size:12.5px; font-weight:500; z-index:150; opacity:0; transition:opacity .25s; pointer-events:none; }
   .hint.show { opacity:1; }
+  /* centre-of-screen notice for the moments a bottom toast is too easy to miss */
+  .bignote { position:fixed; left:50%; top:44%; transform:translate(-50%,-50%); z-index:360; background:var(--tile); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:18px 22px; max-width:min(440px,90vw); text-align:center; font-size:14px; line-height:1.55; color:var(--text); }
+  .bignote b { display:block; font-size:15px; margin-bottom:6px; }
+  .bignote .bn-sub { color:var(--text-dim); font-size:12.5px; }
+  .bignote kbd { font-family:ui-monospace,monospace; font-size:11px; background:var(--tile-head); border:1px solid var(--border); border-radius:4px; padding:1px 5px; }
   /* own messages on the right */
   .msg.mine { grid-template-columns:1fr; justify-items:end; }
   .msg.mine .body { max-width:82%; display:flex; flex-direction:column; align-items:flex-end; }
@@ -1194,7 +1199,7 @@
     applyFocusClasses();
     if (focusInput) { focusComposer(slot); updateKeyHints(); }   // refresh directly — focus events don't fire in unfocused documents
   }
-  const HEAD_CTLS = '[data-role="more"], [data-role="unread"]';   // name has Esc+Enter, ✕ has Esc — Tab only offers what lacks a shortcut
+  const HEAD_CTLS = '[data-role="more"], [data-role="unread"], [data-role="expand"]';   // name has Esc+Enter, ✕ has Esc — Tab only offers what lacks a shortcut
   function tabHeaderCycle(back) {   // Tab: chat name → ⋮ → mark unread → ✕, wrapping
     const t = ws.querySelector(`.tile[data-slot="${state.active}"]`); if (!t) return;
     const els = [...t.querySelectorAll(HEAD_CTLS)]; if (!els.length) return;
@@ -1232,12 +1237,12 @@
     }
     if (msgHere && msgMenu && menuSel >= 0) { put(".thh-m1", ["<kbd>Tab</kbd> or <kbd>←</kbd><kbd>→</kbd> move"]); put(".thh-m2", ["<kbd>Enter</kbd> execute"]); return; }
     if (msgHere) { put(".thh-m1", ["<kbd>Enter</kbd> message actions"]); if (msgLinks(focusedMsgEl).length) put(".thh-m2", ["<kbd>l</kbd> links"]); return; }   // only advertise l when there is something to walk
-    if (inputFocused) { put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-r", [`<kbd>${IS_MAC ? "Cmd" : "Ctrl"}</kbd><kbd>Enter</kbd> expand`, "<kbd>Esc</kbd> unwatch"]); return; }
+    if (inputFocused) { put(".thh-m1", ["<kbd>↑</kbd><kbd>↓</kbd> cycle messages"]); put(".thh-r", ["<kbd>Esc</kbd> unwatch"]); return; }
     put(".thh-l", [watched ? "<kbd>Enter</kbd> expand" : "<kbd>Enter</kbd> write",
                    watched ? "<kbd>Esc</kbd> unwatch" : "<kbd>Esc</kbd> close"].concat(watched ? ['<span class="thh-hot"><kbd>↑</kbd> write</span>'] : []));
-    put(".thh-m1", ["<kbd>u</kbd> unread", "<kbd>x</kbd> expand"]);
+    put(".thh-m1", ["<kbd>u</kbd> unread"]);
     put(".thh-r", ["<kbd>Tab</kbd> actions"]);
-    put(".thh-m2", ["<kbd>z</kbd> prev chat", `<kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swap with neighbour`]);
+    put(".thh-m2", [`<kbd>${IS_MAC ? "Cmd" : "Win"}</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swap with neighbour`]);
   }
 
   ws.addEventListener("mousedown", e => {   // clicking into a chat watches it; header buttons only move the passive focus (✕ must not mark read)
@@ -1610,7 +1615,7 @@
     if (!obj || typeof obj !== "object" || Array.isArray(obj)) return { ok: false, err: "Config must be a JSON object." };
     const eff = { version: 1, quickReactions: DEFAULT_QUICK.slice(), welcomeTourPassed: obj.welcomeTourPassed === true, focusMode: obj.focusMode === true };
     if (Array.isArray(obj.quickReactions)) {
-      const valid = [...new Set(obj.quickReactions.filter(x => typeof x === "string").map(x => normEmojiKey(x)).filter(k => EMOJI[k]))];
+      const valid = [...new Set(obj.quickReactions.filter(x => typeof x === "string").map(x => normEmojiKey(x)).filter(k => EMOJI[k] || customEmoji[k]))];   // server-custom emoji are as valid as built-ins
       if (valid.length) eff.quickReactions = valid.slice(0, 10);
     }
     const sg = obj.savedGrid || obj.snapshotGrid || obj.homeGrid;   // snapshotGrid/homeGrid = older names, still honoured
@@ -1620,7 +1625,7 @@
       }
     }
     bcRawConfig = obj; bcConfig = eff;
-    QUICK = eff.quickReactions.map(k => [k, EMOJI[k]]);
+    QUICK = eff.quickReactions.map(k => [k, shortToEmoji(k)]);   // custom emoji render as <img>, built-ins as the glyph
     const hb = document.getElementById("usualGridBtn"); if (hb) hb.hidden = !eff.savedGrid;   // the ★ grid shows only once a grid was saved
     return { ok: true };
   }
@@ -1639,7 +1644,7 @@
       return `<div class="mm-acts mm-confirm"><span class="mm-q">Delete message?</span>` +
         `<button class="mm-act" data-act="del-no" title="Keep it">✕</button>` +
         `<button class="mm-act mm-del" data-act="del-yes" title="Delete">${SVG_TRASH}</button></div>`;
-    const reactBtns = QUICK.map(([sname, ch]) => `<button class="mm-react" data-emoji="${sname}" data-char="${ch}" title=":${sname}:">${ch}</button>`);
+    const reactBtns = QUICK.map(([sname, ch]) => `<button class="mm-react" data-emoji="${esc(sname)}" title=":${esc(sname)}:">${ch}</button>`);   // glyph may be an <img> — derive it from the name at click time, never store html in an attribute
     const moreBtn = rev => `<button class="mm-react mm-more${rev ? " rev" : ""}" data-act="emoji-all" title="All emoji…">⊕</button>`;
     const emojiBit = menuMode === "reacts"
       ? (mine ? `<span class="mm-inline-reacts">${moreBtn(true)}${reactBtns.reverse().join("")}</span>`
@@ -1934,12 +1939,6 @@
   document.addEventListener("keydown", e => {
     const t = e.target;
     if (emojiOpen || mentionOpen) return;   // let the @ / : pickers take Enter first
-    if (t.classList && t.classList.contains("cinput") && e.key === "Enter" && (e.metaKey || e.ctrlKey) && t.closest(".tile")) {   // ⌘/Ctrl+Enter while writing: expand this chat, keep writing there
-      e.preventDefault();
-      const room = (t.closest('[data-role="composer"]') || {}).dataset && t.closest('[data-role="composer"]').dataset.room;
-      if (room) { const caret = t.selectionStart; openExpandById(room); const big = composerFor(room); if (big) { big.focus(); try { big.setSelectionRange(caret, caret); } catch (_) {} } }
-      return;
-    }
     if (t.classList && t.classList.contains("cinput") && e.key === "Enter" && !e.shiftKey && !e.metaKey && !e.ctrlKey) { e.preventDefault(); const f = t.closest("form"); if (f) (f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))); }
   });
   document.addEventListener("focusin", e => { if (e.target.closest && e.target.closest('[data-role="composer"] .crow') && focusedMsgEl) setFocusedMsg(null); });   // input focus and message focus are exclusive
@@ -1948,7 +1947,7 @@
     const mmR = e.target.closest(".mm-react"); if (mmR) {
       e.stopPropagation();
       if (mmR.dataset.act === "emoji-all") { const ctx = msgMenuCtx; hideMsgMenu(); if (ctx) openEmojiExplorer(ctx); return; }
-      doReact(mmR.dataset.emoji, mmR.dataset.char); return;
+      doReact(mmR.dataset.emoji, shortToEmoji(mmR.dataset.emoji)); return;
     }
     const mmA = e.target.closest(".mm-act"); if (mmA) { e.stopPropagation(); doAction(mmA.dataset.act); return; }
     const chip = e.target.closest('[data-role="react"]'); if (chip) { e.stopPropagation(); hideReactPop(); const ctx = msgCtx(chip.closest(".msg")); if (ctx) toggleReactionAt(ctx, +chip.dataset.ri); return; }
@@ -2004,7 +2003,7 @@
   function hideEmoji() { if (emojiBox) { emojiBox.remove(); emojiBox = null; } emojiOpen = false; emojiInput = null; }
   function renderEmojiPop() { if (!emojiBox) return; emojiBox.innerHTML = emojiList.map((c, i) => `<div class="mn-item em-item ${i === emojiSel ? "sel" : ""}" data-name="${esc(c.name)}"><span class="em-glyph">${c.glyph || ""}</span><span class="em-nm">:${esc(c.name)}:</span></div>`).join(""); }
   function updateEmoji(inp) {
-    const pos = inp.selectionStart, before = inp.value.slice(0, pos), mth = before.match(/(^|\s):([a-z0-9_+]*)$/i);
+    const pos = inp.selectionStart, before = inp.value.slice(0, pos), mth = before.match(/(^|\s):([a-z0-9_+.\-]*)$/i);   // dots/dashes: legal in server-custom emoji names
     if (!mth) { hideEmoji(); return; }
     emojiList = emojiCandidates(mth[2]); if (!emojiList.length) { hideEmoji(); return; }
     emojiStart = pos - mth[2].length - 1; emojiInput = inp; emojiSel = 0;      // -1 lands on the ":"
@@ -2130,16 +2129,6 @@
   }
 
   // ---------- tiles ----------
-  let _prevSlots = []; const lastClosed = {};   // per tile: the last chat it lost (z brings it back)
-  function reopenLastClosed() {
-    const sl = state.active >= 0 ? state.active : 0;
-    const id = lastClosed[sl];
-    if (!id || !rooms[id]) { hint("Nothing to reopen in this tile."); return; }
-    if (state.slots[sl] === id) { hint("Already open."); return; }
-    state.slots[sl] = id;
-    renderTiles(); setActive(sl); ensureHistory(id); persist();
-    hint("Reopened " + (rooms[id].name || "chat"));
-  }
   function firstEmptyTile() { for (let i = 0; i < n(); i++) if (!state.slots[i]) return i; return -1; }
 
   function renderTiles() {
@@ -2151,8 +2140,6 @@
     const typingIn = ae && ae.classList && ae.classList.contains("cinput") && ae.closest(".tile")
       ? { room: (ae.closest('[data-role="composer"]') || {}).dataset && ae.closest('[data-role="composer"]').dataset.room, start: ae.selectionStart, end: ae.selectionEnd } : null;
     const cnt = n();
-    state.slots.forEach((id, i) => { const p = _prevSlots[i]; if (p && p !== id) lastClosed[i] = p; });   // any close/switch/replace remembers what the tile lost
-    _prevSlots = state.slots.slice();
     if (state.active >= cnt || state.active < 0) state.active = 0;
     if (watchedSlot >= 0 && (watchedSlot >= cnt || !rooms[state.slots[watchedSlot]])) watchedSlot = -1;
     ws.dataset.layout = state.layout; ws.innerHTML = "";
@@ -2183,6 +2170,7 @@
               <span class="tile-unread" data-role="badge" title="Jump to next unread" ${showUnread?"":"hidden"}>${ru(r)}</span>
               <button class="thead-btn" data-role="more" title="More actions">${ICON.dots}</button>
               <button class="thead-btn" data-role="unread" title="Mark unread (u)">${ICON.eyeoff}</button>
+              <button class="thead-btn" data-role="expand" title="Expand">${ICON.expand}</button>
               <button class="thead-btn" data-role="clear" title="Close chat (Esc)">${ICON.close}</button>
             </div>
             </div>
@@ -3225,6 +3213,7 @@
     if (e.target.closest('[data-role="search"]')) { openSearch(state.slots[slot]); return; }
     if (e.target.closest('[data-role="starred"]')) { openStarred(state.slots[slot]); return; }
     if (e.target.closest('[data-role="unread"]')) { markUnread(state.slots[slot]); return; }
+    if (e.target.closest('.tile-head [data-role="expand"]')) { setActive(slot); openExpand(slot); return; }
     if (e.target.closest('[data-role="cancel-acc"]')) { const f = e.target.closest('[data-role="composer"]'); if (f) clearAcc(f.dataset.room); return; }
     if (e.target.closest('[data-role="cancel-file"]')) { const b = e.target.closest('[data-role="cancel-file"]'), f = e.target.closest('[data-role="composer"]'); if (f) cancelPendingFile(f.dataset.room, +b.dataset.idx); return; }
     if (e.target.closest('[data-role="name"]')) { setActive(slot); tryOpenSwitch(slot); return; }   // click the chat name -> switcher
@@ -3368,8 +3357,6 @@
         ["f", "Fast Nav mode — key tags light up over everything clickable; type one to trigger it ([[esc]] exits)"],
         ["Shift", "Search and open a chat — in the first empty tile, or replacing the focused one when the grid is full"],
         ["u", "Mark the focused chat unread — it moves to the unread bar"],
-        ["x", `Expand the focused chat to full screen (while writing: [[${IS_MAC ? "Cmd" : "Ctrl"} Enter]])`],
-        ["z", "Bring back this tile’s previous chat (after closing or switching)"],
         ["l", "Link mode on the focused message — highlights its first link, again for the next; [[enter]] opens it, [[esc]] exits"],
         [["⌘", "←", "→", "↑", "↓"], "Swap the focused chat with the neighbouring tile"],
       ]],
@@ -3462,6 +3449,17 @@
     persist();
   }
   const favList = () => order().filter(id => rooms[id].fav);
+  let bigNoteEl = null, bigNoteT = null;
+  function bigNote(title, subHtml) {   // centre-screen notice — for the moments the bottom toast is too easy to miss
+    if (bigNoteEl) bigNoteEl.remove(); clearTimeout(bigNoteT);
+    bigNoteEl = document.createElement("div"); bigNoteEl.className = "bignote";
+    bigNoteEl.innerHTML = `<b>${esc(title)}</b><span class="bn-sub">${subHtml}</span>`;
+    document.body.appendChild(bigNoteEl);
+    bigNoteT = setTimeout(() => { if (bigNoteEl) bigNoteEl.remove(); bigNoteEl = null; }, 5000);
+  }
+  const hideBigNote = () => { if (bigNoteEl) { bigNoteEl.remove(); bigNoteEl = null; clearTimeout(bigNoteT); } };
+  document.addEventListener("keydown", hideBigNote, true);   // the next keystroke (say, a digit) or click dismisses it
+  document.addEventListener("mousedown", hideBigNote, true);
   function showInfoPop(x, y, text) {
     const p = document.createElement("div"); p.className = "infopop"; p.textContent = text; document.body.appendChild(p);
     p.style.left = Math.max(8, Math.min(x, window.innerWidth - p.offsetWidth - 10)) + "px"; p.style.top = (y + 14) + "px";
@@ -3474,7 +3472,7 @@
     const t = firstEmptyTile();
     if (t >= 0) { state.slots[t] = id; rooms[id].manualUnread = false; markRead(id); renderTiles(); setActive(t); ensureHistory(id); persist(); }
     else if (x != null) showInfoPop(x, y, "No empty window — drag onto a chat to replace it.");
-    else hint("No empty window — drag onto a chat to replace it.");
+    else bigNote("No empty window", `Press <kbd>1</kbd>–<kbd>${n()}</kbd> to replace the chat in that position, or drag the chip onto a window.`);
   }
   // clicking a user's avatar in a channel opens (or creates) the DM in the first free window
   async function openDmWith(username, display) {
@@ -3487,7 +3485,7 @@
       try {
         const res = await ddp.call("createDirectMessage", [username]);
         id = res && (res.rid || res._id);
-        if (id && !rooms[id]) { rooms[id] = { t: "d", name: display || username, username, slug: "", topic: "direct message", fav: false, unread: 0, threadUnread: 0, threadUnreadIds: new Set(), msgs: [], _loaded: false }; ddp.sub("stream-room-messages", [id, false]); }
+        if (id && !rooms[id]) { rooms[id] = { t: "d", name: display || username, username, slug: "", topic: "direct message", fav: false, unread: 0, threadUnread: 0, threadUnreadIds: new Set(), msgs: [], _loaded: false }; subRoom(id); }
       } catch (e) { hintLong("Couldn't open a direct chat with @" + username); return; }
     }
     if (!id) { hint("No direct chat with " + (display || "@" + username) + " here."); return; }
@@ -3551,7 +3549,12 @@
       const ae = document.activeElement, inUr = ae && urPop.contains(ae);
       if (inUr && ae.matches('[data-role="ur-read"]')) { e.preventDefault(); ae.click(); return; }   // mark read only — never also open the chat
       if (inUr && ae.tagName === "INPUT") return;   // the form sends natively
-      e.preventDefault(); const id = urPop.dataset.room; hideUrPop(); if (id) placeFavourite(id); return;
+      e.preventDefault(); const id = urPop.dataset.room;
+      if (id && visibleSlots().indexOf(id) < 0 && firstEmptyTile() < 0) {   // keep the popup + highlight — a digit can still replace
+        bigNote("No empty window", `Press <kbd>1</kbd>–<kbd>${n()}</kbd> to replace the chat in that position, or drag the chip onto a window.`);
+        return;
+      }
+      hideUrPop(); if (id) placeFavourite(id); return;
     }
     if (e.key === "Escape" && linkModeEl) { e.preventDefault(); exitLinkMode(); return; }   // Esc leaves link mode first — the message stays focused
     if (e.key === "Escape") {   // Esc closes whichever popup is open (topmost first)
@@ -3604,7 +3607,14 @@
         e.preventDefault(); const id = unreadCycleId, chip = unreadbarEl.querySelector(`.favchip[data-room="${id}"]`), rct = chip ? chip.getBoundingClientRect() : null;
         unreadCycleId = null; renderUnreadbar(); openUnreadPreview(id, rct ? rct.left : window.innerWidth / 2, rct ? rct.bottom : 120); return;
       }
-      if (e.key === "Enter") { e.preventDefault(); const id = favCycleId || unreadCycleId; favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); placeFavourite(id); return; }
+      if (e.key === "Enter") {
+        e.preventDefault(); const id = favCycleId || unreadCycleId;
+        if (visibleSlots().indexOf(id) < 0 && firstEmptyTile() < 0) {   // nowhere to put it — say so, and KEEP the chip highlighted so a digit can replace
+          bigNote("No empty window", `Press <kbd>1</kbd>–<kbd>${n()}</kbd> to replace the chat in that position, or drag the chip onto a window.`);
+          return;
+        }
+        favCycleId = unreadCycleId = null; renderFavbar(); renderUnreadbar(); placeFavourite(id); return;
+      }
       if (/^[1-9]$/.test(e.key) && !e.ctrlKey) {   // digit: put the highlighted chat into that window — occupied or not
         const ti = +e.key - 1;
         if (ti < n()) {
@@ -3696,9 +3706,6 @@
       if (!e.altKey && !e.metaKey && !e.ctrlKey && !kbMsgFocus && backdrop.hidden && !panelBack && state.active >= 0) {   // single-key actions on the focused chat
         if (/^[1-9]$/.test(e.key)) { const ti = +e.key - 1; if (ti < n()) { e.preventDefault(); kbTileFocus = true; setFocusedMsg(null); if (state.slots[ti]) watch(ti, false); else { setActive(ti); openFinder(ti); } } return; }   // digits watch that tile — an empty one opens the chat picker
         if (e.key === "u" && state.slots[state.active]) { e.preventDefault(); markUnread(state.slots[state.active]); return; }
-        if (e.key === "x" && state.slots[state.active]) { e.preventDefault(); openExpand(state.active); return; }   // x = expand the focused chat (Enter now goes to the input)
-        if (e.key === "z") { e.preventDefault(); reopenLastClosed(); return; }   // z = bring back this tile's previous chat
-
       }
     }
     if (e.key === "Escape" && backdrop.hidden) {   // Esc: unwatch first; on a passive chat — close it (the empty tile keeps the passive focus)
@@ -4647,11 +4654,15 @@
     // REST first: Rocket.Chat 7 removed the listEmojiCustom meteor method, so on any current server
     // the DDP call rejects and the map stayed empty — every custom emoji rendered as :shortcode:.
     try { const res = await apiGet("/api/v1/emoji-custom.list"); take(res && res.emojis && (Array.isArray(res.emojis) ? res.emojis : res.emojis.update)); } catch (_) {}
-    if (Object.keys(customEmoji).length) return;
-    try {   // older servers that still speak the meteor method
-      const res = await ddp.call("listEmojiCustom", []);
-      take(Array.isArray(res) ? res : (res && res.update));
-    } catch (_) {}
+    if (!Object.keys(customEmoji).length) {
+      try {   // older servers that still speak the meteor method
+        const res = await ddp.call("listEmojiCustom", []);
+        take(Array.isArray(res) ? res : (res && res.update));
+      } catch (_) {}
+    }
+    // the localStorage config applied at boot, before this map existed — its custom quick-reactions
+    // were filtered out as unknown names. Re-apply now that they can be recognised.
+    if (Object.keys(customEmoji).length && Object.keys(bcRawConfig || {}).length) applyBcConfig(bcRawConfig);
   }
 
   // ---- connection manager: token resume, heartbeat, reconnect-with-backoff ----
@@ -4660,11 +4671,23 @@
     if (creds.resume) return ddp.call("login", [{ resume: creds.resume }]);
     return sha256Hex(creds.password).then(digest => ddp.call("login", [{ user: { username: creds.username }, password: { digest, algorithm: "sha-256" } }]));
   }
+  function subRoom(rid) {   // everything a room needs live: new/edited messages + deletions
+    ddp.sub("stream-room-messages", [rid, false]);
+    try { ddp.sub("stream-notify-room", [rid + "/deleteMessage", false]); } catch (_) {}
+  }
   function bindLive(uid) {
     ddp.on("changed", d => {
       if (d.collection === "stream-room-messages") {
         const msg = d.fields && d.fields.args && d.fields.args[0]; if (!msg || !msg.rid || !rooms[msg.rid]) return;
         receiveMessage(msg.rid, mkRealMsg(msg), (msg.u && msg.u.username) === myUsername);
+        return;
+      }
+      if (d.collection === "stream-notify-room" && d.fields && /\/deleteMessage$/.test(d.fields.eventName || "")) {
+        const rid = (d.fields.eventName || "").split("/")[0], gone = d.fields.args && d.fields.args[0];
+        const r = rooms[rid]; if (!r || !gone || !gone._id) return;
+        const k = r.msgs.findIndex(x => x.id === gone._id); if (k < 0) return;
+        r.msgs.splice(k, 1);
+        if (visibleSlots().includes(rid) || expandRoomId === rid) renderVisibleStream(rid);   // the message (and its attachments) disappears live
         return;
       }
       if (d.collection === "stream-notify-user" && d.fields && /\/subscriptions-changed$/.test(d.fields.eventName || "")) {
@@ -4684,7 +4707,7 @@
       }
     });
     ddp.on("close", onSocketClose);
-    Object.keys(rooms).forEach(rid => ddp.sub("stream-room-messages", [rid, false]));
+    Object.keys(rooms).forEach(subRoom);
     try { ddp.sub("stream-notify-user", [`${uid}/subscriptions-changed`, false]); } catch (_) {}
   }
   async function refreshSubscriptions() {
@@ -4693,7 +4716,7 @@
       (Array.isArray(subsArr) ? subsArr : (subsArr.update || [])).forEach(s => {
         const tu = Array.isArray(s.tunread) ? s.tunread.length : (s.tunread || 0);
         if (rooms[s.rid]) { rooms[s.rid].unread = s.unread || 0; rooms[s.rid].threadUnread = tu; rooms[s.rid].threadUnreadIds = tuIds(s.tunread); rooms[s.rid].fav = !!s.f; rooms[s.rid].muted = !!s.hideUnreadStatus; rooms[s.rid].silent = !!s.disableNotifications; rooms[s.rid].alert = !!s.alert; }
-        else { const t = typeOf(s); rooms[s.rid] = { t, name: s.fname||s.name||"chat", slug: s.name||"", topic: t==="d"?"direct message":t==="p"?"private group":"channel", fav: !!s.f, unread: s.unread||0, threadUnread: tu, threadUnreadIds: tuIds(s.tunread), msgs: [], _loaded: false }; ddp.sub("stream-room-messages", [s.rid, false]); }
+        else { const t = typeOf(s); rooms[s.rid] = { t, name: s.fname||s.name||"chat", slug: s.name||"", topic: t==="d"?"direct message":t==="p"?"private group":"channel", fav: !!s.f, unread: s.unread||0, threadUnread: tu, threadUnreadIds: tuIds(s.tunread), msgs: [], _loaded: false }; subRoom(s.rid); }
       });
       renderTiles(); refreshTopbar();
     } catch (_) {}
