@@ -1,14 +1,22 @@
 # Better.Chat
 
-A grid cockpit for any Rocket.Chat server — watch several chats at once,
-keyboard-first, threads, starred, files, search, and more. Single HTML file + a
-tiny local Python proxy (the proxy serves the page and forwards REST calls so the
-browser's CORS rules don't get in the way; the live WebSocket goes straight to
-the server).
+A better Rocket.Chat web client — removes the little frustrations and adds the
+missing bits. Built around two ideas: a **grid** of multiple chats at once, and
+**keyboard-first** navigation — switch between chats, read, reply, react —
+without touching the mouse. Plus many smaller features and improvements over the
+native web client: threads, starred, files, search, and more.
+
+Single HTML file + a tiny local Python proxy (the proxy serves the page and
+forwards REST calls so the browser's CORS rules don't get in the way; the live
+WebSocket goes straight to the server).
 
 It installs as a Docker container. Use **Chrome or Firefox** — they resolve
 `*.localhost` to your machine natively and treat it as a secure context
 (login + clipboard need that). Safari doesn't.
+
+**[Visit the demo](https://kotevskim.github.io/better.chat/)** to explore it
+first — the whole client on canned data, so there is nothing to install and no
+server to point it at.
 
 ## Install via Docker
 
