@@ -3134,8 +3134,9 @@
       const sameAsPeer = isDM && ((m.username && rm.username && m.username.toLowerCase() === rm.username.toLowerCase()) || m.user === rm.name);
       if (!sameAsPeer) roomTag = ` <span class="pn-room">${isDM ? "" : roomIcon(roomId)}${esc(rm.name)}</span>`;   // DM: name only; author == peer: redundant, omit
     }
-    const long = (m.text || "").split("\n").length > 7 || (m.text || "").length > 380;
-    const textHtml = `<div class="pn-r-text${long ? " clamp" : ""}">${renderText(m.text)}</div>${long ? `<button type="button" class="pn-more" data-role="pn-more">Show more ⌄</button>` : ""}`;
+    const dt = displayText(m);   // a quoting message carries a "[ ](permalink)" marker: the chat renders it as the quote block, and so does this
+    const long = dt.split("\n").length > 7 || dt.length > 380;
+    const textHtml = `<div class="pn-r-text${long ? " clamp" : ""}">${quotesHtml(m)}${dt ? renderText(dt) : ""}</div>${long ? `<button type="button" class="pn-more" data-role="pn-more">Show more ⌄</button>` : ""}`;
     const unstar = `<button type="button" class="pn-unstar" data-role="unstar" data-mid="${esc(m.id || "")}" data-room="${esc(roomId || "")}" title="Remove star">${SVG_STAR_FILL}</button>`;
     const replies = m.tcount > 0 ? `<span class="pn-replies">&#128172; ${m.tcount} repl${m.tcount > 1 ? "ies" : "y"}</span>` : "";
     if (m.id) starData[m.id] = m;
@@ -3160,7 +3161,7 @@
       else msgs = (rooms[roomId].msgs || []).filter(m => (m.text || "").toLowerCase().includes(text.toLowerCase()));
     } else msgs = (rooms[roomId].msgs || []).filter(m => (m.text || "").toLowerCase().includes(text.toLowerCase()));
     if (!msgs.length) { body.innerHTML = `<div class="pn-hint">No matches.</div>`; return; }
-    body.innerHTML = msgs.map(m => `<div class="pn-result" data-mid="${esc(m.id || "")}" data-ts="${m.tsMs || 0}"><div class="pn-r-head"><b>${esc(m.user)}</b><time>${esc(fmtDateTime(m.tsMs))}</time></div><div class="pn-r-text">${searchSnippet(m.text, text)}</div></div>`).join("");
+    body.innerHTML = msgs.map(m => `<div class="pn-result" data-mid="${esc(m.id || "")}" data-ts="${m.tsMs || 0}"><div class="pn-r-head"><b>${esc(m.user)}</b><time>${esc(fmtDateTime(m.tsMs))}</time></div><div class="pn-r-text">${searchSnippet(displayText(m), text)}</div></div>`).join("");
   }
   // message-type filter for starred popups: All / Text / Files / Images (single-select)
   const STAR_TYPES = [{ key: "all", label: "All", icon: "🗂️" }, { key: "text", label: "Text Messages", icon: "💬" }, { key: "file", label: "Files", icon: "📎" }, { key: "image", label: "Images", icon: "🖼" }];
@@ -3451,7 +3452,7 @@
       const arr = res && res.messages ? res.messages.map(mkRealMsg) : null;
       if (!arr) { body.innerHTML = `<div class="pn-hint">Couldn't load (run via proxy.py or enable CORS).</div>`; return; }
       arr.sort((a, b) => (b.tsMs || 0) - (a.tsMs || 0)); arr.forEach(m => myMsgData[m.id] = m);
-      body.innerHTML = arr.length ? arr.map(m => `<div class="mymsg-row" data-mid="${esc(m.id || "")}" data-tcount="${m.tcount || 0}" data-room="${esc(roomId)}"><div class="pn-r-head"><b>@${esc(selUser)}</b>${m.tcount > 0 ? `<span class="mm-thread" title="has a thread">&#128172; ${m.tcount}</span>` : ""}<time>${esc(fmtDateTime(m.tsMs))}</time></div><div class="pn-r-text">${renderText(m.text)}</div></div>`).join("") : `<div class="pn-hint">No messages by @${esc(selUser)} here.</div>`;
+      body.innerHTML = arr.length ? arr.map(m => `<div class="mymsg-row" data-mid="${esc(m.id || "")}" data-tcount="${m.tcount || 0}" data-room="${esc(roomId)}"><div class="pn-r-head"><b>@${esc(selUser)}</b>${m.tcount > 0 ? `<span class="mm-thread" title="has a thread">&#128172; ${m.tcount}</span>` : ""}<time>${esc(fmtDateTime(m.tsMs))}</time></div><div class="pn-r-text">${quotesHtml(m)}${displayText(m) ? renderText(displayText(m)) : ""}</div></div>`).join("") : `<div class="pn-hint">No messages by @${esc(selUser)} here.</div>`;
     }
     card.querySelector('[data-role="mm-get"]').addEventListener("click", load);
     // no auto-load: the select is prepopulated with you — hit Get when ready
