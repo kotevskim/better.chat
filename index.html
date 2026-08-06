@@ -5084,8 +5084,16 @@
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
-  const EDGE_UPDATES = { through: "712e31eae221107b5db49b6e860b79e94a9aa9ec", entries: [
+  const EDGE_UPDATES = { through: "85de205ac285465c91ea5207c0514b9ca3d491f1", entries: [
     { date: "2026-08-06", items: [
+      { text: "Enter now steps inside the focused message instead of opening its actions — up/down walk its parts and Enter acts on one", sub: [
+        "A link opens, a code block copies, a reaction toggles — so you can finally add yourself to someone else's reaction from the keyboard",
+        "A message's quote and its replies badge join the up/down walk: Enter goes to the quoted message, or opens the thread",
+        "Tab opens the message's floating actions, and Esc steps back out",
+      ] },
+      "Hold Cmd/Ctrl to light up the focused window and see where it can move; a window at the edge of the grid now stays put instead of wrapping around",
+      "Every shortcut is Cmd on a Mac and Ctrl everywhere else — window moving used to need the Windows key, which Windows claims for itself",
+      "Mark-unread lost its shortcut: Tab lands on it first, so Tab then Enter does it",
       "Hover an `inline` snippet, a ``` block or a link in a message and a copy button appears at its corner — it copies just that, the code itself or the link's URL",
       "Esc on a focused message now drops you into that chat's input at the bottom, so reading a message and answering it are one motion — a second Esc still leaves the chat",
       "Cmd/Ctrl+Shift no longer starts a window resize while you are writing, where it is the system's own select-by-word",
