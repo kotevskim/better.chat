@@ -398,6 +398,9 @@
   .mrow .mnm b { font-weight:600; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .mrow .mnm span { color:var(--text-faint); font-size:11.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block; }
   .mrow .star { color:var(--t-private); flex:none; }
+  /* a result from the server: someone you have never written to, or a channel you are not in */
+  .mrow.spot .mnm b { font-weight:500; }
+  .spot-tag { flex:none; font-size:10px; letter-spacing:.02em; text-transform:uppercase; color:var(--text-faint); border:1px dashed var(--border); border-radius:20px; padding:2px 7px; }
   .mrow .badge { flex:none; min-width:20px; height:20px; padding:0 6px; border-radius:20px; background:var(--accent); color:var(--accent-ink); font-family:ui-monospace,monospace; font-size:11px; font-weight:700; display:grid; place-items:center; }
   .mrow.unreadrow .lastmsg { color:var(--text-faint); }
   .mrow.unreadrow .lastmsg .pu { color:var(--text-dim); font-weight:600; }
@@ -3773,8 +3776,58 @@
 
   // ---------- finder / unread ----------
   function roomRow(id, num, selected) {
+    const hit = spotHits[id];
+    if (hit) {   // a server result: someone you have never written to, or a channel you are not in
+      const sg = hit.kind === "user" ? `<span class="sigil d">@</span>` : `<span class="sigil ${hit.t === "p" ? "p" : "c"}">${sig[hit.t === "p" ? "p" : "c"]}</span>`;
+      const sub = hit.kind === "user" ? "start a direct chat" : "join and open";
+      return `<div class="mrow spot ${selected?"sel":""}" data-room="${esc(id)}"><span class="rnum">${num?num:""}</span>${sg}<div class="mnm"><b>${esc(hit.name)}</b><span>${sub}</span></div><span class="spot-tag">not here yet</span></div>`;
+    }
     const r = rooms[id];
     return `<div class="mrow ${selected?"sel":""}" data-room="${id}"><span class="rnum">${num?num:""}</span>${headSigil(r)}<div class="mnm"><b>${esc(r.name)}</b><span>${esc(r.topic)}</span></div>${r.fav?ICON.star:""}${ru(r)?`<span class="badge">${ru(r)}</span>`:""}</div>`;
+  }
+  // The finder searches your own chats instantly, then asks the server for what it cannot know about:
+  // people you have never written to and channels you have not joined. Those arrive a moment later and
+  // land under your own chats, marked, because the ones you already have are almost always the answer.
+  let spotHits = {}, spotSeq = 0, spotT = null;
+  const clearSpot = () => { clearTimeout(spotT); spotHits = {}; spotSeq++; };
+  function spotlightSearch(q) {
+    clearTimeout(spotT);
+    const term = (q || "").trim(), seq = ++spotSeq;
+    if (connection !== "real" || !ddp || term.length < 2) { spotHits = {}; return; }
+    spotT = setTimeout(async () => {
+      let res = null;
+      try { res = await ddp.call("spotlight", [term, [], { users: true, rooms: true }]); } catch (e) {}
+      if (!res || (!res.users && !res.rooms)) res = await apiGet("/api/v1/spotlight?query=" + encodeURIComponent(term));   // older servers answer the REST route instead
+      if (!res || seq !== spotSeq || modalKind !== "finder") return;   // a newer keystroke (or a closed finder) won
+      const mine = new Set(order());
+      const myDms = new Set(order().filter(id => rooms[id].t === "d").map(id => (rooms[id].username || rooms[id].slug || "").toLowerCase()));
+      const myNames = new Set(order().map(id => (rooms[id].slug || rooms[id].name || "").toLowerCase()));
+      const me = (myUsername || "").toLowerCase();
+      spotHits = {}; const extra = [];
+      ((res && res.users) || []).forEach(u => {
+        const un = (u.username || "").toLowerCase();
+        if (!un || un === me || myDms.has(un)) return;
+        const key = "spot:u:" + un; spotHits[key] = { kind: "user", username: u.username, name: u.name || u.username }; extra.push(key);
+      });
+      ((res && res.rooms) || []).forEach(r => {
+        const nm = (r.name || "").toLowerCase();
+        if (!r._id || mine.has(r._id) || myNames.has(nm)) return;
+        const key = "spot:c:" + r._id; spotHits[key] = { kind: "room", rid: r._id, name: r.name, t: r.t || "c" }; extra.push(key);
+      });
+      if (!extra.length) return;
+      modalResults = filterRooms(term).concat(extra);   // your own chats stay on top, in their own order
+      renderResults();
+    }, 250);
+  }
+  async function resolveSpotHit(hit) {   // turn a server result into a room this client can open
+    if (hit.kind === "user") return await ensureDmRoom(hit.username, hit.name);
+    if (rooms[hit.rid]) return hit.rid;
+    const opts = { method: "POST", headers: { "Content-Type": "application/json", "X-Auth-Token": rcToken, "X-User-Id": myUserId }, body: JSON.stringify({ roomId: hit.rid }) };
+    for (const base of [location.origin, "https://" + serverHost]) {
+      try { const r = await fetch(base + "/api/v1/channels.join", opts); if (r.ok) { await refreshSubscriptions(); if (rooms[hit.rid]) { hint("Joined " + sig[rooms[hit.rid].t] + hit.name); return hit.rid; } } } catch (e) {}
+    }
+    hintLong("Couldn't join " + hit.name + " — the server refused.");
+    return null;
   }
   function previewText(t) {
     t = stripQuoteLinks(t).replace(/```[\s\S]*?```/g, "[code]").replace(/`([^`]+)`/g, "$1").replace(/\s+/g, " ").trim();
@@ -3828,7 +3881,7 @@
     modalTarget = (target == null) ? (state.active >= 0 ? state.active : (firstEmptyTile() >= 0 ? firstEmptyTile() : 0)) : target;   // focused tile wins; only fall to first-empty when nothing is focused
     const tname = modalTarget >= 0 ? slotTag(modalTarget) : "—";
     const focusName = state.slots[modalTarget] ? rooms[state.slots[modalTarget]].name : "empty";
-    modalResults = filterRooms(""); modalNumbered = [];
+    clearSpot(); modalResults = filterRooms(""); modalNumbered = [];
     const title = firstEmptyTile() < 0 ? `Open a chat` : `Open a chat in <span class="mfocus">${tname}</span><span style="color:var(--text-faint);font-weight:400"> &middot; now ${esc(focusName)}</span>`;   // full grid: the foot still names the target tile
     modal.innerHTML =
       `<div class="mhead"><div class="mtitle">${title}</div><span class="mkbd">Shift</span><button class="mclose" data-role="close">✕</button></div>` +
@@ -3873,7 +3926,7 @@
     if (state.active >= n()) state.active = 0;
     syncLayoutButtons(); renderTiles(); persist();
   }
-  function closeModal() { backdrop.hidden = true; modalKind = null; expandRoomId = null; modal.className = "modal"; modal.innerHTML = ""; }
+  function closeModal() { clearSpot(); backdrop.hidden = true; modalKind = null; expandRoomId = null; modal.className = "modal"; modal.innerHTML = ""; }
 
   function renderResults() {
     const box = modal.querySelector('[data-role="results"]'); if (!box) return;
@@ -3883,7 +3936,9 @@
     box.innerHTML = modalResults.length ? modalResults.map((id,i)=>rowFn(id, numbered ? i+1 : null, i===modalSel)).join("") : `<div class="mempty">No matches.</div>`;
     const sel = box.querySelector(".mrow.sel"); if (sel) sel.scrollIntoView({ block:"nearest" });
   }
-  function pickRoom(id) {
+  async function pickRoom(id) {
+    const hit = spotHits[id];
+    if (hit) { const rid = await resolveSpotHit(hit); if (!rid) return; id = rid; }   // a new direct chat / a channel just joined
     const existing = visibleSlots().indexOf(id);
     if (existing >= 0 && existing !== modalTarget) { closeModal(); setActive(existing); hint("Already open — focused that window."); return; }   // no duplicates: focus the existing one
     if (modalTarget < 0) {
@@ -3907,7 +3962,7 @@
     }
     const row = e.target.closest(".mrow[data-room], .chip[data-room]"); if (row) pickRoom(row.dataset.room);   // only finder rows/chips — not the composer (which also carries data-room)
   });
-  backdrop.addEventListener("input", e => { if (!e.target.matches('[data-role="q"]')) return; modalResults = filterRooms(e.target.value); modalSel = 0; renderResults(); });
+  backdrop.addEventListener("input", e => { if (!e.target.matches('[data-role="q"]')) return; modalResults = filterRooms(e.target.value); modalSel = 0; renderResults(); if (modalKind === "finder") spotlightSearch(e.target.value); });
 
   // ---------- keyboard ----------
   const LAYOUTS = ["solo", "duo", "quad", "six"];
@@ -4020,19 +4075,24 @@
     askWindowFor(id); return -1;   // click, Enter, or Fast Nav on a full grid — same picker as the Shift flow
   }
   // clicking a user's avatar in a channel opens (or creates) the DM in the first free window
+  const findDmRoom = (uname, display) => Object.keys(rooms).find(k => rooms[k].t === "d" &&
+    ((uname && (rooms[k].username || "").toLowerCase() === uname) || (display && rooms[k].name === display)));
+  async function ensureDmRoom(username, display) {   // the room id for a direct chat, creating it on the server the first time
+    const uname = (username || "").toLowerCase();
+    const have = findDmRoom(uname, display); if (have) return have;
+    if (connection !== "real" || !ddp || !uname) return null;
+    try {
+      const res = await ddp.call("createDirectMessage", [username]);
+      const id = res && (res.rid || res._id); if (!id) return null;
+      if (!rooms[id]) { rooms[id] = { t: "d", name: display || username, username, slug: "", topic: "direct message", fav: false, unread: 0, threadUnread: 0, threadUnreadIds: new Set(), msgs: [], _loaded: false }; subRoom(id); }
+      return id;
+    } catch (e) { hintLong("Couldn't open a direct chat with @" + username); return null; }
+  }
   async function openDmWith(username, display) {
     const uname = (username || "").toLowerCase();
     if (!uname && !display) { hint("Can't identify that user."); return; }
     if (myUsername && uname === myUsername.toLowerCase()) { hint("That's you 🙂"); return; }
-    let id = Object.keys(rooms).find(k => rooms[k].t === "d" &&
-      ((uname && (rooms[k].username || "").toLowerCase() === uname) || (display && rooms[k].name === display)));
-    if (!id && connection === "real" && ddp && uname) {
-      try {
-        const res = await ddp.call("createDirectMessage", [username]);
-        id = res && (res.rid || res._id);
-        if (id && !rooms[id]) { rooms[id] = { t: "d", name: display || username, username, slug: "", topic: "direct message", fav: false, unread: 0, threadUnread: 0, threadUnreadIds: new Set(), msgs: [], _loaded: false }; subRoom(id); }
-      } catch (e) { hintLong("Couldn't open a direct chat with @" + username); return; }
-    }
+    const id = await ensureDmRoom(username, display);
     if (!id) { hint("No direct chat with " + (display || "@" + username) + " here."); return; }
     placeFavourite(id);   // first free window, else the "no empty window" hint
   }
