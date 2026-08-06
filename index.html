@@ -5098,7 +5098,11 @@
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
-  const EDGE_UPDATES = { through: "", entries: [] };
+  const EDGE_UPDATES = { through: "01f0e6196fae5b6660840cdaa4d49e6579253186", entries: [
+    { date: "2026-08-06", items: [
+      "Reshaping a window with Cmd/Ctrl+Shift+arrows, and moving its chat with Cmd+arrows, now work while you are writing — your draft and caret come back where they were",
+    ] },
+  ] };
   // One entry per feature. An entry is a string, or { text, sub: [...] } when the feature genuinely
   // needs a couple of supporting points — the count is of features, so sub-points never inflate it.
   const edgeUpdateCount = () => (EDGE_UPDATES.entries || []).reduce((t, g) => t + ((g.items || []).length), 0);
