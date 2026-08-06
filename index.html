@@ -249,6 +249,11 @@
   .msg .efocus { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; background:color-mix(in srgb,var(--accent) 16%,transparent); }
   .msg pre.code { position:relative; }
   .msg pre.code.efocus { outline-offset:1px; }
+  .msg .att-imgwrap.efocus { border-radius:8px; background:none; }   /* a tint over a photo just muddies it — the outline is the whole signal */
+  .msg .att-btn.efocus { border-radius:50%; }                        /* the round buttons stay round while selected */
+  /* a selected file: the row is outlined like any other selected part, and its buttons come out of hiding the way hovering shows them */
+  .msg .file-att.eacts { outline:2px solid var(--accent); outline-offset:2px; }
+  .file-att.eacts .att-actions { opacity:1; }
   .code-copy { position:absolute; top:5px; right:6px; font-family:ui-monospace,monospace; font-size:9.5px; letter-spacing:.02em; background:color-mix(in srgb,#000 16%,var(--accent)); color:var(--accent-ink); border-radius:4px; padding:2px 6px; pointer-events:none; }
   /* an emoji-only message is basically a gesture — let it land like one (img.rem is em-sized, so custom emoji grow along) */
   .msg .text.emojionly, .msg .bubble.emojionly { font-size:40px; line-height:1.2; }
@@ -1470,11 +1475,15 @@
     t.classList.add("kbhints");
     if (msgHere && inElemMode()) {   // inside the message: say what the selection does and how to move
       const e = elemEls[elemIdx], many = elemEls.length > 1;
+      const chipRole = e && e.kind === "file" && elemChip(e) ? elemChip(e).dataset.role : "";
       const act = e && e.kind === "link" ? "<kbd>Enter</kbd> open link"
                 : e && e.kind === "code" ? "<kbd>Enter</kbd> copy to clipboard"
+                : e && e.kind === "photo" ? "<kbd>Enter</kbd> open photo"
+                : e && e.kind === "file" ? (chipRole === "file" ? "<kbd>Enter</kbd> download" : "<kbd>Enter</kbd> preview")
                 : "<kbd>Enter</kbd> react";
       const move = [];
       if (e && e.kind === "reacts" && e.chips.length > 1) move.push("<kbd>←</kbd><kbd>→</kbd> reactions");
+      if (e && e.kind === "file" && e.chips.length > 1) move.push("<kbd>←</kbd><kbd>→</kbd> or <kbd>Tab</kbd> actions");
       if (many) move.push("<kbd>↑</kbd><kbd>↓</kbd> message elements");
       put(".thh-l", ["<kbd>Esc</kbd> back to message"]);
       put(".thh-m1", [act]);
@@ -1490,7 +1499,9 @@
     }
     if (msgHere) {
       put(".thh-l", ["<kbd>Esc</kbd> write"]);
-      if (msgElements(focusedMsgEl).length) put(".thh-m1", ["<kbd>Enter</kbd> message elements"]);   // only offered when there is something to step into
+      const armed = armedElem();   // an attachment selects itself on arrival, so Enter already has a target
+      if (armed) put(".thh-m1", [armed.kind === "photo" ? "<kbd>Enter</kbd> open photo" : "<kbd>Enter</kbd> file actions"]);
+      else if (msgElements(focusedMsgEl).length) put(".thh-m1", ["<kbd>Enter</kbd> message elements"]);   // only offered when there is something to step into
       put(".thh-r", ["<kbd>Tab</kbd> message actions"]);
       return;
     }
@@ -2128,23 +2139,31 @@
   // reactions don't become ten stops). Enter acts on what's selected: open a link, copy a code block,
   // toggle a reaction. Esc steps back out to the whole message. A sub-focus of the message, mutually
   // exclusive with the "N replies" badge — only one thing inside a message is ever selected.
-  let elemEls = [], elemIdx = -1, reactIdx = 0;
+  let elemEls = [], elemIdx = -1, chipIdx = 0, elemArmed = false;
   const isTypingNow = () => /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName) || !!(document.activeElement && document.activeElement.isContentEditable);   // inputs + inline message editing
-  const inElemMode = () => elemIdx >= 0;
-  // Stops in document order. The reactions row is a single stop carrying its chips.
+  const inElemMode = () => elemIdx >= 0 && !elemArmed;   // armed is a lighter state: an attachment is selected, but up/down still walk messages
+  const armedElem = () => (elemArmed ? elemEls[elemIdx] : null);
+  // Stops in document order. A stop that carries `chips` is one stop with several targets inside it —
+  // the reactions row, or a file's preview/download buttons — walked with left/right (or Tab).
   function msgElements(el) {
     if (!el) return [];
     const out = [];
-    el.querySelectorAll("a.xlink, pre.code, code.inline").forEach(n => out.push({ kind: n.tagName === "A" ? "link" : "code", node: n }));
+    el.querySelectorAll("a.xlink, pre.code, code.inline, .att-imgwrap, .file-att").forEach(n => {
+      if (n.classList.contains("att-imgwrap")) out.push({ kind: "photo", node: n });                       // the whole photo is the stop; Enter opens it
+      else if (n.classList.contains("file-att")) out.push({ kind: "file", node: n, chips: [...n.querySelectorAll(".att-btn")] });
+      else out.push({ kind: n.tagName === "A" ? "link" : "code", node: n });
+    });
     const reacts = [...el.querySelectorAll('[data-role="react"]')];
     if (reacts.length) out.push({ kind: "reacts", node: reacts[0].parentElement, chips: reacts });
-    return out;
+    return out.filter(e => !e.chips || e.chips.length);
   }
-  const elemChip = e => e && e.kind === "reacts" ? e.chips[Math.min(reactIdx, e.chips.length - 1)] : (e && e.node);
+  const elemChip = e => e && e.chips ? e.chips[Math.min(chipIdx, e.chips.length - 1)] : (e && e.node);
   function paintElem() {
     document.querySelectorAll(".efocus").forEach(n => n.classList.remove("efocus"));
+    document.querySelectorAll(".eacts").forEach(n => n.classList.remove("eacts"));
     document.querySelectorAll(".code-copy").forEach(n => n.remove());
     const e = elemEls[elemIdx]; if (!e) return;
+    if (e.kind === "file") e.node.classList.add("eacts");   // its buttons come out of hiding, so you can see what Enter will run
     const target = elemChip(e); if (!target) return;
     target.classList.add("efocus");
     if (e.kind === "code") {   // a selected block offers the thing Enter will do
@@ -2169,35 +2188,39 @@
     el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1600);
     updateKeyHints();
   }
-  function exitElemMode(quiet) {
+  function exitElemMode(quiet, rearm) {
     if (elemIdx < 0 && !elemEls.length) return;
-    elemEls = []; elemIdx = -1; reactIdx = 0;
+    const back = rearm && focusedMsgEl;
+    elemEls = []; elemIdx = -1; chipIdx = 0; elemArmed = false;
     document.querySelectorAll(".efocus").forEach(n => n.classList.remove("efocus"));
+    document.querySelectorAll(".eacts").forEach(n => n.classList.remove("eacts"));
     document.querySelectorAll(".code-copy").forEach(n => n.remove());
-    if (!quiet) { if (focusedMsgEl) showActBar(focusedMsgEl); updateKeyHints(); }   // the floating actions come back
+    if (!quiet) { if (focusedMsgEl) showActBar(focusedMsgEl); if (back) autoPickAttachment(back); updateKeyHints(); }   // the floating actions come back, and an attachment goes back to being armed
   }
-  function enterElemMode() {   // Enter on a message with nothing to step into does nothing at all
+  function enterElemMode(startIdx) {   // Enter on a message with nothing to step into does nothing at all
     if (!focusedMsgEl) return false;
     const els = msgElements(focusedMsgEl); if (!els.length) return false;
     setFocusedBadge(null);
-    elemEls = els; elemIdx = 0; reactIdx = 0;
+    elemEls = els; elemIdx = Math.min(Math.max(startIdx || 0, 0), els.length - 1); chipIdx = 0; elemArmed = false;
     hideMsgMenu();                       // the floating actions get out of the way while you are inside
     paintElem(); updateKeyHints();
     return true;
   }
   function stepElem(d) {
     if (!inElemMode()) return;
-    elemIdx = (elemIdx + d + elemEls.length) % elemEls.length; reactIdx = 0;
+    elemIdx = (elemIdx + d + elemEls.length) % elemEls.length; chipIdx = 0;
     paintElem(); updateKeyHints();
   }
-  function stepChip(d) {
-    const e = elemEls[elemIdx]; if (!e || e.kind !== "reacts") return;
-    reactIdx = (reactIdx + d + e.chips.length) % e.chips.length;
+  function stepChip(d) {   // within one stop: reaction chips, or a file's preview/download buttons
+    const e = elemEls[elemIdx]; if (!e || !e.chips) return;
+    chipIdx = (chipIdx + d + e.chips.length) % e.chips.length;
     paintElem(); updateKeyHints();
   }
   async function runElem() {
     const e = elemEls[elemIdx]; if (!e) return;
     if (e.kind === "link") { e.node.click(); return; }
+    if (e.kind === "photo") { e.node.click(); return; }                       // opens it in the lightbox, same as clicking it
+    if (e.kind === "file") { const b = elemChip(e); if (b) b.click(); return; }   // whichever of preview / download is selected
     if (e.kind === "code") {
       const chip = e.node.querySelector(".code-copy"); if (chip) chip.remove();   // the affordance must not end up in the clipboard
       const text = e.node.textContent || "";
@@ -2208,14 +2231,14 @@
     if (e.kind === "reacts") {   // toggling re-renders the message, so re-find the parts afterwards
       const chip = elemChip(e), mel = chip && chip.closest(".msg"), ctx = mel ? msgCtx(mel) : null;
       if (!ctx) return;
-      const keepIdx = elemIdx, keepChip = reactIdx;
+      const keepIdx = elemIdx, keepChip = chipIdx;
       await toggleReactionAt(ctx, +chip.dataset.ri);
       const els = msgElements(focusedMsgEl);
       if (!els.length) { exitElemMode(); return; }                         // last reaction gone
       elemEls = els;
       elemIdx = Math.min(keepIdx, els.length - 1);
       const cur = elemEls[elemIdx];
-      reactIdx = cur && cur.kind === "reacts" ? Math.min(keepChip, cur.chips.length - 1) : 0;
+      chipIdx = cur && cur.chips ? Math.min(keepChip, cur.chips.length - 1) : 0;
       paintElem(); updateKeyHints();
     }
   }
@@ -2236,6 +2259,17 @@
     if (on) { if (!t.dataset.orig) t.dataset.orig = t.textContent; t.textContent = fmtDateTime(ts); }
     else if (t.dataset.orig) { t.textContent = t.dataset.orig; delete t.dataset.orig; }
   }
+  // Walking onto a message that carries an attachment selects the attachment straight away: a photo is
+  // one Enter from opening, and a file shows its buttons with preview picked, before you press anything.
+  // Everything else still waits for Enter — there the message, not one part of it, is what you landed on.
+  function autoPickAttachment(el) {
+    const els = msgElements(el);
+    const i = els.findIndex(x => x.kind === "photo" || x.kind === "file");
+    if (i < 0) return false;
+    elemEls = els; elemIdx = i; chipIdx = 0; elemArmed = true;
+    paintElem();   // the floating actions stay: Tab still reaches them, because this is not the element cycle yet
+    return true;
+  }
   function setFocusedMsg(el, byKey) {
     setTimeout(() => { if (typeof updateKeyHints === "function") updateKeyHints(); }, 0);
     exitElemMode(true);   // the element cycle belongs to one message; moving the focus leaves it
@@ -2246,7 +2280,11 @@
       if (el) { el.classList.add("mfocus"); focusDateShow(el, true); }
     }
     setFocusedBadge(null); menuSel = -1;
-    if (el) { showActBar(el); applyMenuSel(); if (document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"] .crow')) document.activeElement.blur(); }
+    if (el) {
+      showActBar(el); applyMenuSel();
+      if (byKey) autoPickAttachment(el);
+      if (document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-role="composer"] .crow')) document.activeElement.blur();
+    }
     else hideMsgMenu();
   }
   // Stops the up/down walk visits, in screen order: a message's quote, the message itself, its badge.
@@ -4042,7 +4080,7 @@
       }
       return;
     }
-    if (e.key === "Escape" && inElemMode()) { e.preventDefault(); exitElemMode(); return; }   // Esc steps out of the message first — the message stays focused
+    if (e.key === "Escape" && inElemMode()) { e.preventDefault(); exitElemMode(false, true); return; }   // Esc steps out of the message first — the message stays focused
     if (e.key === "Escape") {   // Esc closes whichever popup is open (topmost first)
       // A thread opened from a "N replies" badge closes back onto that badge — the message defocus
       // below would otherwise fire first and leave the thread standing open behind you.
@@ -4088,11 +4126,16 @@
       if (e.key === "ArrowRight") { e.preventDefault(); stepChip(1); return; }
       if (e.key === "ArrowLeft") { e.preventDefault(); stepChip(-1); return; }
       if (e.key === "Enter") { e.preventDefault(); runElem(); return; }
-      if (e.key === "Tab") { e.preventDefault(); return; }
+      if (e.key === "Tab") { e.preventDefault(); stepChip(e.shiftKey ? -1 : 1); return; }   // a stop with several actions: Tab is the other way round them
     }
     // Enter steps into the focused message; Tab is the way to its floating actions.
     if (kbMsgFocus && focusedMsgEl && !focusedBadgeEl && !inElemMode() && !(msgMenu && menuSel >= 0) && !isTypingNow() && !panelBack && !e.altKey && !e.metaKey && !e.ctrlKey) {
-      if (e.key === "Enter") { e.preventDefault(); enterElemMode(); return; }   // nothing to step into -> nothing happens
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const armed = armedElem();
+        if (armed && armed.kind === "photo") { runElem(); return; }   // the photo is already selected — one Enter opens it
+        enterElemMode(elemArmed ? elemIdx : 0); return;               // nothing to step into -> nothing happens
+      }
     }
     if (focusedBadgeEl && e.key === "Enter") {
       e.preventDefault();
