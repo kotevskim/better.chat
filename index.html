@@ -4223,10 +4223,9 @@
     }
 
     // ---- Cmd/Ctrl+Shift+arrows reshape the focused window; releasing the modifier applies it ----
-    // Mid-sentence too: the arrows are swallowed here, so the caret never moves while you reshape, and
-    // the rebuild puts your focus and caret back in the same chat wherever its window ended up. The
-    // cost is the OS's own select-by-word inside the composer, which the app claims for reshaping.
-    if (hasMod(e) && e.shiftKey && !e.altKey && backdrop.hidden) {
+    // Never while you are typing — in a composer or editing a message inline. There the chord is the
+    // OS's own select-by-word, and the arrows belong to the text; the window can wait until you are out.
+    if (hasMod(e) && e.shiftKey && !e.altKey && backdrop.hidden && !typing) {
       // Holding the chord alone arms it: the focused window lights up and lists its arrows straight
       // away, so you can see what is possible before committing to a direction.
       if (e.key === MODEVKEY || e.key === "Shift") { exitSwapMode(); if (!gridMode) { if (enterGridMode()) { paintGridMode(); updateKeyHints(); } } return; }
@@ -4238,8 +4237,8 @@
     }
     if (gridMode && e.key === "Escape") { e.preventDefault(); exitGridMode(); return; }   // abandon without applying
     // ⌘/Ctrl+U marks the focused chat unread — no typing gate, so it works from a watched chat too (where the focus sits in the composer)
-    if (hasMod(e) && !e.shiftKey && !e.altKey && !otherMod(e) && e.key === MODEVKEY && backdrop.hidden) { enterSwapMode(); return; }   // holding the modifier shows where this window can go — mid-sentence as well
-    if (hasMod(e) && !e.shiftKey && !e.altKey && !otherMod(e) && /^Arrow(Left|Right|Up|Down)$/.test(e.key) && backdrop.hidden) { e.preventDefault(); swapWindow(e.key); if (swapMode) paintSwapMode(); return; }   // the chat moves and your draft and caret ride along to its new window
+    if (hasMod(e) && !e.shiftKey && !e.altKey && !otherMod(e) && e.key === MODEVKEY && !typing && backdrop.hidden) { enterSwapMode(); return; }   // holding the modifier shows where this window can go
+    if (hasMod(e) && !e.shiftKey && !e.altKey && !otherMod(e) && /^Arrow(Left|Right|Up|Down)$/.test(e.key) && !typing && backdrop.hidden) { e.preventDefault(); swapWindow(e.key); if (swapMode) paintSwapMode(); return; }
     if (e.key === "f" && !typing && backdrop.hidden && !urPop && !kbMsgFocus && !gridMode && !e.altKey && !e.metaKey && !e.ctrlKey) { e.preventDefault(); enterNavMode(); return; }   // f = Fast Nav mode (one capture mode at a time)
     if (e.key === "Tab") {
       if (inPopup) { if (!modalResults.length) return; e.preventDefault(); modalSel = (modalSel + (e.shiftKey ? -1 : 1) + modalResults.length) % modalResults.length; renderResults(); return; }
