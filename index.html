@@ -5225,9 +5225,10 @@
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
-  const EDGE_UPDATES = { through: "8c30fa76cfc0a2afb23010e65d2767b4070ca908", entries: [
+  const EDGE_UPDATES = { through: "c7c271202738b7661f6eeb4df04b153a6e4532b9", entries: [
     { date: "2026-08-06", items: [
       "The Shift search now finds people you have never written to and channels you have not joined — they appear under your own chats, and Enter starts the chat or joins the channel",
+      "A starred message that quotes another one shows the quote, in the starred lists as well as in the chat, instead of a bare link",
     ] },
   ] };
   // One entry per feature. An entry is a string, or { text, sub: [...] } when the feature genuinely
