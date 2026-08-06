@@ -1187,6 +1187,16 @@
   // just what you get by merging a row or a column, so they no longer need special-case code.
   const layoutGrid = { solo:[1,1], duo:[2,1], quad:[2,2], six:[3,2] };
   const layoutCount = { solo:1, duo:2, quad:4, six:6 };   // cells in the substrate (not tiles — a carve has fewer)
+  // 1-up and 2-up are carves of a 2x2, not grids of their own: a real 2x1 has no second row, so a
+  // window there could never be shrunk back apart. Reaching 2-up by merging a 2x2's columns and
+  // reaching it by clicking the preset now land on exactly the same grid.
+  const PRESET = {
+    solo: { sub: "quad", rects: () => [{ c:0, r:0, w:2, h:2 }] },
+    duo:  { sub: "quad", rects: () => [{ c:0, r:0, w:1, h:2 }, { c:1, r:0, w:1, h:2 }] },
+    quad: { sub: "quad", rects: () => defaultRects("quad") },
+    six:  { sub: "six",  rects: () => defaultRects("six") },
+  };
+  const presetGrid = name => { const pr = PRESET[name]; return pr ? { layout: pr.sub, rects: pr.rects() } : { layout: name, rects: defaultRects(name) }; };
   const gridCols = () => (layoutGrid[state.layout] || layoutGrid.quad)[0];
   const gridRows = () => (layoutGrid[state.layout] || layoutGrid.quad)[1];
   const defaultRects = name => { const [c, r] = layoutGrid[name] || layoutGrid.quad, out = []; for (let y = 0; y < r; y++) for (let x = 0; x < c; x++) out.push({ c:x, r:y, w:1, h:1 }); return out; };
@@ -3795,9 +3805,10 @@
     if (!layoutGrid[name]) return;
     exitGridMode(true);
     const keep = state.slots.filter(Boolean);                 // picking a preset also un-carves it
-    state.rects = defaultRects(name);
+    const g = presetGrid(name);
+    state.rects = g.rects;
     state.slots = keep.concat(Array(state.rects.length).fill(null)).slice(0, state.rects.length);
-    state.layout = name;
+    state.layout = g.layout;
     if (state.active >= n()) state.active = 0;
     syncLayoutButtons(); renderTiles(); persist();
   }
@@ -5009,9 +5020,10 @@
       const id = byName[nm.toLowerCase()]; if (!id) missing.push(nm);
       return id || null;
     });
-    state.layout = hg.layout; state.active = -1;   // the home grid fully defines the workspace
+    const hgGrid = presetGrid(hg.layout);          // a grid saved as 1-up/2-up is that carve of a 2x2
+    state.layout = hgGrid.layout; state.active = -1;   // the home grid fully defines the workspace
     const savedRects = Array.isArray(hg.rects) ? hg.rects.map(t => ({ c:t.c, r:t.r, w:t.w, h:t.h })) : null;
-    state.rects = validCarve(savedRects) ? savedRects : defaultRects(hg.layout);
+    state.rects = validCarve(savedRects) ? savedRects : hgGrid.rects;
     state.slots = resolved.concat(Array(state.rects.length).fill(null)).slice(0, state.rects.length);
     renderTiles(); persist();
     savedActive = true; syncLayoutButtons();   // after persist(), so the ★ grid stays selected
@@ -5408,7 +5420,11 @@
   function restorePrefs() {
     const p = LS.get("rg.prefs"); if (!p) return;
     // Keep a carve restoreGrid may already have loaded; only reset one that cannot tile this substrate.
-    if (layoutGrid[p.layout]) { state.layout = p.layout; if (!validCarve(state.rects)) state.rects = defaultRects(p.layout); }
+    if (layoutGrid[p.layout]) {
+      const g = presetGrid(p.layout);
+      state.layout = g.layout;
+      if (!validCarve(state.rects)) state.rects = g.rects;
+    }
     if (p.font) fontPref = { size: p.font.size || "medium", family: p.font.family || "system" };
   }
   function restoreGrid() {
