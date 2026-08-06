@@ -1880,6 +1880,29 @@
     if (expandRoomId === roomId) { const i = modal.querySelector('[data-role="composer"] .crow .cinput'); if (i) return i; }
     const slot = visibleSlots().indexOf(roomId); return slot >= 0 ? ws.querySelector(`.tile[data-slot="${slot}"] [data-role="composer"] .crow .cinput`) : null;
   }
+  // Is the caret on the field's first line? A draft can be several lines with no newline in it at all —
+  // the composer wraps — so counting "\n" answers the wrong question and ↑ would leave a wrapped draft
+  // mid-sentence. Measure instead: a hidden copy of the field holds the text up to the caret, and two
+  // zero-width markers say whether the caret's line is the first one.
+  function caretOnFirstLine(ta) {
+    if (!ta) return true;
+    if (ta.selectionStart !== ta.selectionEnd) return false;   // a selection: ↑ belongs to the field
+    if (!ta.value || !ta.selectionStart) return true;
+    const cs = getComputedStyle(ta), mirror = document.createElement("div");
+    ["fontFamily", "fontSize", "fontWeight", "fontStyle", "letterSpacing", "lineHeight", "textIndent",
+     "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
+     "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth"].forEach(p => { mirror.style[p] = cs[p]; });
+    Object.assign(mirror.style, { position: "absolute", top: "0", left: "-9999px", visibility: "hidden",
+      whiteSpace: "pre-wrap", overflowWrap: "break-word", boxSizing: "border-box", width: ta.clientWidth + "px" });
+    const at = document.createElement("span"), start = document.createElement("span");
+    at.textContent = start.textContent = "​";
+    mirror.append(start, document.createTextNode(ta.value.slice(0, ta.selectionStart)), at);
+    document.body.appendChild(mirror);
+    const line = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.4;
+    const same = at.offsetTop - start.offsetTop < line * 0.5;
+    mirror.remove();
+    return same;
+  }
 
   // ---- message action toolbar: appears on hover / keyboard focus (Messenger style) ----
   // ---- Better.Chat config (stored as ```json replies in a thread under a "better.chat.config" anchor in your self-chat) ----
@@ -4263,7 +4286,7 @@
       e.preventDefault(); moveWindow(e.key); return;
     }
     // ↑ from the composer input jumps up into the messages (last one)
-    if (e.key === "ArrowUp" && typing && document.activeElement.matches('[data-role="composer"] .cinput') && (!/\n/.test(document.activeElement.value) || document.activeElement.selectionStart === 0)) {
+    if (e.key === "ArrowUp" && typing && document.activeElement.matches('[data-role="composer"] .cinput') && caretOnFirstLine(document.activeElement)) {
       const cont = document.activeElement.closest(".tile") || document.activeElement.closest(".modal");
       const s = cont && cont.querySelector('[data-role="stream"]'), msgs = s ? [...s.querySelectorAll(".msg")] : [];
       if (msgs.length) { document.activeElement.blur(); setFocusedMsg(msgs[msgs.length - 1], true); msgs[msgs.length - 1].scrollIntoView({ block: "nearest" }); e.preventDefault(); return; }
