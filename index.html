@@ -5163,9 +5163,13 @@
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
-  const EDGE_UPDATES = { through: "01f0e6196fae5b6660840cdaa4d49e6579253186", entries: [
+  const EDGE_UPDATES = { through: "e00ea0c580b1a177c6bfb0be8436ff9f2746594b", entries: [
     { date: "2026-08-06", items: [
-      "Reshaping a window with Cmd/Ctrl+Shift+arrows, and moving its chat with Cmd+arrows, now work while you are writing — your draft and caret come back where they were",
+      { text: "A message's photos and files are reachable from the keyboard — walk onto the message and the attachment is already selected", sub: [
+        "A photo opens with one Enter",
+        "A file shows its preview and download buttons; Enter steps into them, Tab moves between them, Enter runs the one you are on",
+      ] },
+      "Up arrow in a draft moves a line up while there is a line above, and only jumps to the messages from the first line",
     ] },
   ] };
   // One entry per feature. An entry is a string, or { text, sub: [...] } when the feature genuinely
