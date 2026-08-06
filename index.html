@@ -1183,7 +1183,7 @@
   const customEmoji = {};   // populated from the server: name -> image url
 
 
-  const APP_VERSION = "28";   // set to "<N>" for a release commit+tag, then back to "edge" — main builds show edge
+  const APP_VERSION = "edge";   // set to "<N>" for a release commit+tag, then back to "edge" — main builds show edge
   const sig = { c:"#", p:"🔒", d:"@", s:"⤷" };
   const stripe = { c:"var(--t-channel)", p:"var(--t-private)", d:"var(--t-direct)", s:"var(--t-discuss)" };
   // A layout is only a CELL GRID — cols x rows. What you see is a carve of it: every tile is a
@@ -5164,15 +5164,7 @@
   // Maintained by the /edge-updates skill; /release empties it in the same commit that flips
   // APP_VERSION back to "edge". `through` is the last commit already written up, so re-runs only
   // have to look at what arrived after it. Newest group first.
-  const EDGE_UPDATES = { through: "e00ea0c580b1a177c6bfb0be8436ff9f2746594b", entries: [
-    { date: "2026-08-06", items: [
-      { text: "A message's photos and files are reachable from the keyboard — walk onto the message and the attachment is already selected", sub: [
-        "A photo opens with one Enter",
-        "A file shows its preview and download buttons; Enter steps into them, Tab moves between them, Enter runs the one you are on",
-      ] },
-      "Up arrow in a draft moves a line up while there is a line above, and only jumps to the messages from the first line",
-    ] },
-  ] };
+  const EDGE_UPDATES = { through: "", entries: [] };
   // One entry per feature. An entry is a string, or { text, sub: [...] } when the feature genuinely
   // needs a couple of supporting points — the count is of features, so sub-points never inflate it.
   const edgeUpdateCount = () => (EDGE_UPDATES.entries || []).reduce((t, g) => t + ((g.items || []).length), 0);
